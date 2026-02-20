@@ -70,6 +70,8 @@ const toolComponents: Record<string, React.LazyExoticComponent<() => JSX.Element
   'user-agent': lazy(() => import('@/tools/user-agent/index')),
   'xml-formatter': lazy(() => import('@/tools/xml-formatter/index')),
   'yaml-json': lazy(() => import('@/tools/yaml-json/index')),
+  'ip-lookup': lazy(() => import('@/tools/ip-lookup/index')),
+  'dns-lookup': lazy(() => import('@/tools/dns-lookup/index')),
 }
 
 function ToolSkeleton() {

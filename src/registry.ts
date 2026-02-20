@@ -227,10 +227,19 @@ export const toolRegistry: ToolMeta[] = [
     tags: ['toml', 'json', 'convert'],
     icon: 'FileCode2',
   },
+  {
+    id: 'csv-viewer',
+    name: 'CSV 查看器',
+    nameEn: 'CSV Viewer',
+    description: 'CSV 数据可视化查看与转换',
+    category: 'format',
+    tags: ['csv', '表格', '数据'],
+    icon: 'Table',
+  },
 
   // Encoding - 编码解码
   {
-    id: 'html-encode',
+    id: 'html-entities',
     name: 'HTML 实体编解码',
     nameEn: 'HTML Entity Encoder',
     description: 'HTML 实体编码与解码',
@@ -284,6 +293,15 @@ export const toolRegistry: ToolMeta[] = [
     icon: 'Lock',
   },
   {
+    id: 'punycode',
+    name: 'Punycode 转换',
+    nameEn: 'Punycode Converter',
+    description: '国际化域名 IDN Punycode 编解码',
+    category: 'encoding',
+    tags: ['punycode', 'idn', 'domain', 'encode', 'decode'],
+    icon: 'Globe',
+  },
+  {
     id: 'ascii-table',
     name: 'ASCII 码表',
     nameEn: 'ASCII Table',
@@ -295,7 +313,7 @@ export const toolRegistry: ToolMeta[] = [
 
   // Crypto - 加密安全
   {
-    id: 'aes',
+    id: 'aes-encrypt',
     name: 'AES 加密解密',
     nameEn: 'AES Encrypt/Decrypt',
     description: 'AES-GCM 对称加密与解密',
@@ -322,6 +340,15 @@ export const toolRegistry: ToolMeta[] = [
     icon: 'KeyRound',
   },
   {
+    id: 'bcrypt',
+    name: 'Bcrypt 哈希',
+    nameEn: 'Bcrypt Hash',
+    description: 'Bcrypt 密码哈希与验证，rounds 可配置',
+    category: 'crypto',
+    tags: ['bcrypt', 'hash', 'password', 'verify'],
+    icon: 'LockKeyhole',
+  },
+  {
     id: 'ssh-keygen',
     name: 'SSH 密钥生成',
     nameEn: 'SSH Key Generator',
@@ -329,6 +356,15 @@ export const toolRegistry: ToolMeta[] = [
     category: 'crypto',
     tags: ['ssh', 'key', 'ed25519', 'rsa', 'generate'],
     icon: 'Terminal',
+  },
+  {
+    id: 'jwt-generator',
+    name: 'JWT 生成',
+    nameEn: 'JWT Generator',
+    description: '填写 Payload/Header，选择算法生成 Token',
+    category: 'crypto',
+    tags: ['jwt', 'token', 'generate', 'hs256', 'rs256'],
+    icon: 'KeyRound',
   },
 
   // Network - 网络HTTP
@@ -483,16 +519,7 @@ export const toolRegistry: ToolMeta[] = [
 
   // Color - 颜色设计
   {
-    id: 'color-converter',
-    name: '颜色格式转换',
-    nameEn: 'Color Converter',
-    description: 'HEX、RGB、HSL、HSV、CMYK 颜色格式互转',
-    category: 'color',
-    tags: ['color', 'hex', 'rgb', 'hsl', 'hsv', 'cmyk', 'convert'],
-    icon: 'Palette',
-  },
-  {
-    id: 'gradient-generator',
+    id: 'css-gradient',
     name: 'CSS 渐变生成器',
     nameEn: 'CSS Gradient Generator',
     description: '可视化生成 CSS 渐变代码',
@@ -537,7 +564,7 @@ export const toolRegistry: ToolMeta[] = [
     icon: 'Palette',
   },
   {
-    id: 'box-shadow',
+    id: 'box-shadow-gen',
     name: 'Box Shadow 生成',
     nameEn: 'Box Shadow Generator',
     description: '可视化调整 box-shadow，预览并复制 CSS',
@@ -649,61 +676,6 @@ export const toolRegistry: ToolMeta[] = [
     category: 'generator',
     tags: ['placeholder', 'image', 'svg', 'generate'],
     icon: 'Image',
-  },
-
-  // Converter - 单位换算
-  {
-    id: 'exchange-rate',
-    name: '汇率换算',
-    nameEn: 'Exchange Rate',
-    description: '实时汇率换算，支持全球主要货币',
-    category: 'converter',
-    tags: ['exchange', 'rate', 'currency', 'usd', 'cny'],
-    icon: 'DollarSign',
-    requiresApi: true,
-    isNew: true,
-  },
-  {
-    id: 'number-unit',
-    name: '数字单位换算',
-    nameEn: 'Number Unit Converter',
-    description: '存储/速度/长度/重量/温度单位换算',
-    category: 'converter',
-    tags: ['unit', 'convert', 'storage', 'length', 'weight'],
-    icon: 'Ruler',
-  },
-  {
-    id: 'data-storage',
-    name: '数据存储换算',
-    nameEn: 'Data Storage Converter',
-    description: 'KB/MB/GB/TB/PB，SI 与二进制单位互转',
-    category: 'converter',
-    tags: ['storage', 'convert', 'kb', 'mb', 'gb', 'tb'],
-    icon: 'HardDrive',
-  },
-
-  // AI - AI增强
-  {
-    id: 'ai-code-explain',
-    name: 'AI 代码解释',
-    nameEn: 'AI Code Explainer',
-    description: '用 AI 解释代码逻辑，支持多种编程语言',
-    category: 'ai',
-    tags: ['ai', 'code', 'explain', 'llm'],
-    icon: 'Sparkles',
-    requiresApi: true,
-    isNew: true,
-  },
-  {
-    id: 'ai-regex',
-    name: 'AI 生成正则',
-    nameEn: 'AI Regex Generator',
-    description: '用自然语言描述，AI 生成对应的正则表达式',
-    category: 'ai',
-    tags: ['ai', 'regex', 'generate', 'natural language'],
-    icon: 'Wand2',
-    requiresApi: true,
-    isNew: true,
   },
 ]
 

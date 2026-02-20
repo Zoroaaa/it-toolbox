@@ -1,4 +1,4 @@
-import type { ToolMeta } from '@it-toolbox/types'
+import type { ToolMeta } from '@toolbox/types/tool'
 
 export const meta: ToolMeta = {
   id: 'http-headers',
