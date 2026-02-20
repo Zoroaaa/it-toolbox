@@ -200,6 +200,33 @@ export const toolRegistry: ToolMeta[] = [
     tags: ['xml', 'format', 'validate', 'minify'],
     icon: 'Code2',
   },
+  {
+    id: 'css-formatter',
+    name: 'CSS 格式化',
+    nameEn: 'CSS Formatter',
+    description: 'CSS/SCSS/Less 格式化与压缩',
+    category: 'format',
+    tags: ['css', 'scss', 'less', 'format', 'minify'],
+    icon: 'Paintbrush',
+  },
+  {
+    id: 'js-formatter',
+    name: 'JS/TS 格式化',
+    nameEn: 'JS/TS Formatter',
+    description: 'JavaScript/TypeScript/JSON5 格式化与压缩',
+    category: 'format',
+    tags: ['javascript', 'typescript', 'json5', 'format', 'minify'],
+    icon: 'FileCode',
+  },
+  {
+    id: 'toml-json',
+    name: 'TOML ↔ JSON',
+    nameEn: 'TOML JSON Converter',
+    description: 'TOML 与 JSON 格式互转',
+    category: 'format',
+    tags: ['toml', 'json', 'convert'],
+    icon: 'FileCode2',
+  },
 
   // Encoding - 编码解码
   {
@@ -435,6 +462,24 @@ export const toolRegistry: ToolMeta[] = [
     tags: ['text', 'similarity', 'levenshtein', 'compare'],
     icon: 'GitCompare',
   },
+  {
+    id: 'line-sorter',
+    name: '行处理工具',
+    nameEn: 'Line Sorter',
+    description: '排序/去重/随机打乱/提取第N行/行号添加',
+    category: 'text',
+    tags: ['line', 'sort', 'dedupe', 'shuffle', 'extract'],
+    icon: 'ListOrdered',
+  },
+  {
+    id: 'json-to-type',
+    name: 'JSON 转类型定义',
+    nameEn: 'JSON to Type Definition',
+    description: 'JSON 一键生成 TypeScript/Go/Python/Kotlin 类型',
+    category: 'text',
+    tags: ['json', 'typescript', 'go', 'python', 'type', 'generate'],
+    icon: 'FileType',
+  },
 
   // Color - 颜色设计
   {
@@ -499,6 +544,17 @@ export const toolRegistry: ToolMeta[] = [
     category: 'color',
     tags: ['css', 'shadow', 'box-shadow', 'generator'],
     icon: 'Square',
+  },
+
+  // Crypto - 证书
+  {
+    id: 'cert-decoder',
+    name: 'TLS 证书解析',
+    nameEn: 'TLS Certificate Decoder',
+    description: '解析 PEM 证书，显示域名/有效期/指纹/SAN',
+    category: 'crypto',
+    tags: ['certificate', 'tls', 'ssl', 'pem', 'x509'],
+    icon: 'Shield',
   },
 
   // Datetime - 时间日期
