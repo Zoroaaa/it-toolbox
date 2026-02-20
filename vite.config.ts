@@ -16,13 +16,13 @@ export default defineConfig({
       '@it-toolbox/types': path.resolve(__dirname, './packages/types'),
     },
   },
-  esbuild: {
-    target: 'esnext',
-  },
   optimizeDeps: {
     esbuildOptions: {
       target: 'esnext',
     },
+  },
+  esbuild: {
+    target: 'esnext',
   },
   build: {
     target: 'esnext',
@@ -31,7 +31,6 @@ export default defineConfig({
         manualChunks: {
           'react-vendor': ['react', 'react-dom'],
           'router': ['@tanstack/react-router'],
-          'editor': ['@uiw/react-codemirror'],
         }
       }
     }
