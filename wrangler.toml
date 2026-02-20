@@ -1,0 +1,25 @@
+name = "it-toolbox"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "dist"
+
+[vars]
+ENVIRONMENT = "production"
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "your-kv-id-here"
+
+[[r2_buckets]]
+binding = "FILES"
+bucket_name = "toolbox-files"
+
+[ai]
+binding = "AI"
+
+[[durable_objects.bindings]]
+name = "RATE_LIMITER"
+class_name = "RateLimiterDO"
+
+# Secrets (set via: wrangler secret put SECRET_NAME)
+# EXCHANGE_API_KEY

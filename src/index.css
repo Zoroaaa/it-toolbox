@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border-base;
+  }
+
+  html {
+    @apply bg-bg-base text-text-primary;
+    font-feature-settings: 'cv11', 'ss01', 'ss03';
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border-strong rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-text-muted;
+  }
+
+  ::selection {
+    background: #6ee7b730;
+    color: #6ee7b7;
+  }
+}
+
+@layer components {
+  .tool-input {
+    @apply w-full bg-bg-surface border border-border-base rounded-lg px-4 py-3
+           font-mono text-sm text-text-primary placeholder-text-muted
+           focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/30
+           transition-all duration-150 resize-none;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg
+           bg-accent text-bg-base font-medium text-sm
+           hover:bg-accent-hover transition-all duration-150
+           focus:outline-none focus:ring-2 focus:ring-accent/50
+           active:scale-95;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 px-3 py-2 rounded-lg
+           text-text-secondary hover:text-text-primary hover:bg-bg-raised
+           transition-all duration-150 text-sm font-medium
+           focus:outline-none focus:ring-2 focus:ring-border-strong;
+  }
+
+  .card {
+    @apply bg-bg-surface border border-border-base rounded-xl
+           hover:border-border-strong transition-colors duration-150;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium
+           bg-accent/10 text-accent border border-accent/20;
+  }
+}
