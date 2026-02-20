@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "wrangler pages dev --compatibility-date=2024-11-01 -- npm vite",
+    "dev": "vite",
     "build": "vite build",
-    "preview": "wrangler pages dev --compatibility-date=2024-11-01 -- npm vite preview",
+    "preview": "vite preview",
+    "pages:dev": "wrangler pages dev dist --compatibility-date=2024-11-01 --port 8788",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src --ext .ts,.tsx",
     "deploy": "npm run build && wrangler pages deploy dist --project-name=it-toolbox"
