@@ -8,11 +8,11 @@ ENVIRONMENT = "production"
 
 [[kv_namespaces]]
 binding = "CACHE"
-id = "your-kv-id-here"
+id = "7fd0a5eff59f466cbc71335ad3c843bb"
 
 [[r2_buckets]]
 binding = "FILES"
-bucket_name = "toolbox-files"
+bucket_name = "it-toolbox"
 
 [ai]
 binding = "AI"
