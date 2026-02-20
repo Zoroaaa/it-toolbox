@@ -18,8 +18,11 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@core/*": ["./packages/core/src/*"],
-      "@toolbox/types/*": ["./packages/types/src/*"]
+      "@it-toolbox/core": ["./packages/core/index.ts"],
+      "@it-toolbox/types": ["./packages/types/tool.ts"],
+      "@core/index": ["./packages/core/index.ts"],
+      "@toolbox/types/tool": ["./packages/types/tool.ts"],
+      "@toolbox/types/api": ["./packages/types/api.ts"]
     },
     "types": ["@cloudflare/workers-types"]
   },

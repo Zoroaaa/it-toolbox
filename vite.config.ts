@@ -7,8 +7,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@core': path.resolve(__dirname, './packages/core/src'),
-      '@toolbox/types': path.resolve(__dirname, './packages/types/src'),
+      '@core': path.resolve(__dirname, './packages/core'),
+      '@toolbox/types': path.resolve(__dirname, './packages/types'),
     },
   },
   build: {
