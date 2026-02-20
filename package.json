@@ -4,11 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "wrangler pages dev --compatibility-date=2024-11-01 -- npm vite",
-    "build": "npm vite build",
+    "build": "vite build",
     "preview": "wrangler pages dev --compatibility-date=2024-11-01 -- npm vite preview",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src --ext .ts,.tsx",
-    "deploy": "npm build && wrangler pages deploy dist --project-name=it-toolbox"
+    "deploy": "npm run build && wrangler pages deploy dist --project-name=it-toolbox"
   },
   "dependencies": {
     "hono": "^4.6.0",
