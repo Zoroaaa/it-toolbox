@@ -21,5 +21,9 @@ binding = "AI"
 name = "RATE_LIMITER"
 class_name = "RateLimiterDO"
 
+[[migrations]]
+tag = "v1"
+new_classes = ["RateLimiterDO"]
+
 # Secrets (set via: wrangler secret put SECRET_NAME)
 # EXCHANGE_API_KEY
