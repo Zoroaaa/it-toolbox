@@ -10,7 +10,6 @@ import { ToolPage } from '@/pages/ToolPage'
 import { FavoritesPage } from '@/pages/FavoritesPage'
 import { CategoryPage } from '@/pages/CategoryPage'
 
-// Root layout
 const rootRoute = createRootRoute({
   component: () => (
     <div className="flex h-screen bg-bg-base overflow-hidden">

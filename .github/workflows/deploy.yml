@@ -7,9 +7,10 @@ on:
     branches: [main]
 
 jobs:
-  deploy:
+  # ─── Job 1: 类型检查 + 构建验证（PR 和 push 都跑）──────────────────────────
+  check:
     runs-on: ubuntu-latest
-    name: Build & Deploy
+    name: Type Check & Build
     steps:
       - uses: actions/checkout@v4
 
@@ -34,9 +35,30 @@ jobs:
         env:
           NODE_ENV: production
 
+      # 将 dist 传给下一个 job 使用（避免重复构建）
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 1
+
+  # ─── Job 2: 部署到生产（仅 push main 触发）────────────────────────────────
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to Cloudflare Pages
+    needs: check                          # 必须 check 通过才部署
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Download dist artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           accountId: ${{ secrets.CF_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=it-toolbox --branch=${{ github.ref_name }}
+          command: pages deploy dist --project-name=it-toolbox --branch=main
