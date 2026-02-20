@@ -1,16 +1,16 @@
 export type Category =
-  | 'format'
   | 'encoding'
   | 'crypto'
-  | 'network'
+  | 'format'
   | 'text'
-  | 'image'
   | 'color'
-  | 'generator'
-  | 'converter'
+  | 'network'
   | 'datetime'
-  | 'ai'
+  | 'generator'
+  | 'image'
   | 'devops'
+  | 'converter'
+  | 'ai'
 
 export interface ToolMeta {
   id: string
@@ -26,31 +26,46 @@ export interface ToolMeta {
 }
 
 export const CATEGORY_LABELS: Record<Category, string> = {
-  format:    '格式化',
   encoding:  '编码解码',
-  crypto:    '加密哈希',
-  network:   '网络 HTTP',
+  crypto:    '加密安全',
+  format:    '格式化',
   text:      '文本处理',
-  image:     '图片媒体',
   color:     '颜色设计',
-  generator: '数据生成',
-  converter: '单位转换',
+  network:   '网络HTTP',
   datetime:  '时间日期',
-  ai:        'AI 增强',
+  generator: '生成器',
+  image:     '图片媒体',
   devops:    '开发规范',
+  converter: '单位换算',
+  ai:        'AI增强',
 }
 
 export const CATEGORY_ICONS: Record<Category, string> = {
-  format:    'Braces',
   encoding:  'Binary',
   crypto:    'Lock',
-  network:   'Globe',
+  format:    'Braces',
   text:      'Type',
-  image:     'Image',
   color:     'Palette',
-  generator: 'Shuffle',
-  converter: 'ArrowLeftRight',
+  network:   'Globe',
   datetime:  'Clock',
-  ai:        'Sparkles',
+  generator: 'Shuffle',
+  image:     'Image',
   devops:    'GitBranch',
+  converter: 'ArrowLeftRight',
+  ai:        'Sparkles',
 }
+
+export const CATEGORY_ORDER: Category[] = [
+  'format',
+  'encoding',
+  'crypto',
+  'text',
+  'color',
+  'network',
+  'datetime',
+  'generator',
+  'image',
+  'devops',
+  'converter',
+  'ai',
+]

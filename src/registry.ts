@@ -4,7 +4,7 @@ import type { ToolMeta } from '@toolbox/types/tool'
 export const toolRegistry: ToolMeta[] = [
   // ─── Phase 1: 高频工具首批 (15个) ───────────────────────────────────────────
 
-  // Format
+  // Format - 格式化
   {
     id: 'json-formatter',
     name: 'JSON 格式化',
@@ -26,7 +26,7 @@ export const toolRegistry: ToolMeta[] = [
     icon: 'FileText',
   },
 
-  // Encoding
+  // Encoding - 编码解码
   {
     id: 'base64',
     name: 'Base64 编解码',
@@ -58,7 +58,7 @@ export const toolRegistry: ToolMeta[] = [
     icon: 'KeyRound',
   },
 
-  // Crypto
+  // Crypto - 加密安全
   {
     id: 'hash-calculator',
     name: 'Hash 计算器',
@@ -69,18 +69,8 @@ export const toolRegistry: ToolMeta[] = [
     keywords: ['哈希', '摘要', '校验'],
     icon: 'Hash',
   },
-  {
-    id: 'password-gen',
-    name: '密码生成器',
-    nameEn: 'Password Generator',
-    description: '可配置字符集、长度、数量，强度可视化，批量导出',
-    category: 'crypto',
-    tags: ['password', 'generate', 'random', 'secure', 'strong'],
-    keywords: ['密码', '随机', '安全'],
-    icon: 'KeySquare',
-  },
 
-  // Generator
+  // Generator - 生成器
   {
     id: 'uuid-generator',
     name: 'UUID 生成器',
@@ -91,8 +81,18 @@ export const toolRegistry: ToolMeta[] = [
     keywords: ['唯一', '标识符', 'GUID'],
     icon: 'Fingerprint',
   },
+  {
+    id: 'password-gen',
+    name: '密码生成器',
+    nameEn: 'Password Generator',
+    description: '可配置字符集、长度、数量，强度可视化，批量导出',
+    category: 'generator',
+    tags: ['password', 'generate', 'random', 'secure', 'strong'],
+    keywords: ['密码', '随机', '安全'],
+    icon: 'KeySquare',
+  },
 
-  // Datetime
+  // Datetime - 时间日期
   {
     id: 'timestamp',
     name: '时间戳转换',
@@ -104,7 +104,7 @@ export const toolRegistry: ToolMeta[] = [
     icon: 'Clock',
   },
 
-  // Text
+  // Text - 文本处理
   {
     id: 'case-converter',
     name: '命名规范转换',
@@ -146,7 +146,7 @@ export const toolRegistry: ToolMeta[] = [
     icon: 'TextCursor',
   },
 
-  // Color
+  // Color - 颜色设计
   {
     id: 'color-picker',
     name: '颜色选择器',
@@ -158,7 +158,7 @@ export const toolRegistry: ToolMeta[] = [
     icon: 'Palette',
   },
 
-  // Converter
+  // Converter - 单位换算
   {
     id: 'number-base',
     name: '进制转换',
@@ -172,7 +172,7 @@ export const toolRegistry: ToolMeta[] = [
 
   // ─── Phase 2+: 后续阶段工具 ────────────────────────────────────────────────
 
-  // Format
+  // Format - 格式化
   {
     id: 'yaml-json',
     name: 'YAML ↔ JSON',
@@ -191,8 +191,17 @@ export const toolRegistry: ToolMeta[] = [
     tags: ['sql', 'format', 'database', 'mysql', 'postgresql'],
     icon: 'Database',
   },
+  {
+    id: 'xml-formatter',
+    name: 'XML 格式化',
+    nameEn: 'XML Formatter',
+    description: '格式化、压缩、校验 XML 文档',
+    category: 'format',
+    tags: ['xml', 'format', 'validate', 'minify'],
+    icon: 'Code2',
+  },
 
-  // Encoding
+  // Encoding - 编码解码
   {
     id: 'html-encode',
     name: 'HTML 实体编解码',
@@ -202,8 +211,62 @@ export const toolRegistry: ToolMeta[] = [
     tags: ['html', 'entity', 'encode', 'decode', 'escape'],
     icon: 'Code2',
   },
+  {
+    id: 'hex-encode',
+    name: 'Hex 编解码',
+    nameEn: 'Hex Encoder/Decoder',
+    description: '文本与十六进制互转',
+    category: 'encoding',
+    tags: ['hex', 'encode', 'decode', 'hexadecimal'],
+    icon: 'Hash',
+  },
+  {
+    id: 'unicode-convert',
+    name: 'Unicode 转换',
+    nameEn: 'Unicode Converter',
+    description: '字符与 Unicode 码点互转，支持多种表示格式',
+    category: 'encoding',
+    tags: ['unicode', 'utf', 'codepoint', 'convert'],
+    icon: 'Languages',
+  },
+  {
+    id: 'morse-code',
+    name: '摩斯密码',
+    nameEn: 'Morse Code',
+    description: '文本与摩斯电码互转',
+    category: 'encoding',
+    tags: ['morse', 'code', 'encode', 'decode'],
+    icon: 'Radio',
+  },
+  {
+    id: 'binary-text',
+    name: '二进制文本',
+    nameEn: 'Binary Text',
+    description: '文本与二进制字符串互转',
+    category: 'encoding',
+    tags: ['binary', 'text', 'encode', 'decode'],
+    icon: 'Binary',
+  },
+  {
+    id: 'rot13',
+    name: 'ROT13/Caesar',
+    nameEn: 'ROT13/Caesar Cipher',
+    description: 'ROT13 及 Caesar 移位密码，偏移量可调',
+    category: 'encoding',
+    tags: ['rot13', 'caesar', 'cipher', 'encrypt'],
+    icon: 'Lock',
+  },
+  {
+    id: 'ascii-table',
+    name: 'ASCII 码表',
+    nameEn: 'ASCII Table',
+    description: '完整 ASCII/Unicode 字符查询，支持描述搜索',
+    category: 'encoding',
+    tags: ['ascii', 'table', 'unicode', 'character'],
+    icon: 'Table',
+  },
 
-  // Crypto
+  // Crypto - 加密安全
   {
     id: 'aes',
     name: 'AES 加密解密',
@@ -222,8 +285,26 @@ export const toolRegistry: ToolMeta[] = [
     tags: ['rsa', 'key', 'generate', 'pem', 'asymmetric'],
     icon: 'ShieldCheck',
   },
+  {
+    id: 'hmac',
+    name: 'HMAC 计算',
+    nameEn: 'HMAC Calculator',
+    description: 'HMAC-SHA256/512 签名计算',
+    category: 'crypto',
+    tags: ['hmac', 'sha', 'signature', 'verify'],
+    icon: 'KeyRound',
+  },
+  {
+    id: 'ssh-keygen',
+    name: 'SSH 密钥生成',
+    nameEn: 'SSH Key Generator',
+    description: '生成 Ed25519/RSA SSH 密钥对',
+    category: 'crypto',
+    tags: ['ssh', 'key', 'ed25519', 'rsa', 'generate'],
+    icon: 'Terminal',
+  },
 
-  // Network
+  // Network - 网络HTTP
   {
     id: 'ip-lookup',
     name: 'IP 地址查询',
@@ -262,8 +343,53 @@ export const toolRegistry: ToolMeta[] = [
     tags: ['http', 'status', 'code', '404', '500', '200'],
     icon: 'Activity',
   },
+  {
+    id: 'http-headers',
+    name: 'HTTP 请求头',
+    nameEn: 'HTTP Headers',
+    description: '常见请求/响应头说明，安全头建议',
+    category: 'network',
+    tags: ['http', 'header', 'request', 'response'],
+    icon: 'List',
+  },
+  {
+    id: 'mime-types',
+    name: 'MIME 类型',
+    nameEn: 'MIME Types',
+    description: '文件扩展名与 MIME 类型对照查询',
+    category: 'network',
+    tags: ['mime', 'type', 'extension', 'content-type'],
+    icon: 'FileType',
+  },
+  {
+    id: 'ip-subnet',
+    name: 'IP 子网计算',
+    nameEn: 'IP Subnet Calculator',
+    description: 'CIDR 计算网络地址/广播地址/主机数',
+    category: 'network',
+    tags: ['ip', 'subnet', 'cidr', 'network', 'calculator'],
+    icon: 'Network',
+  },
+  {
+    id: 'user-agent',
+    name: 'UA 解析',
+    nameEn: 'User Agent Parser',
+    description: '解析 User-Agent 字符串，识别浏览器/OS/设备',
+    category: 'network',
+    tags: ['user-agent', 'ua', 'browser', 'device', 'parse'],
+    icon: 'Monitor',
+  },
+  {
+    id: 'curl-converter',
+    name: 'cURL 转换',
+    nameEn: 'cURL Converter',
+    description: 'cURL 命令转换为 fetch/axios/Python/Go 代码',
+    category: 'network',
+    tags: ['curl', 'convert', 'fetch', 'axios', 'python'],
+    icon: 'Terminal',
+  },
 
-  // Text
+  // Text - 文本处理
   {
     id: 'text-diff',
     name: '文本 Diff',
@@ -273,8 +399,44 @@ export const toolRegistry: ToolMeta[] = [
     tags: ['diff', 'compare', 'text', 'difference'],
     icon: 'GitCompare',
   },
+  {
+    id: 'text-transform',
+    name: '文本变换',
+    nameEn: 'Text Transform',
+    description: '去重/排序/反转/去空行/提取行等批量操作',
+    category: 'text',
+    tags: ['text', 'transform', 'sort', 'dedupe', 'reverse'],
+    icon: 'TextCursorInput',
+  },
+  {
+    id: 'string-escape',
+    name: '字符串转义',
+    nameEn: 'String Escape',
+    description: 'JS/Python/Java/C 字符串转义与反转义',
+    category: 'text',
+    tags: ['string', 'escape', 'unescape', 'quote'],
+    icon: 'Quote',
+  },
+  {
+    id: 'cron-parser',
+    name: 'Cron 表达式解析',
+    nameEn: 'Cron Parser',
+    description: '解析和生成 Cron 表达式，显示下次执行时间',
+    category: 'text',
+    tags: ['cron', 'schedule', 'parse', 'expression'],
+    icon: 'Timer',
+  },
+  {
+    id: 'text-similarity',
+    name: '文本相似度',
+    nameEn: 'Text Similarity',
+    description: '计算两段文本的相似度，基于 Levenshtein 距离',
+    category: 'text',
+    tags: ['text', 'similarity', 'levenshtein', 'compare'],
+    icon: 'GitCompare',
+  },
 
-  // Color
+  // Color - 颜色设计
   {
     id: 'color-converter',
     name: '颜色格式转换',
@@ -293,8 +455,127 @@ export const toolRegistry: ToolMeta[] = [
     tags: ['gradient', 'css', 'linear', 'radial', 'color'],
     icon: 'Blend',
   },
+  {
+    id: 'color-palette',
+    name: '配色方案生成',
+    nameEn: 'Color Palette Generator',
+    description: '输入主色生成类比/互补/三角配色方案',
+    category: 'color',
+    tags: ['color', 'palette', 'scheme', 'analogous', 'complementary'],
+    icon: 'SwatchBook',
+  },
+  {
+    id: 'contrast-checker',
+    name: 'WCAG 对比度',
+    nameEn: 'WCAG Contrast Checker',
+    description: '前景/背景色对比度检测，AA/AAA 级别判定',
+    category: 'color',
+    tags: ['wcag', 'contrast', 'accessibility', 'color'],
+    icon: 'Eye',
+  },
+  {
+    id: 'color-blindness',
+    name: '色盲模拟',
+    nameEn: 'Color Blindness Simulator',
+    description: '模拟 8 种色觉缺陷显示效果',
+    category: 'color',
+    tags: ['color', 'blindness', 'accessibility', 'simulate'],
+    icon: 'Eye',
+  },
+  {
+    id: 'tailwind-colors',
+    name: 'Tailwind 色板',
+    nameEn: 'Tailwind Colors',
+    description: '完整 Tailwind v3/v4 色板，点击复制',
+    category: 'color',
+    tags: ['tailwind', 'color', 'palette', 'css'],
+    icon: 'Palette',
+  },
+  {
+    id: 'box-shadow',
+    name: 'Box Shadow 生成',
+    nameEn: 'Box Shadow Generator',
+    description: '可视化调整 box-shadow，预览并复制 CSS',
+    category: 'color',
+    tags: ['css', 'shadow', 'box-shadow', 'generator'],
+    icon: 'Square',
+  },
 
-  // Generator
+  // Datetime - 时间日期
+  {
+    id: 'date-calc',
+    name: '日期计算器',
+    nameEn: 'Date Calculator',
+    description: '日期加减/两日期差值，工作日计算',
+    category: 'datetime',
+    tags: ['date', 'calculator', 'diff', 'add', 'subtract'],
+    icon: 'Calendar',
+  },
+  {
+    id: 'timezone-convert',
+    name: '时区转换',
+    nameEn: 'Timezone Converter',
+    description: '全球时区对照，多时区同屏显示',
+    category: 'datetime',
+    tags: ['timezone', 'convert', 'zone', 'utc'],
+    icon: 'Globe',
+  },
+  {
+    id: 'duration-format',
+    name: '时长格式化',
+    nameEn: 'Duration Formatter',
+    description: '秒数与 hh:mm:ss/人话描述互转',
+    category: 'datetime',
+    tags: ['duration', 'format', 'time', 'convert'],
+    icon: 'Timer',
+  },
+  {
+    id: 'calendar-gen',
+    name: '日历生成',
+    nameEn: 'Calendar Generator',
+    description: '生成指定年月日历，支持导出 iCal',
+    category: 'datetime',
+    tags: ['calendar', 'generate', 'ical', 'month'],
+    icon: 'CalendarDays',
+  },
+
+  // Generator - 生成器
+  {
+    id: 'nanoid-gen',
+    name: 'NanoID 生成器',
+    nameEn: 'NanoID Generator',
+    description: '自定义字符集和长度，批量生成',
+    category: 'generator',
+    tags: ['nanoid', 'generate', 'id', 'unique'],
+    icon: 'Fingerprint',
+  },
+  {
+    id: 'ulid-gen',
+    name: 'ULID 生成器',
+    nameEn: 'ULID Generator',
+    description: '时间有序唯一 ID，比 UUID 更友好',
+    category: 'generator',
+    tags: ['ulid', 'generate', 'id', 'unique', 'time'],
+    icon: 'Fingerprint',
+  },
+  {
+    id: 'objectid-gen',
+    name: 'MongoDB ObjectID',
+    nameEn: 'MongoDB ObjectID Generator',
+    description: '生成/解析 ObjectID，显示时间戳和机器码',
+    category: 'generator',
+    tags: ['objectid', 'mongodb', 'generate', 'parse'],
+    icon: 'Fingerprint',
+  },
+  {
+    id: 'faker-data',
+    name: '假数据生成',
+    nameEn: 'Fake Data Generator',
+    description: '姓名/邮箱/手机/地址/公司等假数据生成',
+    category: 'generator',
+    tags: ['faker', 'fake', 'data', 'generate', 'mock'],
+    icon: 'Database',
+  },
   {
     id: 'qrcode',
     name: '二维码生成',
@@ -304,19 +585,17 @@ export const toolRegistry: ToolMeta[] = [
     tags: ['qrcode', 'qr', 'generate', 'barcode'],
     icon: 'QrCode',
   },
-
-  // Datetime
   {
-    id: 'cron-parser',
-    name: 'Cron 表达式解析',
-    nameEn: 'Cron Parser',
-    description: '解析和生成 Cron 表达式，显示下次执行时间',
-    category: 'datetime',
-    tags: ['cron', 'schedule', 'parse', 'expression'],
-    icon: 'Timer',
+    id: 'placeholder-img',
+    name: '占位图生成',
+    nameEn: 'Placeholder Image Generator',
+    description: '生成指定尺寸/颜色/文字的占位图',
+    category: 'generator',
+    tags: ['placeholder', 'image', 'svg', 'generate'],
+    icon: 'Image',
   },
 
-  // Converter
+  // Converter - 单位换算
   {
     id: 'exchange-rate',
     name: '汇率换算',
@@ -328,8 +607,26 @@ export const toolRegistry: ToolMeta[] = [
     requiresApi: true,
     isNew: true,
   },
+  {
+    id: 'number-unit',
+    name: '数字单位换算',
+    nameEn: 'Number Unit Converter',
+    description: '存储/速度/长度/重量/温度单位换算',
+    category: 'converter',
+    tags: ['unit', 'convert', 'storage', 'length', 'weight'],
+    icon: 'Ruler',
+  },
+  {
+    id: 'data-storage',
+    name: '数据存储换算',
+    nameEn: 'Data Storage Converter',
+    description: 'KB/MB/GB/TB/PB，SI 与二进制单位互转',
+    category: 'converter',
+    tags: ['storage', 'convert', 'kb', 'mb', 'gb', 'tb'],
+    icon: 'HardDrive',
+  },
 
-  // AI
+  // AI - AI增强
   {
     id: 'ai-code-explain',
     name: 'AI 代码解释',

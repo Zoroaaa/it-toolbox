@@ -1,12 +1,11 @@
 import { Link, useRouterState } from '@tanstack/react-router'
 import { Wrench } from 'lucide-react'
-import type { Category } from '@toolbox/types/tool'
-import { CATEGORY_LABELS, CATEGORY_ICONS } from '@toolbox/types/tool'
+import { CATEGORY_LABELS, CATEGORY_ICONS, CATEGORY_ORDER } from '@toolbox/types/tool'
 import { toolRegistry } from '@/registry'
 import { getIconComponent } from '@/utils/icons'
 import { useAppStore } from '@/store/app'
 
-const categories = Object.keys(CATEGORY_LABELS) as Category[]
+const categories = CATEGORY_ORDER
 
 export function Sidebar() {
   const routerState = useRouterState()
