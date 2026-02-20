@@ -1,9 +1,9 @@
 import { Hono } from 'hono'
-import type { Env } from '../[[route]]'
+import type { Env } from '../route'
 
 export const aiRoute = new Hono<{ Bindings: Env }>()
 
-const MODEL = '@cf/meta/llama-3.1-8b-instruct'
+const MODEL = '@cf/meta/llama-3.1-8b-instruct' as const
 
 aiRoute.post('/explain', async (c) => {
   const { code, language = 'unknown' } = await c.req.json<{ code: string; language?: string }>()
@@ -15,7 +15,7 @@ aiRoute.post('/explain', async (c) => {
     { role: 'user', content: `请解释以下 ${language} 代码：\n\n\`\`\`${language}\n${code}\n\`\`\`` }
   ]
 
-  const result = await c.env.AI.run(MODEL, { messages }) as { response: string }
+  const result = await c.env.AI.run(MODEL as keyof AiModels, { messages }) as { response: string }
   return c.json({ success: true, data: { explanation: result.response } })
 })
 
@@ -28,7 +28,7 @@ aiRoute.post('/regex', async (c) => {
     { role: 'user', content: description }
   ]
 
-  const result = await c.env.AI.run(MODEL, { messages }) as { response: string }
+  const result = await c.env.AI.run(MODEL as keyof AiModels, { messages }) as { response: string }
   try {
     const parsed = JSON.parse(result.response.replace(/```json?|```/g, '').trim())
     return c.json({ success: true, data: parsed })
@@ -47,7 +47,7 @@ aiRoute.post('/sql', async (c) => {
     { role: 'user', content: `${description}${schemaContext}` }
   ]
 
-  const result = await c.env.AI.run(MODEL, { messages }) as { response: string }
+  const result = await c.env.AI.run(MODEL as keyof AiModels, { messages }) as { response: string }
   try {
     const parsed = JSON.parse(result.response.replace(/```json?|```/g, '').trim())
     return c.json({ success: true, data: parsed })

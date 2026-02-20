@@ -2,24 +2,22 @@ import { lazy, Suspense } from 'react'
 import { useParams } from '@tanstack/react-router'
 import { Loader2 } from 'lucide-react'
 
-// Manually map tool IDs to lazy-loaded components
-// (Vite doesn't support fully dynamic imports with variables)
 const toolComponents: Record<string, React.LazyExoticComponent<() => JSX.Element>> = {
   'json-formatter': lazy(() => import('@/tools/json-formatter/index')),
-  // Add more as you build them:
-  // 'base64': lazy(() => import('@/tools/base64/index')),
-  // 'jwt-decoder': lazy(() => import('@/tools/jwt-decoder/index')),
-  // 'uuid-generator': lazy(() => import('@/tools/uuid-generator/index')),
-  // 'timestamp': lazy(() => import('@/tools/timestamp/index')),
-  // 'color-converter': lazy(() => import('@/tools/color-converter/index')),
-  // 'hash': lazy(() => import('@/tools/hash/index')),
-  // 'password-generator': lazy(() => import('@/tools/password-generator/index')),
-  // 'case-converter': lazy(() => import('@/tools/case-converter/index')),
-  // 'regex-tester': lazy(() => import('@/tools/regex-tester/index')),
-  // 'text-diff': lazy(() => import('@/tools/text-diff/index')),
-  // 'url-encode': lazy(() => import('@/tools/url-encode/index')),
-  // 'ip-lookup': lazy(() => import('@/tools/ip-lookup/index')),
-  // 'dns-lookup': lazy(() => import('@/tools/dns-lookup/index')),
+  'base64': lazy(() => import('@/tools/base64/index')),
+  'url-encode': lazy(() => import('@/tools/url-encode/index')),
+  'jwt-decoder': lazy(() => import('@/tools/jwt-decoder/index')),
+  'uuid-generator': lazy(() => import('@/tools/uuid-generator/index')),
+  'hash-calculator': lazy(() => import('@/tools/hash-calculator/index')),
+  'password-gen': lazy(() => import('@/tools/password-gen/index')),
+  'timestamp': lazy(() => import('@/tools/timestamp/index')),
+  'case-converter': lazy(() => import('@/tools/case-converter/index')),
+  'lorem-ipsum': lazy(() => import('@/tools/lorem-ipsum/index')),
+  'color-picker': lazy(() => import('@/tools/color-picker/index')),
+  'markdown-preview': lazy(() => import('@/tools/markdown-preview/index')),
+  'regex-tester': lazy(() => import('@/tools/regex-tester/index')),
+  'number-base': lazy(() => import('@/tools/number-base/index')),
+  'text-counter': lazy(() => import('@/tools/text-counter/index')),
 }
 
 function ToolSkeleton() {

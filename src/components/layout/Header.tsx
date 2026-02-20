@@ -5,7 +5,8 @@ import { Command as Cmd, CommandInput, CommandList, CommandItem, CommandEmpty, C
 import { searchTools } from '@/registry'
 import type { ToolMeta } from '@toolbox/types/tool'
 import { CATEGORY_LABELS } from '@toolbox/types/tool'
-import * as Icons from 'lucide-react'
+import { getIconComponent } from '@/utils/icons'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 
 export function Header() {
   const [open, setOpen] = useState(false)
@@ -41,13 +42,13 @@ export function Header() {
             <Command className="w-3 h-3" />K
           </kbd>
         </button>
+        <ThemeToggle />
       </header>
 
-      {/* Command Palette */}
       {open && (
         <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4">
           <div className="fixed inset-0 bg-bg-base/60 backdrop-blur-sm" onClick={() => setOpen(false)} />
-          <div className="relative w-full max-w-lg bg-bg-surface border border-border-strong rounded-xl shadow-2xl overflow-hidden animate-slide-up">
+          <div className="relative w-full max-w-lg bg-bg-surface border border-border-strong rounded-xl shadow-theme-lg overflow-hidden animate-slide-up">
             <Cmd className="[&_[cmdk-input-wrapper]]:border-b [&_[cmdk-input-wrapper]]:border-border-base" label="Search tools">
               <div className="flex items-center gap-2 px-4 py-3">
                 <Search className="w-4 h-4 text-text-muted flex-shrink-0" />
@@ -77,10 +78,9 @@ export function Header() {
 }
 
 function SearchResults({ onSelect }: { onSelect: (t: ToolMeta) => void }) {
-  const [query, setQuery] = useState('')
+  const [query] = useState('')
   const results = searchTools(query)
 
-  // Group by category
   const grouped = results.reduce<Record<string, ToolMeta[]>>((acc, tool) => {
     if (!acc[tool.category]) acc[tool.category] = []
     acc[tool.category].push(tool)
@@ -92,7 +92,7 @@ function SearchResults({ onSelect }: { onSelect: (t: ToolMeta) => void }) {
       {Object.entries(grouped).slice(0, 5).map(([cat, tools]) => (
         <CommandGroup key={cat} heading={CATEGORY_LABELS[cat as keyof typeof CATEGORY_LABELS]} className="[&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:text-text-muted [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5">
           {tools.slice(0, 4).map(tool => {
-            const IconComp = (Icons as Record<string, React.ComponentType<{ className?: string }>>)[tool.icon]
+            const IconComp = getIconComponent(tool.icon)
             return (
               <CommandItem
                 key={tool.id}

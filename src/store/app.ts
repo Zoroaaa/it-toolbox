@@ -6,24 +6,48 @@ interface HistoryRecord {
   timestamp: number
 }
 
+export type ThemeMode = 'dark' | 'light' | 'system'
+
 interface AppStore {
-  // Favorites
   favorites: string[]
   toggleFavorite: (id: string) => void
   isFavorited: (id: string) => boolean
 
-  // History: toolId -> recent inputs
   history: Record<string, HistoryRecord[]>
   addHistory: (toolId: string, input: string) => void
   getHistory: (toolId: string) => HistoryRecord[]
 
-  // Recently used tool IDs
   recentTools: string[]
   addRecentTool: (id: string) => void
 
-  // Theme
-  theme: 'dark' | 'light'
-  setTheme: (theme: 'dark' | 'light') => void
+  themeMode: ThemeMode
+  resolvedTheme: 'dark' | 'light'
+  setThemeMode: (mode: ThemeMode) => void
+  applyTheme: () => void
+  getSystemTheme: () => 'dark' | 'light'
+}
+
+const getSystemTheme = (): 'dark' | 'light' => {
+  if (typeof window === 'undefined') return 'dark'
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
+const applyThemeToDOM = (theme: 'dark' | 'light') => {
+  const html = document.documentElement
+  
+  html.classList.add('theme-transitioning')
+  
+  if (theme === 'dark') {
+    html.classList.add('dark')
+  } else {
+    html.classList.remove('dark')
+  }
+  
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      html.classList.remove('theme-transitioning')
+    })
+  })
 }
 
 export const useAppStore = create<AppStore>()(
@@ -54,10 +78,21 @@ export const useAppStore = create<AppStore>()(
         recentTools: [id, ...s.recentTools.filter(t => t !== id)].slice(0, 20),
       })),
 
-      theme: 'dark',
-      setTheme: (theme) => {
-        set({ theme })
-        document.documentElement.classList.toggle('dark', theme === 'dark')
+      themeMode: 'system',
+      resolvedTheme: 'dark',
+      
+      getSystemTheme,
+      
+      setThemeMode: (mode) => {
+        set({ themeMode: mode })
+        get().applyTheme()
+      },
+      
+      applyTheme: () => {
+        const { themeMode } = get()
+        const resolvedTheme = themeMode === 'system' ? getSystemTheme() : themeMode
+        set({ resolvedTheme })
+        applyThemeToDOM(resolvedTheme)
       },
     }),
     {
@@ -66,8 +101,29 @@ export const useAppStore = create<AppStore>()(
         favorites: s.favorites,
         history: s.history,
         recentTools: s.recentTools,
-        theme: s.theme,
+        themeMode: s.themeMode,
       }),
     }
   )
 )
+
+export const initThemeListener = () => {
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+  
+  const handleChange = () => {
+    const store = useAppStore.getState()
+    if (store.themeMode === 'system') {
+      store.applyTheme()
+    }
+  }
+  
+  mediaQuery.addEventListener('change', handleChange)
+  
+  return () => mediaQuery.removeEventListener('change', handleChange)
+}
+
+export const initTheme = () => {
+  const store = useAppStore.getState()
+  store.applyTheme()
+  return initThemeListener()
+}

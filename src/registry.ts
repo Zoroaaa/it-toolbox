@@ -2,17 +2,177 @@ import Fuse from 'fuse.js'
 import type { ToolMeta } from '@toolbox/types/tool'
 
 export const toolRegistry: ToolMeta[] = [
-  // ─── Format ────────────────────────────────────────────────────────────────
+  // ─── Phase 1: 高频工具首批 (15个) ───────────────────────────────────────────
+
+  // Format
   {
     id: 'json-formatter',
     name: 'JSON 格式化',
     nameEn: 'JSON Formatter',
-    description: '格式化、压缩、校验 JSON 数据，支持语法高亮',
+    description: '格式化、压缩、校验 JSON 数据，支持语法高亮，缩进可选',
     category: 'format',
     tags: ['json', 'format', 'validate', 'prettify', 'minify'],
     keywords: ['大括号', 'object', '对象', '压缩'],
     icon: 'Braces',
   },
+  {
+    id: 'markdown-preview',
+    name: 'Markdown 预览',
+    nameEn: 'Markdown Preview',
+    description: '实时渲染 Markdown，支持 GFM、数学公式、代码高亮，导出 HTML',
+    category: 'format',
+    tags: ['markdown', 'preview', 'md', 'gfm', 'render'],
+    keywords: ['md', '文档', '渲染'],
+    icon: 'FileText',
+  },
+
+  // Encoding
+  {
+    id: 'base64',
+    name: 'Base64 编解码',
+    nameEn: 'Base64 Encoder/Decoder',
+    description: '文本 Base64/Base64URL 编解码，支持文件转 Base64',
+    category: 'encoding',
+    tags: ['base64', 'encode', 'decode', 'base64url'],
+    keywords: ['编码', '解码', '二进制'],
+    icon: 'Binary',
+  },
+  {
+    id: 'url-encode',
+    name: 'URL 编解码',
+    nameEn: 'URL Encoder/Decoder',
+    description: 'encodeURIComponent/完整 URL 编解码，参数解析',
+    category: 'encoding',
+    tags: ['url', 'encode', 'decode', 'percent', 'uri'],
+    keywords: ['链接', '参数', '转义'],
+    icon: 'Link',
+  },
+  {
+    id: 'jwt-decoder',
+    name: 'JWT 解析',
+    nameEn: 'JWT Decoder',
+    description: '解析 Header/Payload，时间戳转人类时间，高亮过期',
+    category: 'encoding',
+    tags: ['jwt', 'token', 'decode', 'auth', 'json web token'],
+    keywords: ['令牌', '认证', '身份'],
+    icon: 'KeyRound',
+  },
+
+  // Crypto
+  {
+    id: 'hash-calculator',
+    name: 'Hash 计算器',
+    nameEn: 'Hash Calculator',
+    description: 'MD5/SHA-1/SHA-256/SHA-384/SHA-512 哈希计算，支持文本和文件',
+    category: 'crypto',
+    tags: ['hash', 'md5', 'sha', 'sha256', 'sha512', 'checksum'],
+    keywords: ['哈希', '摘要', '校验'],
+    icon: 'Hash',
+  },
+  {
+    id: 'password-gen',
+    name: '密码生成器',
+    nameEn: 'Password Generator',
+    description: '可配置字符集、长度、数量，强度可视化，批量导出',
+    category: 'crypto',
+    tags: ['password', 'generate', 'random', 'secure', 'strong'],
+    keywords: ['密码', '随机', '安全'],
+    icon: 'KeySquare',
+  },
+
+  // Generator
+  {
+    id: 'uuid-generator',
+    name: 'UUID 生成器',
+    nameEn: 'UUID Generator',
+    description: 'UUID v4 批量生成（最多1000），大写/小写/带连字符可选',
+    category: 'generator',
+    tags: ['uuid', 'generate', 'unique', 'id', 'guid', 'v4'],
+    keywords: ['唯一', '标识符', 'GUID'],
+    icon: 'Fingerprint',
+  },
+
+  // Datetime
+  {
+    id: 'timestamp',
+    name: '时间戳转换',
+    nameEn: 'Timestamp Converter',
+    description: 'Unix 时间戳与日期时间互转，支持毫秒/秒，全球时区',
+    category: 'datetime',
+    tags: ['timestamp', 'unix', 'datetime', 'timezone', 'convert'],
+    keywords: ['时间', '日期', '时区'],
+    icon: 'Clock',
+  },
+
+  // Text
+  {
+    id: 'case-converter',
+    name: '命名规范转换',
+    nameEn: 'Case Converter',
+    description: 'camelCase/PascalCase/snake_case/kebab-case/CONSTANT 等互转',
+    category: 'text',
+    tags: ['case', 'camel', 'snake', 'pascal', 'kebab', 'convert'],
+    keywords: ['大小写', '命名', '格式'],
+    icon: 'CaseSensitive',
+  },
+  {
+    id: 'lorem-ipsum',
+    name: '占位文本生成',
+    nameEn: 'Lorem Ipsum Generator',
+    description: '英文 Lorem/中文乱数假文，段落数/单词数可配置',
+    category: 'text',
+    tags: ['lorem', 'ipsum', 'placeholder', 'dummy', 'text', '中文'],
+    keywords: ['假文', '测试', '填充'],
+    icon: 'AlignLeft',
+  },
+  {
+    id: 'regex-tester',
+    name: '正则表达式测试',
+    nameEn: 'Regex Tester',
+    description: '实时高亮匹配，分组提取，多行模式，常用正则库',
+    category: 'text',
+    tags: ['regex', 'regexp', 'test', 'match', 'pattern'],
+    keywords: ['正则', '匹配', '模式'],
+    icon: 'Regex',
+  },
+  {
+    id: 'text-counter',
+    name: '文本统计',
+    nameEn: 'Text Counter',
+    description: '字符数/单词数/行数/字节数/阅读时间估算',
+    category: 'text',
+    tags: ['text', 'count', 'character', 'word', 'line', 'byte'],
+    keywords: ['统计', '字数', '计数'],
+    icon: 'TextCursor',
+  },
+
+  // Color
+  {
+    id: 'color-picker',
+    name: '颜色选择器',
+    nameEn: 'Color Picker',
+    description: 'HEX/RGB/HSL/HSV/CMYK 互转，色盘可视化',
+    category: 'color',
+    tags: ['color', 'picker', 'hex', 'rgb', 'hsl', 'cmyk', 'convert'],
+    keywords: ['颜色', '色彩', '调色'],
+    icon: 'Palette',
+  },
+
+  // Converter
+  {
+    id: 'number-base',
+    name: '进制转换',
+    nameEn: 'Number Base Converter',
+    description: '二/八/十/十六进制互转，按位操作可视化',
+    category: 'converter',
+    tags: ['binary', 'hex', 'octal', 'decimal', 'base', 'convert', 'radix'],
+    keywords: ['二进制', '八进制', '十六进制'],
+    icon: 'Binary',
+  },
+
+  // ─── Phase 2+: 后续阶段工具 ────────────────────────────────────────────────
+
+  // Format
   {
     id: 'yaml-json',
     name: 'YAML ↔ JSON',
@@ -31,44 +191,8 @@ export const toolRegistry: ToolMeta[] = [
     tags: ['sql', 'format', 'database', 'mysql', 'postgresql'],
     icon: 'Database',
   },
-  {
-    id: 'markdown-preview',
-    name: 'Markdown 预览',
-    nameEn: 'Markdown Preview',
-    description: '实时预览 Markdown 渲染效果，支持 GFM',
-    category: 'format',
-    tags: ['markdown', 'preview', 'md', 'gfm'],
-    icon: 'FileText',
-  },
 
-  // ─── Encoding ──────────────────────────────────────────────────────────────
-  {
-    id: 'base64',
-    name: 'Base64 编解码',
-    nameEn: 'Base64 Encoder/Decoder',
-    description: 'Base64 文本编码与解码，支持文件转换',
-    category: 'encoding',
-    tags: ['base64', 'encode', 'decode'],
-    icon: 'Binary',
-  },
-  {
-    id: 'url-encode',
-    name: 'URL 编解码',
-    nameEn: 'URL Encoder/Decoder',
-    description: 'URL 编码与解码，支持完整 URL 和组件',
-    category: 'encoding',
-    tags: ['url', 'encode', 'decode', 'percent'],
-    icon: 'Link',
-  },
-  {
-    id: 'jwt-decoder',
-    name: 'JWT 解析',
-    nameEn: 'JWT Decoder',
-    description: '解析 JWT Token，查看 Header 和 Payload',
-    category: 'encoding',
-    tags: ['jwt', 'token', 'decode', 'auth'],
-    icon: 'KeyRound',
-  },
+  // Encoding
   {
     id: 'html-encode',
     name: 'HTML 实体编解码',
@@ -79,16 +203,7 @@ export const toolRegistry: ToolMeta[] = [
     icon: 'Code2',
   },
 
-  // ─── Crypto ────────────────────────────────────────────────────────────────
-  {
-    id: 'hash',
-    name: 'Hash 计算',
-    nameEn: 'Hash Calculator',
-    description: '计算 MD5、SHA-1、SHA-256、SHA-512 哈希值',
-    category: 'crypto',
-    tags: ['hash', 'md5', 'sha', 'sha256', 'sha512', 'checksum'],
-    icon: 'Hash',
-  },
+  // Crypto
   {
     id: 'aes',
     name: 'AES 加密解密',
@@ -107,17 +222,8 @@ export const toolRegistry: ToolMeta[] = [
     tags: ['rsa', 'key', 'generate', 'pem', 'asymmetric'],
     icon: 'ShieldCheck',
   },
-  {
-    id: 'password-generator',
-    name: '密码生成器',
-    nameEn: 'Password Generator',
-    description: '生成安全随机密码，可自定义规则',
-    category: 'crypto',
-    tags: ['password', 'generate', 'random', 'secure'],
-    icon: 'KeySquare',
-  },
 
-  // ─── Network ───────────────────────────────────────────────────────────────
+  // Network
   {
     id: 'ip-lookup',
     name: 'IP 地址查询',
@@ -157,7 +263,7 @@ export const toolRegistry: ToolMeta[] = [
     icon: 'Activity',
   },
 
-  // ─── Text ──────────────────────────────────────────────────────────────────
+  // Text
   {
     id: 'text-diff',
     name: '文本 Diff',
@@ -167,35 +273,8 @@ export const toolRegistry: ToolMeta[] = [
     tags: ['diff', 'compare', 'text', 'difference'],
     icon: 'GitCompare',
   },
-  {
-    id: 'case-converter',
-    name: '大小写转换',
-    nameEn: 'Case Converter',
-    description: 'camelCase、snake_case、PascalCase 等多种命名规范互转',
-    category: 'text',
-    tags: ['case', 'camel', 'snake', 'pascal', 'kebab', 'convert'],
-    icon: 'CaseSensitive',
-  },
-  {
-    id: 'regex-tester',
-    name: '正则表达式测试',
-    nameEn: 'Regex Tester',
-    description: '实时测试正则表达式，高亮匹配结果',
-    category: 'text',
-    tags: ['regex', 'regexp', 'test', 'match', 'pattern'],
-    icon: 'Regex',
-  },
-  {
-    id: 'lorem-ipsum',
-    name: 'Lorem Ipsum 生成',
-    nameEn: 'Lorem Ipsum Generator',
-    description: '生成占位文本，支持中英文',
-    category: 'text',
-    tags: ['lorem', 'ipsum', 'placeholder', 'dummy', 'text'],
-    icon: 'AlignLeft',
-  },
 
-  // ─── Color ─────────────────────────────────────────────────────────────────
+  // Color
   {
     id: 'color-converter',
     name: '颜色格式转换',
@@ -215,16 +294,7 @@ export const toolRegistry: ToolMeta[] = [
     icon: 'Blend',
   },
 
-  // ─── Generator ─────────────────────────────────────────────────────────────
-  {
-    id: 'uuid-generator',
-    name: 'UUID 生成器',
-    nameEn: 'UUID Generator',
-    description: '批量生成 UUID v4，支持多种格式',
-    category: 'generator',
-    tags: ['uuid', 'generate', 'unique', 'id', 'guid'],
-    icon: 'Fingerprint',
-  },
+  // Generator
   {
     id: 'qrcode',
     name: '二维码生成',
@@ -235,16 +305,7 @@ export const toolRegistry: ToolMeta[] = [
     icon: 'QrCode',
   },
 
-  // ─── Datetime ──────────────────────────────────────────────────────────────
-  {
-    id: 'timestamp',
-    name: '时间戳转换',
-    nameEn: 'Timestamp Converter',
-    description: 'Unix 时间戳与日期时间互转，支持全球时区',
-    category: 'datetime',
-    tags: ['timestamp', 'unix', 'datetime', 'timezone', 'convert'],
-    icon: 'Clock',
-  },
+  // Datetime
   {
     id: 'cron-parser',
     name: 'Cron 表达式解析',
@@ -255,16 +316,7 @@ export const toolRegistry: ToolMeta[] = [
     icon: 'Timer',
   },
 
-  // ─── Converter ─────────────────────────────────────────────────────────────
-  {
-    id: 'number-base',
-    name: '进制转换',
-    nameEn: 'Number Base Converter',
-    description: '二进制、八进制、十进制、十六进制互转',
-    category: 'converter',
-    tags: ['binary', 'hex', 'octal', 'decimal', 'base', 'convert'],
-    icon: 'Hash',
-  },
+  // Converter
   {
     id: 'exchange-rate',
     name: '汇率换算',
@@ -277,7 +329,7 @@ export const toolRegistry: ToolMeta[] = [
     isNew: true,
   },
 
-  // ─── AI ────────────────────────────────────────────────────────────────────
+  // AI
   {
     id: 'ai-code-explain',
     name: 'AI 代码解释',
@@ -302,7 +354,6 @@ export const toolRegistry: ToolMeta[] = [
   },
 ]
 
-// Build Fuse.js search index at startup
 export const searchIndex = new Fuse(toolRegistry, {
   keys: [
     { name: 'name',        weight: 0.4 },

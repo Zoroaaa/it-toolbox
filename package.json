@@ -28,7 +28,8 @@
     "@codemirror/theme-one-dark": "^6.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
-    "tailwind-merge": "^2.5.0"
+    "tailwind-merge": "^2.5.0",
+    "marked": "^15.0.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.0.0",

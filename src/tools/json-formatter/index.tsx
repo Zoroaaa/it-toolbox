@@ -66,7 +66,7 @@ export default function JsonFormatter() {
   const statusIcon = {
     idle: null,
     valid: <CheckCircle className="w-4 h-4 text-accent" />,
-    invalid: <XCircle className="w-4 h-4 text-red-400" />,
+    invalid: <XCircle className="w-4 h-4 text-rose-500" />,
   }[status]
 
   return (
@@ -104,7 +104,7 @@ export default function JsonFormatter() {
           {statusIcon && (
             <div className="flex items-center gap-1.5 ml-2">
               {statusIcon}
-              <span className={`text-xs ${status === 'valid' ? 'text-accent' : 'text-red-400'}`}>
+              <span className={`text-xs ${status === 'valid' ? 'text-accent' : 'text-rose-500'}`}>
                 {status === 'valid' ? '有效' : '无效'}
               </span>
             </div>
@@ -134,11 +134,11 @@ export default function JsonFormatter() {
         <div className="flex flex-col gap-2">
           <label className="text-xs font-medium text-text-muted uppercase tracking-wider">输出</label>
           {error ? (
-            <div className="flex-1 rounded-lg bg-red-950/30 border border-red-800/40 p-4 flex items-start gap-3">
-              <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+            <div className="flex-1 rounded-lg bg-rose-500/10 border border-rose-500/30 p-4 flex items-start gap-3">
+              <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-red-400 mb-1">JSON 解析错误</p>
-                <p className="text-xs text-red-400/80 font-mono leading-relaxed">{error}</p>
+                <p className="text-sm font-medium text-rose-500 mb-1">JSON 解析错误</p>
+                <p className="text-xs text-rose-400/80 font-mono leading-relaxed">{error}</p>
               </div>
             </div>
           ) : (

@@ -1,13 +1,12 @@
 import { Hono } from 'hono'
-import type { Env } from '../[[route]]'
+import type { Env } from '../route'
 import type { IpInfo } from '@toolbox/types/api'
 
 export const ipRoute = new Hono<{ Bindings: Env }>()
 
 ipRoute.get('/', async (c) => {
-  const cf = c.req.raw.cf as Record<string, unknown> | undefined
+  const cf = c.req.raw.cf as IncomingRequestCfProperties | undefined
 
-  // Try KV cache first
   const ip = c.req.header('CF-Connecting-IP') ?? 'unknown'
   const cacheKey = `cache:ip:${ip}`
 
@@ -30,7 +29,6 @@ ipRoute.get('/', async (c) => {
     longitude:      Number(cf?.longitude ?? 0),
   }
 
-  // Cache for 1 hour
   try {
     await c.env.CACHE.put(cacheKey, JSON.stringify(data), { expirationTtl: 3600 })
   } catch {}

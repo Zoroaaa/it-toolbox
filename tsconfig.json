@@ -20,7 +20,8 @@
       "@/*": ["./src/*"],
       "@core/*": ["./packages/core/src/*"],
       "@toolbox/types/*": ["./packages/types/src/*"]
-    }
+    },
+    "types": ["@cloudflare/workers-types"]
   },
   "include": ["src", "functions", "packages"],
   "references": [{ "path": "./tsconfig.node.json" }]

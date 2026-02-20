@@ -3,7 +3,7 @@ import { Star, Copy, Check, RotateCcw } from 'lucide-react'
 import type { ToolMeta } from '@toolbox/types/tool'
 import { useAppStore } from '@/store/app'
 import { useClipboard } from '@/hooks/useClipboard'
-import * as Icons from 'lucide-react'
+import { getIconComponent } from '@/utils/icons'
 
 interface ToolLayoutProps {
   meta: ToolMeta
@@ -16,13 +16,10 @@ export function ToolLayout({ meta, children, onReset, outputValue }: ToolLayoutP
   const { toggleFavorite, isFavorited } = useAppStore()
   const { copy, copied } = useClipboard()
   const favorited = isFavorited(meta.id)
-
-  // Dynamically get icon component
-  const IconComponent = (Icons as Record<string, React.ComponentType<{ className?: string }>>)[meta.icon]
+  const IconComponent = getIconComponent(meta.icon)
 
   return (
     <div className="flex flex-col h-full animate-fade-in">
-      {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center flex-shrink-0">
@@ -70,7 +67,6 @@ export function ToolLayout({ meta, children, onReset, outputValue }: ToolLayoutP
         </div>
       </div>
 
-      {/* Content */}
       <div className="flex-1 min-h-0">
         {children}
       </div>

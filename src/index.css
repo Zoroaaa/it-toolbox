@@ -4,14 +4,71 @@
 
 
 @layer base {
+  :root {
+    color-scheme: light;
+    
+    --bg-base: #ffffff;
+    --bg-surface: #f8f9fc;
+    --bg-raised: #f1f3f8;
+    --bg-overlay: #e8ebf2;
+    
+    --border-subtle: #00000008;
+    --border-base: #e2e5eb;
+    --border-strong: #c9cdd6;
+    
+    --accent: #10b981;
+    --accent-dim: #10b98120;
+    --accent-hover: #059669;
+    
+    --text-primary: #1a1a2e;
+    --text-secondary: #5c5c72;
+    --text-muted: #9ca3af;
+    
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
+
+  .dark {
+    color-scheme: dark;
+    
+    --bg-base: #0a0a0f;
+    --bg-surface: #111118;
+    --bg-raised: #1a1a24;
+    --bg-overlay: #22222e;
+    
+    --border-subtle: #ffffff08;
+    --border-base: #ffffff12;
+    --border-strong: #ffffff20;
+    
+    --accent: #6ee7b7;
+    --accent-dim: #6ee7b730;
+    --accent-hover: #a7f3d0;
+    
+    --text-primary: #f0f0f8;
+    --text-secondary: #9090a8;
+    --text-muted: #505060;
+    
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  }
+
   * {
     @apply border-border-base;
+    transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
   }
 
   html {
     @apply bg-bg-base text-text-primary;
     font-feature-settings: 'cv11', 'ss01', 'ss03';
     -webkit-font-smoothing: antialiased;
+  }
+
+  html.theme-transitioning * {
+    transition-duration: 0ms !important;
   }
 
   ::-webkit-scrollbar {
@@ -27,8 +84,18 @@
   }
 
   ::selection {
+    background: var(--accent-dim);
+    color: var(--accent);
+  }
+
+  .dark ::selection {
     background: #6ee7b730;
     color: #6ee7b7;
+  }
+
+  :root:not(.dark) ::selection {
+    background: #10b98120;
+    color: #10b981;
   }
 }
 
@@ -36,7 +103,7 @@
   .tool-input {
     @apply w-full bg-bg-surface border border-border-base rounded-lg px-4 py-3
            font-mono text-sm text-text-primary placeholder-text-muted
-           focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/30
+           focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent
            transition-all duration-150 resize-none;
   }
 
@@ -44,7 +111,7 @@
     @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg
            bg-accent text-bg-base font-medium text-sm
            hover:bg-accent-hover transition-all duration-150
-           focus:outline-none focus:ring-2 focus:ring-accent/50
+           focus:outline-none focus:ring-2 focus:ring-accent
            active:scale-95;
   }
 
@@ -62,6 +129,46 @@
 
   .badge {
     @apply inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium
-           bg-accent/10 text-accent border border-accent/20;
+           text-accent border;
+    background-color: var(--accent-dim);
+    border-color: var(--accent);
+    border-opacity: 0.2;
+  }
+
+  .theme-toggle-btn {
+    @apply relative w-10 h-10 rounded-lg flex items-center justify-center
+           text-text-secondary hover:text-text-primary hover:bg-bg-raised
+           focus:outline-none focus:ring-2
+           transition-all duration-200;
+  }
+
+  .theme-toggle-btn:focus-visible {
+    @apply ring-2 ring-offset-2;
+    --tw-ring-color: var(--accent);
+    --tw-ring-offset-color: var(--bg-base);
+  }
+}
+
+@layer utilities {
+  .theme-transition {
+    transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
+  }
+
+  .no-theme-transition {
+    transition: none !important;
+  }
+
+  .shadow-theme-sm {
+    box-shadow: var(--shadow-sm);
+  }
+
+  .shadow-theme-md {
+    box-shadow: var(--shadow-md);
+  }
+
+  .shadow-theme-lg {
+    box-shadow: var(--shadow-lg);
   }
 }

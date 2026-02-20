@@ -1,14 +1,34 @@
 <!DOCTYPE html>
-<html lang="zh-CN" class="dark">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="IT Toolbox - 开发者工具箱，150+ 实用工具" />
+    <meta name="color-scheme" content="light dark" />
     <title>IT Toolbox</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <script>
+      (function() {
+        try {
+          var stored = localStorage.getItem('it-toolbox-store');
+          var themeMode = 'system';
+          if (stored) {
+            var parsed = JSON.parse(stored);
+            if (parsed.state && parsed.state.themeMode) {
+              themeMode = parsed.state.themeMode;
+            }
+          }
+          var isDark = themeMode === 'dark' || 
+                       (themeMode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (isDark) {
+            document.documentElement.classList.add('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

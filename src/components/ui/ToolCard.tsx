@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router'
 import { Star } from 'lucide-react'
 import type { ToolMeta } from '@toolbox/types/tool'
 import { useAppStore } from '@/store/app'
-import * as Icons from 'lucide-react'
+import { getIconComponent } from '@/utils/icons'
 
 interface ToolCardProps {
   tool: ToolMeta
@@ -11,7 +11,7 @@ interface ToolCardProps {
 export function ToolCard({ tool }: ToolCardProps) {
   const { isFavorited, toggleFavorite } = useAppStore()
   const favorited = isFavorited(tool.id)
-  const IconComp = (Icons as Record<string, React.ComponentType<{ className?: string }>>)[tool.icon]
+  const IconComp = getIconComponent(tool.icon)
 
   return (
     <Link

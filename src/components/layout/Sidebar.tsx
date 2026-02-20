@@ -1,9 +1,9 @@
 import { Link, useRouterState } from '@tanstack/react-router'
-import { Star, Clock, Wrench, ChevronRight } from 'lucide-react'
+import { Wrench } from 'lucide-react'
 import type { Category } from '@toolbox/types/tool'
 import { CATEGORY_LABELS, CATEGORY_ICONS } from '@toolbox/types/tool'
 import { toolRegistry } from '@/registry'
-import * as Icons from 'lucide-react'
+import { getIconComponent } from '@/utils/icons'
 import { useAppStore } from '@/store/app'
 
 const categories = Object.keys(CATEGORY_LABELS) as Category[]
@@ -15,7 +15,6 @@ export function Sidebar() {
 
   return (
     <aside className="w-56 flex-shrink-0 flex flex-col bg-bg-surface border-r border-border-base h-screen sticky top-0 overflow-y-auto">
-      {/* Logo */}
       <div className="px-4 py-5 border-b border-border-base">
         <Link to="/" className="flex items-center gap-2.5 group">
           <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center">
@@ -27,21 +26,17 @@ export function Sidebar() {
         </Link>
       </div>
 
-      {/* Nav */}
       <nav className="flex-1 px-2 py-3 space-y-0.5">
-        {/* Special routes */}
         <NavItem to="/" label="所有工具" icon="LayoutGrid" active={pathname === '/'} count={toolRegistry.length} />
         <NavItem to="/favorites" label="收藏夹" icon="Star" active={pathname === '/favorites'} count={favorites.length} />
         <NavItem to="/history" label="最近使用" icon="Clock" active={pathname === '/history'} />
 
-        {/* Divider */}
         <div className="pt-3 pb-1">
           <p className="px-3 text-xs font-medium text-text-muted uppercase tracking-wider">分类</p>
         </div>
 
-        {/* Categories */}
         {categories.map(cat => {
-          const IconComp = (Icons as Record<string, React.ComponentType<{ className?: string }>>)[CATEGORY_ICONS[cat]]
+          const IconComp = getIconComponent(CATEGORY_ICONS[cat])
           const count = toolRegistry.filter(t => t.category === cat).length
           const isActive = pathname === `/category/${cat}`
           return (
@@ -65,7 +60,6 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Footer */}
       <div className="px-4 py-3 border-t border-border-base">
         <p className="text-xs text-text-muted">
           {toolRegistry.length} 个工具
@@ -80,7 +74,7 @@ function NavItem({
 }: {
   to: string; label: string; icon: string; active: boolean; count?: number
 }) {
-  const IconComp = (Icons as Record<string, React.ComponentType<{ className?: string }>>)[icon]
+  const IconComp = getIconComponent(icon)
   return (
     <Link
       to={to}
