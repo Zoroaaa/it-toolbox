@@ -52,6 +52,7 @@ const toolComponents: Record<string, React.LazyExoticComponent<() => JSX.Element
   'objectid-gen': lazy(() => import('@/tools/objectid-gen/index')),
   'placeholder-img': lazy(() => import('@/tools/placeholder-img/index')),
   'punycode': lazy(() => import('@/tools/punycode/index')),
+  'qrcode': lazy(() => import('@/tools/qrcode/index')),
   'rot13': lazy(() => import('@/tools/rot13/index')),
   'rsa-keygen': lazy(() => import('@/tools/rsa-keygen/index')),
   'sql-formatter': lazy(() => import('@/tools/sql-formatter/index')),

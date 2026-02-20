@@ -42,7 +42,8 @@
     "@faker-js/faker": "^9.0.0",
     "ua-parser-js": "^1.0.0",
     "curlconverter": "^4.10.0",
-    "ulid": "^2.3.0"
+    "ulid": "^2.3.0",
+    "qrcode": "^1.5.3"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.0.0",
@@ -61,6 +62,7 @@
     "@types/punycode": "^2.1.0",
     "@types/bcryptjs": "^2.4.0",
     "@types/papaparse": "^5.3.0",
-    "@types/ua-parser-js": "^0.7.0"
+    "@types/ua-parser-js": "^0.7.0",
+    "@types/qrcode": "^1.5.5"
   }
 }
