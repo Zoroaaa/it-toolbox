@@ -12,6 +12,8 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
       '@core': path.resolve(__dirname, './packages/core'),
       '@toolbox/types': path.resolve(__dirname, './packages/types'),
+      '@it-toolbox/core': path.resolve(__dirname, './packages/core'),
+      '@it-toolbox/types': path.resolve(__dirname, './packages/types'),
     },
   },
   esbuild: {
