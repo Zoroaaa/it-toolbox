@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import type { Env } from '../route'
+import type { Env } from '../[[route]]'
 import type { IpInfo } from '@toolbox/types/api'
 
 export const ipRoute = new Hono<{ Bindings: Env }>()
