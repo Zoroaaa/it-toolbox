@@ -8,7 +8,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Cloudflare](https://img.shields.io/badge/Cloudflare-Pages-orange.svg)](https://pages.cloudflare.com/)
 
-[在线演示](https://it-toolbox.pages.dev) · [快速开始](./docs/QUICKSTART.md) · [API 文档](./docs/API.md) · [部署指南](./docs/DEPLOYMENT.md)
+[在线演示](https://ittoolbox.pp.ua) · [快速开始](./docs/QUICKSTART.md) · [API 文档](./docs/API.md) · [部署指南](./docs/DEPLOYMENT.md)
 
 </div>
 
@@ -410,6 +410,6 @@ pnpm deploy
 
 **IT Toolbox** - 让开发更高效！
 
-[在线使用](https://it-toolbox.pages.dev) · [反馈建议](https://github.com/your-username/it-toolbox/issues)
+[在线使用](https://ittool.pp.ua) · [反馈建议](https://github.com/Zoroaaa/it-toolbox/issues)
 
 </div>
