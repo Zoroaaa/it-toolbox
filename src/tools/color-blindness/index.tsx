@@ -49,7 +49,7 @@ export default function ColorBlindness() {
     <ToolLayout meta={meta} onReset={reset}>
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <label className="text-sm text-text-secondary">选择颜色:</label>
+          <label className="text-xs font-medium text-text-muted uppercase tracking-wider">选择颜色</label>
           <input
             type="color"
             value={inputColor}
@@ -60,12 +60,12 @@ export default function ColorBlindness() {
             type="text"
             value={inputColor}
             onChange={(e) => setInputColor(e.target.value)}
-            className="px-3 py-1.5 bg-bg-secondary border border-border-primary rounded-lg text-text-primary text-sm font-mono w-28"
+            className="tool-input font-mono w-28"
           />
         </div>
 
         <div>
-          <h3 className="text-sm font-medium text-text-primary mb-3">单色模拟</h3>
+          <h3 className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">单色模拟</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {BLINDNESS_TYPES.map((type) => (
               <div
@@ -87,7 +87,7 @@ export default function ColorBlindness() {
         </div>
 
         <div>
-          <h3 className="text-sm font-medium text-text-primary mb-3">对比原图</h3>
+          <h3 className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">对比原图</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
             {demoPalette.map((item, index) => (
               <div key={index} className="space-y-1">
@@ -105,7 +105,7 @@ export default function ColorBlindness() {
 
         {BLINDNESS_TYPES.map((type) => (
           <div key={type.value}>
-            <h3 className="text-sm font-medium text-text-primary mb-3">{type.label}视图</h3>
+            <h3 className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">{type.label}视图</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
               {demoPalette.map((item, index) => (
                 <div key={index} className="space-y-1">
@@ -123,7 +123,7 @@ export default function ColorBlindness() {
         ))}
 
         <div className="bg-bg-raised border border-border-base rounded-lg p-4">
-          <h3 className="text-sm font-medium text-text-primary mb-2">色盲类型说明</h3>
+          <h3 className="text-xs font-medium text-text-muted uppercase tracking-wider mb-2">色盲类型说明</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs text-text-muted">
             <div><strong>红色盲:</strong> 约1%男性，无法区分红绿色</div>
             <div><strong>绿色盲:</strong> 约5%男性，最常见的色盲类型</div>

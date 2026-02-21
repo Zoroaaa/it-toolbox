@@ -1,19 +1,17 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Search } from 'lucide-react'
 import { toolRegistry, searchTools, getToolsByCategory } from '@/registry'
 import { ToolCard } from '@/components/ui/ToolCard'
-import type { Category } from '@toolbox/types/tool'
-import { CATEGORY_LABELS } from '@toolbox/types/tool'
+import { CATEGORY_LABELS, CATEGORY_ORDER } from '@toolbox/types/tool'
 
 export function HomePage() {
   const [query, setQuery] = useState('')
-  const results = query ? searchTools(query) : null
+  const results = useMemo(() => query ? searchTools(query) : null, [query])
 
-  const categories = [...new Set(toolRegistry.map(t => t.category))] as Category[]
+  const categories = CATEGORY_ORDER
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
-      {/* Hero */}
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-text-primary mb-1">
           开发者工具箱
@@ -23,7 +21,6 @@ export function HomePage() {
         </p>
       </div>
 
-      {/* Search */}
       <div className="relative mb-8">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
         <input
@@ -35,14 +32,14 @@ export function HomePage() {
         />
       </div>
 
-      {/* Search Results */}
       {results ? (
         <div>
           <p className="text-sm text-text-muted mb-4">找到 {results.length} 个工具</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {results.map(tool => <ToolCard key={tool.id} tool={tool} />)}
-          </div>
-          {results.length === 0 && (
+          {results.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {results.map(tool => <ToolCard key={tool.id} tool={tool} />)}
+            </div>
+          ) : (
             <div className="text-center py-16 text-text-muted">
               <p className="text-lg mb-2">没有找到相关工具</p>
               <p className="text-sm">试试其他关键词</p>
@@ -50,10 +47,10 @@ export function HomePage() {
           )}
         </div>
       ) : (
-        /* Category Groups */
         <div className="space-y-8">
           {categories.map(cat => {
             const tools = getToolsByCategory(cat)
+            if (tools.length === 0) return null
             return (
               <section key={cat}>
                 <div className="flex items-center justify-between mb-3">

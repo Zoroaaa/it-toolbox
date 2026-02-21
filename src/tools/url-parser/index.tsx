@@ -49,22 +49,22 @@ export default function UrlParser() {
 
   return (
     <ToolLayout meta={meta} onReset={reset}>
-      <div className="space-y-4">
-        <div>
-          <label className="text-xs font-medium text-text-muted uppercase tracking-wider block mb-2">
-            输入 URL
-          </label>
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="https://example.com/path?query=value#hash"
-            className="w-full px-3 py-2 bg-bg-secondary border border-border-primary rounded-lg text-text-primary placeholder-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent-primary font-mono text-sm"
-          />
-        </div>
+      <div className="mb-4">
+        <label className="text-xs font-medium text-text-muted uppercase tracking-wider block mb-2">
+          输入 URL
+        </label>
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="https://example.com/path?query=value#hash"
+          className="tool-input font-mono"
+        />
+      </div>
 
+      <div className="space-y-4 overflow-y-auto max-h-[calc(100vh-16rem)]">
         {parsed && parsed.ok && (
-          <div className="space-y-4">
+          <>
             <div className="bg-bg-raised border border-border-base rounded-lg p-4">
               <h3 className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">
                 基本信息
@@ -125,7 +125,7 @@ export default function UrlParser() {
                 {JSON.stringify(parsed.value, null, 2)}
               </pre>
             </div>
-          </div>
+          </>
         )}
 
         {parsed && !parsed.ok && (

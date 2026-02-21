@@ -57,7 +57,7 @@ export default function FakerDataTool() {
     <ToolLayout meta={meta}>
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-text-primary mb-2">数据类型</label>
+          <label className="tool-label block mb-2">数据类型</label>
           <div className="flex flex-wrap gap-2">
             {DATA_TYPES.map((type) => (
               <button
@@ -65,8 +65,8 @@ export default function FakerDataTool() {
                 onClick={() => setSelectedType(type.id)}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                   selectedType === type.id
-                    ? 'bg-accent-primary text-white'
-                    : 'bg-bg-secondary text-text-secondary hover:bg-bg-tertiary'
+                    ? 'bg-accent text-bg-base'
+                    : 'bg-bg-surface text-text-secondary hover:bg-bg-raised border border-border-base'
                 }`}
               >
                 {type.label}
@@ -75,7 +75,7 @@ export default function FakerDataTool() {
           </div>
         </div>
 
-        <div className="flex gap-4 flex-wrap">
+        <div className="flex gap-4 flex-wrap items-end">
           <div className="flex items-center gap-2">
             <label className="text-sm text-text-secondary">数量:</label>
             <input
@@ -84,7 +84,7 @@ export default function FakerDataTool() {
               onChange={(e) => setCount(Math.max(1, Math.min(1000, Number(e.target.value))))}
               min={1}
               max={1000}
-              className="w-20 px-3 py-1.5 bg-bg-secondary border border-border-primary rounded-lg text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent-primary"
+              className="tool-input w-20"
             />
           </div>
 
@@ -93,17 +93,14 @@ export default function FakerDataTool() {
             <select
               value={outputFormat}
               onChange={(e) => setOutputFormat(e.target.value as 'list' | 'json')}
-              className="px-3 py-1.5 bg-bg-secondary border border-border-primary rounded-lg text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent-primary"
+              className="tool-input"
             >
               <option value="list">列表</option>
               <option value="json">JSON</option>
             </select>
           </div>
 
-          <button
-            onClick={handleGenerate}
-            className="px-4 py-2 bg-accent-primary text-white rounded-lg text-sm font-medium hover:bg-accent-secondary transition-colors"
-          >
+          <button onClick={handleGenerate} className="btn-primary">
             生成
           </button>
         </div>
@@ -112,15 +109,12 @@ export default function FakerDataTool() {
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <label className="text-sm font-medium text-text-primary">生成结果</label>
-              <button
-                onClick={copyResults}
-                className="px-3 py-1 bg-bg-secondary text-text-secondary rounded text-sm hover:bg-bg-tertiary transition-colors"
-              >
+              <button onClick={copyResults} className="btn-ghost text-sm">
                 复制
               </button>
             </div>
 
-            <div className="p-3 bg-bg-secondary border border-border-primary rounded-lg max-h-80 overflow-auto">
+            <div className="p-3 bg-bg-surface border border-border-base rounded-lg max-h-80 overflow-auto">
               {outputFormat === 'json' ? (
                 <pre className="font-mono text-sm text-text-primary whitespace-pre-wrap">
                   {JSON.stringify(results, null, 2)}

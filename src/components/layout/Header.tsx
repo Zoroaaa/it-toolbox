@@ -95,9 +95,9 @@ function SearchResults({ query, onSelect }: { query: string; onSelect: (t: ToolM
 
   return (
     <>
-      {Object.entries(grouped).slice(0, 5).map(([cat, tools]) => (
+      {Object.entries(grouped).map(([cat, tools]) => (
         <CommandGroup key={cat} heading={CATEGORY_LABELS[cat as keyof typeof CATEGORY_LABELS]} className="[&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:text-text-muted [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5">
-          {tools.slice(0, 4).map(tool => {
+          {tools.map(tool => {
             const IconComp = getIconComponent(tool.icon)
             return (
               <CommandItem

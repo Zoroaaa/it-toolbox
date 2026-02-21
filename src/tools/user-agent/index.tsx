@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { Search } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
 import { parseUserAgent } from '@it-toolbox/core'
+import { useAppStore } from '@/store/app'
 
 const EXAMPLE_UAS = [
   {
@@ -33,44 +35,42 @@ const EXAMPLE_UAS = [
 export default function UserAgentTool() {
   const [input, setInput] = useState('')
   const [result, setResult] = useState<ReturnType<typeof parseUserAgent> | null>(null)
+  const { addRecentTool } = useAppStore()
 
   const handleParse = () => {
     if (!input.trim()) {
       setResult(null)
       return
     }
+    addRecentTool(meta.id)
     setResult(parseUserAgent(input))
   }
 
+  const reset = () => {
+    setInput('')
+    setResult(null)
+  }
+
   return (
-    <ToolLayout meta={meta}>
+    <ToolLayout meta={meta} onReset={reset}>
+      <div className="flex items-center gap-2 mb-4 flex-wrap">
+        <button onClick={handleParse} className="btn-primary">
+          <Search className="w-4 h-4" />
+          解析
+        </button>
+      </div>
+
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-text-primary mb-2">User Agent 字符串</label>
+          <label className="text-xs font-medium text-text-muted uppercase tracking-wider block mb-2">
+            User Agent 字符串
+          </label>
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="粘贴 User Agent 字符串..."
-            className="w-full h-24 px-3 py-2 bg-bg-secondary border border-border-primary rounded-lg text-text-primary placeholder-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent-primary font-mono text-sm resize-none"
+            className="tool-input h-24 font-mono text-xs"
           />
-        </div>
-
-        <div className="flex gap-2 flex-wrap">
-          <button
-            onClick={handleParse}
-            className="px-4 py-2 bg-accent-primary text-white rounded-lg text-sm font-medium hover:bg-accent-secondary transition-colors"
-          >
-            解析
-          </button>
-          <button
-            onClick={() => {
-              setInput('')
-              setResult(null)
-            }}
-            className="px-4 py-2 bg-bg-secondary text-text-secondary rounded-lg text-sm font-medium hover:bg-bg-tertiary transition-colors"
-          >
-            清空
-          </button>
         </div>
 
         <div>
@@ -80,7 +80,7 @@ export default function UserAgentTool() {
               <button
                 key={ua.label}
                 onClick={() => setInput(ua.value)}
-                className="px-3 py-1.5 bg-bg-secondary text-text-secondary rounded-lg text-sm hover:bg-bg-tertiary transition-colors"
+                className="px-3 py-1.5 bg-bg-surface text-text-secondary rounded-lg text-sm hover:bg-bg-raised border border-border-base transition-colors"
               >
                 {ua.label}
               </button>
@@ -90,19 +90,19 @@ export default function UserAgentTool() {
 
         {result && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-bg-secondary border border-border-primary rounded-lg">
+            <div className="p-4 bg-bg-surface border border-border-base rounded-lg">
               <div className="text-sm text-text-secondary mb-2">浏览器</div>
               <div className="text-text-primary font-medium">{result.browser.name || '未知'}</div>
               <div className="text-text-secondary text-sm">版本: {result.browser.version || '-'}</div>
             </div>
 
-            <div className="p-4 bg-bg-secondary border border-border-primary rounded-lg">
+            <div className="p-4 bg-bg-surface border border-border-base rounded-lg">
               <div className="text-sm text-text-secondary mb-2">操作系统</div>
               <div className="text-text-primary font-medium">{result.os.name || '未知'}</div>
               <div className="text-text-secondary text-sm">版本: {result.os.version || '-'}</div>
             </div>
 
-            <div className="p-4 bg-bg-secondary border border-border-primary rounded-lg">
+            <div className="p-4 bg-bg-surface border border-border-base rounded-lg">
               <div className="text-sm text-text-secondary mb-2">设备</div>
               <div className="text-text-primary font-medium">
                 {result.device.vendor ? `${result.device.vendor} ` : ''}
@@ -111,14 +111,14 @@ export default function UserAgentTool() {
               <div className="text-text-secondary text-sm">类型: {result.device.type || 'desktop'}</div>
             </div>
 
-            <div className="p-4 bg-bg-secondary border border-border-primary rounded-lg">
+            <div className="p-4 bg-bg-surface border border-border-base rounded-lg">
               <div className="text-sm text-text-secondary mb-2">渲染引擎</div>
               <div className="text-text-primary font-medium">{result.engine.name || '未知'}</div>
               <div className="text-text-secondary text-sm">版本: {result.engine.version || '-'}</div>
             </div>
 
             {result.cpu.architecture && (
-              <div className="p-4 bg-bg-secondary border border-border-primary rounded-lg">
+              <div className="p-4 bg-bg-surface border border-border-base rounded-lg">
                 <div className="text-sm text-text-secondary mb-2">CPU 架构</div>
                 <div className="text-text-primary font-medium">{result.cpu.architecture}</div>
               </div>

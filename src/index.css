@@ -112,7 +112,15 @@
            bg-accent text-bg-base font-medium text-sm
            hover:bg-accent-hover transition-all duration-150
            focus:outline-none focus:ring-2 focus:ring-accent
-           active:scale-95;
+           active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg
+           bg-bg-raised text-text-primary font-medium text-sm
+           hover:bg-bg-overlay border border-border-base
+           transition-all duration-150
+           focus:outline-none focus:ring-2 focus:ring-border-strong;
   }
 
   .btn-ghost {
@@ -120,6 +128,19 @@
            text-text-secondary hover:text-text-primary hover:bg-bg-raised
            transition-all duration-150 text-sm font-medium
            focus:outline-none focus:ring-2 focus:ring-border-strong;
+  }
+
+  .btn-group {
+    @apply flex items-center gap-1 bg-bg-raised rounded-lg p-1;
+  }
+
+  .btn-group-item {
+    @apply px-3 py-1.5 rounded-md text-xs font-medium transition-colors
+           text-text-muted hover:text-text-primary;
+  }
+
+  .btn-group-item-active {
+    @apply bg-accent text-bg-base;
   }
 
   .card {
@@ -146,6 +167,26 @@
     @apply ring-2 ring-offset-2;
     --tw-ring-color: var(--accent);
     --tw-ring-offset-color: var(--bg-base);
+  }
+
+  .tool-section {
+    @apply flex flex-col gap-2;
+  }
+
+  .tool-label {
+    @apply text-xs font-medium text-text-muted uppercase tracking-wider;
+  }
+
+  .tool-stats {
+    @apply text-xs text-text-muted;
+  }
+
+  .tool-error {
+    @apply bg-rose-500/10 border border-rose-500/30 rounded-lg p-4 text-rose-400 text-sm;
+  }
+
+  .tool-editor {
+    @apply grid grid-cols-1 lg:grid-cols-2 gap-4 h-[calc(100vh-16rem)];
   }
 }
 

@@ -90,7 +90,7 @@ export default function PlaceholderImg() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-4">
           <div>
-            <label className="text-xs font-medium text-text-muted uppercase tracking-wider block mb-2">
+            <label className="tool-label block mb-2">
               预设尺寸
             </label>
             <div className="flex flex-wrap gap-2">
@@ -101,7 +101,7 @@ export default function PlaceholderImg() {
                     setWidth(preset.w)
                     setHeight(preset.h)
                   }}
-                  className="px-3 py-1.5 bg-bg-raised border border-border-base rounded-lg text-xs text-text-secondary hover:bg-bg-tertiary transition-colors"
+                  className="px-3 py-1.5 bg-bg-raised border border-border-base rounded-lg text-xs text-text-secondary hover:bg-bg-overlay transition-colors"
                 >
                   {preset.label} ({preset.w}×{preset.h})
                 </button>
@@ -111,7 +111,7 @@ export default function PlaceholderImg() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-medium text-text-muted uppercase tracking-wider block mb-2">
+              <label className="tool-label block mb-2">
                 宽度
               </label>
               <input
@@ -120,11 +120,11 @@ export default function PlaceholderImg() {
                 onChange={(e) => setWidth(parseInt(e.target.value) || 1)}
                 min="1"
                 max="4096"
-                className="w-full px-3 py-2 bg-bg-secondary border border-border-primary rounded-lg text-text-primary text-sm"
+                className="tool-input w-full"
               />
             </div>
             <div>
-              <label className="text-xs font-medium text-text-muted uppercase tracking-wider block mb-2">
+              <label className="tool-label block mb-2">
                 高度
               </label>
               <input
@@ -133,14 +133,14 @@ export default function PlaceholderImg() {
                 onChange={(e) => setHeight(parseInt(e.target.value) || 1)}
                 min="1"
                 max="4096"
-                className="w-full px-3 py-2 bg-bg-secondary border border-border-primary rounded-lg text-text-primary text-sm"
+                className="tool-input w-full"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-xs font-medium text-text-muted uppercase tracking-wider block mb-2">
+              <label className="tool-label block mb-2">
                 背景颜色
               </label>
               <div className="flex items-center gap-2">
@@ -154,12 +154,12 @@ export default function PlaceholderImg() {
                   type="text"
                   value={bgColor}
                   onChange={(e) => setBgColor(e.target.value)}
-                  className="flex-1 px-3 py-2 bg-bg-secondary border border-border-primary rounded-lg text-text-primary text-sm font-mono"
+                  className="tool-input flex-1 font-mono"
                 />
               </div>
             </div>
             <div>
-              <label className="text-xs font-medium text-text-muted uppercase tracking-wider block mb-2">
+              <label className="tool-label block mb-2">
                 文字颜色
               </label>
               <div className="flex items-center gap-2">
@@ -173,14 +173,14 @@ export default function PlaceholderImg() {
                   type="text"
                   value={textColor}
                   onChange={(e) => setTextColor(e.target.value)}
-                  className="flex-1 px-3 py-2 bg-bg-secondary border border-border-primary rounded-lg text-text-primary text-sm font-mono"
+                  className="tool-input flex-1 font-mono"
                 />
               </div>
             </div>
           </div>
 
           <div>
-            <label className="text-xs font-medium text-text-muted uppercase tracking-wider block mb-2">
+            <label className="tool-label block mb-2">
               显示文字 (留空显示尺寸)
             </label>
             <input
@@ -188,12 +188,12 @@ export default function PlaceholderImg() {
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder={`${width} × ${height}`}
-              className="w-full px-3 py-2 bg-bg-secondary border border-border-primary rounded-lg text-text-primary text-sm"
+              className="tool-input w-full"
             />
           </div>
 
           <div>
-            <label className="text-xs font-medium text-text-muted uppercase tracking-wider block mb-2">
+            <label className="tool-label block mb-2">
               字体大小: {fontSize}px
             </label>
             <input
@@ -242,7 +242,7 @@ export default function PlaceholderImg() {
           </div>
 
           <div className="bg-bg-raised border border-border-base rounded-lg p-4">
-            <h3 className="text-xs font-medium text-text-muted uppercase tracking-wider mb-2">
+            <h3 className="tool-label mb-2">
               SVG 代码
             </h3>
             <pre className="text-xs font-mono text-text-primary bg-bg-base p-3 rounded overflow-x-auto whitespace-pre-wrap">

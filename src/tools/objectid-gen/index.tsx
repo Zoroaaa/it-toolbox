@@ -39,7 +39,7 @@ export default function ObjectIdGenTool() {
       <div className="space-y-6">
         <div className="space-y-4">
           <h3 className="text-sm font-medium text-text-primary">生成 ObjectId</h3>
-          <div className="flex gap-4 flex-wrap">
+          <div className="flex gap-4 flex-wrap items-end">
             <div className="flex items-center gap-2">
               <label className="text-sm text-text-secondary">数量:</label>
               <input
@@ -48,14 +48,11 @@ export default function ObjectIdGenTool() {
                 onChange={(e) => setCount(Math.max(1, Math.min(100, Number(e.target.value))))}
                 min={1}
                 max={100}
-                className="w-20 px-3 py-1.5 bg-bg-secondary border border-border-primary rounded-lg text-text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent-primary"
+                className="tool-input w-20"
               />
             </div>
 
-            <button
-              onClick={handleGenerate}
-              className="px-4 py-2 bg-accent-primary text-white rounded-lg text-sm font-medium hover:bg-accent-secondary transition-colors"
-            >
+            <button onClick={handleGenerate} className="btn-primary">
               生成
             </button>
           </div>
@@ -64,10 +61,7 @@ export default function ObjectIdGenTool() {
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <label className="text-sm font-medium text-text-primary">生成结果</label>
-                <button
-                  onClick={copyAll}
-                  className="px-3 py-1 bg-bg-secondary text-text-secondary rounded text-sm hover:bg-bg-tertiary transition-colors"
-                >
+                <button onClick={copyAll} className="btn-ghost text-sm">
                   复制全部
                 </button>
               </div>
@@ -76,7 +70,7 @@ export default function ObjectIdGenTool() {
                 {ids.map((id, i) => (
                   <div
                     key={i}
-                    className="flex items-center justify-between p-2 bg-bg-secondary border border-border-primary rounded-lg group"
+                    className="flex items-center justify-between p-2 bg-bg-surface border border-border-base rounded-lg group"
                   >
                     <code className="font-mono text-sm text-text-primary">{id}</code>
                     <button
@@ -100,12 +94,9 @@ export default function ObjectIdGenTool() {
               value={parseInput}
               onChange={(e) => setParseInput(e.target.value)}
               placeholder="输入 24 位 ObjectId..."
-              className="flex-1 px-3 py-2 bg-bg-secondary border border-border-primary rounded-lg text-text-primary font-mono text-sm focus:outline-none focus:ring-2 focus:ring-accent-primary"
+              className="tool-input flex-1 font-mono"
             />
-            <button
-              onClick={handleParse}
-              className="px-4 py-2 bg-accent-primary text-white rounded-lg text-sm font-medium hover:bg-accent-secondary transition-colors"
-            >
+            <button onClick={handleParse} className="btn-primary">
               解析
             </button>
           </div>
@@ -118,19 +109,19 @@ export default function ObjectIdGenTool() {
 
           {parsedInfo && (
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-bg-secondary border border-border-primary rounded-lg">
+              <div className="p-4 bg-bg-surface border border-border-base rounded-lg">
                 <div className="text-sm text-text-secondary mb-1">时间戳</div>
                 <div className="font-mono text-text-primary">{parsedInfo.timestamp.toLocaleString()}</div>
               </div>
-              <div className="p-4 bg-bg-secondary border border-border-primary rounded-lg">
+              <div className="p-4 bg-bg-surface border border-border-base rounded-lg">
                 <div className="text-sm text-text-secondary mb-1">机器 ID</div>
                 <div className="font-mono text-text-primary">{parsedInfo.machineId}</div>
               </div>
-              <div className="p-4 bg-bg-secondary border border-border-primary rounded-lg">
+              <div className="p-4 bg-bg-surface border border-border-base rounded-lg">
                 <div className="text-sm text-text-secondary mb-1">进程 ID</div>
                 <div className="font-mono text-text-primary">{parsedInfo.processId}</div>
               </div>
-              <div className="p-4 bg-bg-secondary border border-border-primary rounded-lg">
+              <div className="p-4 bg-bg-surface border border-border-base rounded-lg">
                 <div className="text-sm text-text-secondary mb-1">计数器</div>
                 <div className="font-mono text-text-primary">{parsedInfo.counter}</div>
               </div>
