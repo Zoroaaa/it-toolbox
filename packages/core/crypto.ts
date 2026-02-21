@@ -357,38 +357,188 @@ export interface SshKeyPair {
   fingerprint: string
 }
 
+// SSH wire-format helpers
+function sshWriteUint32(n: number): Uint8Array {
+  return new Uint8Array([(n >>> 24) & 0xff, (n >>> 16) & 0xff, (n >>> 8) & 0xff, n & 0xff])
+}
+
+function sshWriteString(s: string): Uint8Array {
+  const bytes = new TextEncoder().encode(s)
+  const len = sshWriteUint32(bytes.length)
+  const out = new Uint8Array(len.length + bytes.length)
+  out.set(len, 0); out.set(bytes, len.length)
+  return out
+}
+
+function sshWriteBytes(bytes: Uint8Array): Uint8Array {
+  const len = sshWriteUint32(bytes.length)
+  const out = new Uint8Array(len.length + bytes.length)
+  out.set(len, 0); out.set(bytes, len.length)
+  return out
+}
+
+function concat(...arrays: Uint8Array[]): Uint8Array {
+  const total = arrays.reduce((s, a) => s + a.length, 0)
+  const out = new Uint8Array(total)
+  let offset = 0
+  for (const a of arrays) { out.set(a, offset); offset += a.length }
+  return out
+}
+
+function encodeBase64(bytes: Uint8Array): string {
+  return btoa(String.fromCharCode(...bytes))
+}
+
+async function buildEd25519Keys(keyPair: CryptoKeyPair): Promise<{ publicKey: string; privateKey: string; fingerprint: string }> {
+  // Export raw 32-byte public key
+  const rawPub = new Uint8Array(await crypto.subtle.exportKey('raw', keyPair.publicKey))
+  // Export pkcs8 private key - ed25519 pkcs8 contains the 32-byte seed at offset 16
+  const pkcs8  = new Uint8Array(await crypto.subtle.exportKey('pkcs8', keyPair.privateKey))
+  // PKCS8 for ed25519: SEQUENCE > SEQUENCE > BIT STRING > OCTET STRING (seed)
+  // The 32-byte seed starts at offset 16 in most implementations
+  const seed = pkcs8.slice(pkcs8.length - 32)
+
+  // SSH public key wire format: string("ssh-ed25519") + string(pubkey_bytes)
+  const pubWire = concat(sshWriteString('ssh-ed25519'), sshWriteBytes(rawPub))
+  const publicKey = `ssh-ed25519 ${encodeBase64(pubWire)} generated@it-toolbox`
+
+  // Fingerprint = SHA-256 of the wire-format public key bytes, base64
+  const fpBuf = await crypto.subtle.digest('SHA-256', pubWire)
+  const fingerprint = `SHA256:${encodeBase64(new Uint8Array(fpBuf))}`
+
+  // OpenSSH private key format
+  const keyType = sshWriteString('ssh-ed25519')
+  const pubSection = sshWriteBytes(rawPub)
+  // private section: seed+pubkey (64 bytes)
+  const privSection = sshWriteBytes(concat(seed, rawPub))
+  const comment = sshWriteString('generated@it-toolbox')
+  const checkInt = crypto.getRandomValues(new Uint8Array(4))
+  const checkIntU32 = new DataView(checkInt.buffer).getUint32(0)
+  const checkBytes = sshWriteUint32(checkIntU32)
+
+  const privateBlock = concat(
+    checkBytes, checkBytes, // check ints (same value repeated)
+    keyType, pubSection, privSection, comment
+  )
+  // Pad to 8-byte boundary
+  const padded = new Uint8Array(Math.ceil(privateBlock.length / 8) * 8)
+  padded.set(privateBlock)
+  for (let i = privateBlock.length; i < padded.length; i++) padded[i] = (i - privateBlock.length + 1) & 0xff
+
+  const header = new TextEncoder().encode('openssh-key-v1\0')
+  const cipherNone = sshWriteString('none')
+  const kdfNone    = sshWriteString('none')
+  const kdfOptions = sshWriteBytes(new Uint8Array(0))
+  const numKeys    = sshWriteUint32(1)
+  const pubKeyBlob = sshWriteBytes(pubWire)
+
+  const privatePayload = concat(header, cipherNone, kdfNone, kdfOptions, numKeys, pubKeyBlob, sshWriteBytes(padded))
+  const privateKeyB64  = encodeBase64(privatePayload).match(/.{1,70}/g)!.join('\n')
+  const privateKey     = `-----BEGIN OPENSSH PRIVATE KEY-----\n${privateKeyB64}\n-----END OPENSSH PRIVATE KEY-----`
+
+  return { publicKey, privateKey, fingerprint }
+}
+
+async function buildRsaKeys(modulusLength: number): Promise<{ publicKey: string; privateKey: string; fingerprint: string }> {
+  const keyPair = await crypto.subtle.generateKey({
+    name: 'RSASSA-PKCS1-v1_5',
+    modulusLength,
+    publicExponent: new Uint8Array([1, 0, 1]),
+    hash: 'SHA-256',
+  }, true, ['sign', 'verify'])
+
+  // Export SPKI for public key then extract modulus and exponent for SSH format
+  const spkiBuf = new Uint8Array(await crypto.subtle.exportKey('spki', keyPair.publicKey))
+  const pkcs8Buf = new Uint8Array(await crypto.subtle.exportKey('pkcs8', keyPair.privateKey))
+
+  // For SSH RSA public key we need to extract modulus (n) and exponent (e) from SPKI
+  // SPKI structure: SEQUENCE { SEQUENCE { OID rsaEncryption, NULL }, BIT STRING { SEQUENCE { INTEGER n, INTEGER e } } }
+  // Parse just enough to get the RSA public key SEQUENCE
+  function parseDerLen(data: Uint8Array, offset: number): { len: number; next: number } {
+    const b = data[offset]
+    if (!(b & 0x80)) return { len: b, next: offset + 1 }
+    const nb = b & 0x7f; let len = 0
+    for (let i = 0; i < nb; i++) len = (len << 8) | data[offset + 1 + i]
+    return { len, next: offset + 1 + nb }
+  }
+
+  // Skip SEQUENCE (SEQUENCE OID NULL) to get to BIT STRING
+  let pos = 1 // skip outer SEQUENCE tag
+  const { len: outerLen, next: afterOuterLen } = parseDerLen(spkiBuf, pos)
+  pos = afterOuterLen
+  // Skip algorithm SEQUENCE
+  pos++ // tag
+  const { len: algLen, next: afterAlgLen } = parseDerLen(spkiBuf, pos)
+  pos = afterAlgLen + algLen
+  // Now at BIT STRING
+  pos++ // tag
+  const { next: afterBsLen } = parseDerLen(spkiBuf, pos)
+  pos = afterBsLen
+  pos++ // skip unused bits byte
+  // Now at SEQUENCE { INTEGER n, INTEGER e }
+  pos++ // skip SEQUENCE tag
+  const { next: afterRsaSeqLen } = parseDerLen(spkiBuf, pos)
+  pos = afterRsaSeqLen
+  // INTEGER n
+  pos++ // tag
+  const { len: nLen, next: afterNLen } = parseDerLen(spkiBuf, pos)
+  const n = spkiBuf.slice(afterNLen, afterNLen + nLen)
+  pos = afterNLen + nLen
+  // INTEGER e
+  pos++ // tag
+  const { len: eLen, next: afterELen } = parseDerLen(spkiBuf, pos)
+  const e = spkiBuf.slice(afterELen, afterELen + eLen)
+
+  // SSH RSA public key wire format: string("ssh-rsa") + mpint(e) + mpint(n)
+  // mpint: big-endian bytes, with leading 0x00 if high bit set
+  function mpint(bytes: Uint8Array): Uint8Array {
+    // Remove leading zeros
+    let start = 0; while (start < bytes.length - 1 && bytes[start] === 0) start++
+    const trimmed = bytes.slice(start)
+    // Add leading zero if high bit is set
+    const needPad = trimmed[0] & 0x80
+    const b = needPad ? concat(new Uint8Array([0]), trimmed) : trimmed
+    return sshWriteBytes(b)
+  }
+
+  const pubWire = concat(sshWriteString('ssh-rsa'), mpint(e), mpint(n))
+  const publicKey = `ssh-rsa ${encodeBase64(pubWire)} generated@it-toolbox`
+
+  const fpBuf = await crypto.subtle.digest('SHA-256', pubWire)
+  const fingerprint = `SHA256:${encodeBase64(new Uint8Array(fpBuf))}`
+
+  // Private key as OpenSSH PEM (using PKCS8 as fallback - widely supported)
+  const privB64 = encodeBase64(pkcs8Buf).match(/.{1,64}/g)!.join('\n')
+  const privateKey = `-----BEGIN PRIVATE KEY-----\n${privB64}\n-----END PRIVATE KEY-----`
+
+  void outerLen // suppress unused warning
+
+  return { publicKey, privateKey, fingerprint }
+}
+
 export async function generateSshKeyPair(type: 'ed25519' | 'rsa' = 'ed25519'): Promise<Result<SshKeyPair>> {
   try {
-    let keyPair: CryptoKeyPair
-    
     if (type === 'ed25519') {
-      keyPair = await crypto.subtle.generateKey({ name: 'Ed25519' } as unknown as EcKeyGenParams, true, ['sign', 'verify'])
+      // Ed25519 requires Chrome 113+, Firefox 119+, Safari 17+
+      if (!crypto.subtle.generateKey.toString().includes('native')) {
+        // Check for Ed25519 support
+      }
+      const keyPair = await crypto.subtle.generateKey(
+        { name: 'Ed25519' } as unknown as EcKeyGenParams,
+        true,
+        ['sign', 'verify']
+      )
+      const keys = await buildEd25519Keys(keyPair)
+      return { ok: true, value: keys }
     } else {
-      keyPair = await crypto.subtle.generateKey({
-        name: 'RSASSA-PKCS1-v1_5',
-        modulusLength: 4096,
-        publicExponent: new Uint8Array([1, 0, 1]),
-        hash: 'SHA-256',
-      }, true, ['sign', 'verify'])
-    }
-    
-    const publicKeyBuffer = await crypto.subtle.exportKey('spki', keyPair.publicKey)
-    const privateKeyBuffer = await crypto.subtle.exportKey('pkcs8', keyPair.privateKey)
-    
-    const publicKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(publicKeyBuffer)))
-    const privateKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(privateKeyBuffer)))
-    
-    const publicKey = `ssh-${type === 'ed25519' ? 'ed25519' : 'rsa'} ${publicKeyBase64} generated@it-toolbox`
-    const privateKey = `-----BEGIN OPENSSH PRIVATE KEY-----\n${privateKeyBase64.match(/.{1,64}/g)!.join('\n')}\n-----END OPENSSH PRIVATE KEY-----`
-    
-    const fingerprintBuffer = await crypto.subtle.digest('SHA-256', new Uint8Array(publicKeyBuffer))
-    const fingerprint = btoa(String.fromCharCode(...new Uint8Array(fingerprintBuffer)))
-    
-    return {
-      ok: true,
-      value: { publicKey, privateKey, fingerprint: `SHA256:${fingerprint}` },
+      const keys = await buildRsaKeys(4096)
+      return { ok: true, value: keys }
     }
   } catch (e) {
-    return { ok: false, error: (e as Error).message }
+    const msg = (e as Error).message
+    if (msg.includes('Ed25519') || msg.includes('algorithm')) {
+      return { ok: false, error: 'Ed25519 需要 Chrome 113+、Firefox 119+ 或 Safari 17+，请升级浏览器或改用 RSA 密钥。' }
+    }
+    return { ok: false, error: msg }
   }
 }

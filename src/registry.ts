@@ -677,6 +677,45 @@ export const toolRegistry: ToolMeta[] = [
     tags: ['placeholder', 'image', 'svg', 'generate'],
     icon: 'Image',
   },
+
+  // ─── Phase 3: AI 增强工具 ────────────────────────────────────────────────────
+
+  {
+    id: 'ai-regex',
+    name: 'AI 正则生成',
+    nameEn: 'AI Regex Generator',
+    description: '用自然语言描述，AI 自动生成正则表达式并附上解释',
+    category: 'ai',
+    tags: ['ai', 'regex', 'regexp', 'generate', 'nlp'],
+    keywords: ['正则', '自然语言', '生成', '匹配'],
+    icon: 'Sparkles',
+    requiresApi: true,
+    isNew: true,
+  },
+  {
+    id: 'ai-sql',
+    name: 'AI SQL 生成',
+    nameEn: 'AI SQL Generator',
+    description: '自然语言转 SQL，支持提供数据库 Schema 生成精准查询',
+    category: 'ai',
+    tags: ['ai', 'sql', 'database', 'query', 'generate'],
+    keywords: ['数据库', '查询', '生成', 'select'],
+    icon: 'Database',
+    requiresApi: true,
+    isNew: true,
+  },
+  {
+    id: 'ai-code-explain',
+    name: 'AI 代码解释',
+    nameEn: 'AI Code Explainer',
+    description: '粘贴任意代码，AI 用中文为你详细解释逻辑和关键概念',
+    category: 'ai',
+    tags: ['ai', 'code', 'explain', 'review'],
+    keywords: ['代码', '解释', '分析', '理解'],
+    icon: 'BookOpen',
+    requiresApi: true,
+    isNew: true,
+  },
 ]
 
 export const searchIndex = new Fuse(toolRegistry, {

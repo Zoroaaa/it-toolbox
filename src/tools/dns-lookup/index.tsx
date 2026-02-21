@@ -39,15 +39,20 @@ export default function DnsLookup() {
     setResult(null)
 
     try {
-      const res = await fetch(`/api/dns?domain=${encodeURIComponent(domain)}&type=${type}`)
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 8000)
+      const res = await fetch(`/api/dns?domain=${encodeURIComponent(domain)}&type=${type}`, { signal: controller.signal })
+      clearTimeout(timeoutId)
       const json: ApiResponse = await res.json()
       if (json.success && json.data) {
         setResult(json.data)
       } else {
         setError(json.error || '查询失败')
       }
-    } catch {
-      setError('网络请求失败')
+    } catch (e) {
+      const err = e as Error
+      if (err.name === 'AbortError') setError('请求超时，请检查网络连接')
+      else setError('网络请求失败：' + err.message)
     }
     setLoading(false)
   }

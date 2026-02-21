@@ -1,7 +1,122 @@
-import { useState, useMemo } from 'react'
-import { Upload, AlertCircle, CheckCircle } from 'lucide-react'
+import { useState, useCallback } from 'react'
+import { Upload, AlertCircle, CheckCircle, ShieldCheck, ShieldAlert } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
+import { useClipboard } from '@/hooks/useClipboard'
 import { meta } from './meta'
+
+// ─── ASN.1 DER Parser ────────────────────────────────────────────────────────
+
+interface AsnNode {
+  tag: number
+  cls: number
+  constructed: boolean
+  value: Uint8Array
+  children: AsnNode[]
+}
+
+function parseAsn1(data: Uint8Array, offset = 0): { node: AsnNode; consumed: number } {
+  const tagByte = data[offset]
+  const cls = (tagByte & 0xc0) >> 6
+  const constructed = !!(tagByte & 0x20)
+  let tag = tagByte & 0x1f
+  let idx = offset + 1
+
+  if (tag === 0x1f) {
+    tag = 0
+    while (data[idx] & 0x80) { tag = (tag << 7) | (data[idx++] & 0x7f) }
+    tag = (tag << 7) | (data[idx++] & 0x7f)
+  }
+
+  let length = data[idx++]
+  if (length & 0x80) {
+    const lenBytes = length & 0x7f
+    length = 0
+    for (let i = 0; i < lenBytes; i++) length = (length << 8) | data[idx++]
+  }
+
+  const value = data.slice(idx, idx + length)
+  const headerSize = idx - offset
+  const children: AsnNode[] = []
+
+  if (constructed) {
+    let pos = 0
+    while (pos < value.length) {
+      try {
+        const { node, consumed } = parseAsn1(value, pos)
+        children.push(node)
+        pos += consumed
+      } catch { break }
+    }
+  }
+
+  return { node: { tag, cls, constructed, value, children }, consumed: headerSize + length }
+}
+
+function asnOid(bytes: Uint8Array): string {
+  const parts: number[] = [Math.floor(bytes[0] / 40), bytes[0] % 40]
+  let val = 0
+  for (let i = 1; i < bytes.length; i++) {
+    val = (val << 7) | (bytes[i] & 0x7f)
+    if (!(bytes[i] & 0x80)) { parts.push(val); val = 0 }
+  }
+  return parts.join('.')
+}
+
+function asnStr(node: AsnNode): string {
+  if (node.tag === 0x1e) {
+    let s = ''
+    for (let i = 0; i < node.value.length - 1; i += 2)
+      s += String.fromCharCode((node.value[i] << 8) | node.value[i + 1])
+    return s
+  }
+  return new TextDecoder('utf-8').decode(node.value)
+}
+
+function asnDate(node: AsnNode): string {
+  const s = new TextDecoder().decode(node.value)
+  if (s.length === 13) {
+    const yy = parseInt(s.slice(0, 2))
+    const year = yy >= 50 ? 1900 + yy : 2000 + yy
+    return `${year}-${s.slice(2, 4)}-${s.slice(4, 6)} ${s.slice(6, 8)}:${s.slice(8, 10)}:${s.slice(10, 12)} UTC`
+  }
+  return `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)} ${s.slice(8, 10)}:${s.slice(10, 12)}:${s.slice(12, 14)} UTC`
+}
+
+function asnHex(bytes: Uint8Array): string {
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join(':').toUpperCase()
+}
+
+const OID: Record<string, string> = {
+  '2.5.4.3': 'CN', '2.5.4.6': 'C', '2.5.4.7': 'L', '2.5.4.8': 'ST',
+  '2.5.4.10': 'O', '2.5.4.11': 'OU', '2.5.4.5': 'serialNumber',
+  '1.2.840.113549.1.1.1': 'rsaEncryption',
+  '1.2.840.113549.1.1.5': 'sha1WithRSAEncryption',
+  '1.2.840.113549.1.1.11': 'sha256WithRSAEncryption',
+  '1.2.840.113549.1.1.12': 'sha384WithRSAEncryption',
+  '1.2.840.113549.1.1.13': 'sha512WithRSAEncryption',
+  '1.2.840.10045.2.1': 'ecPublicKey',
+  '1.2.840.10045.4.3.2': 'ecdsa-with-SHA256',
+  '1.2.840.10045.4.3.3': 'ecdsa-with-SHA384',
+  '1.2.840.10045.4.3.4': 'ecdsa-with-SHA512',
+  '1.3.14.3.2.26': 'sha1', '2.16.840.1.101.3.4.2.1': 'sha256',
+  '2.5.29.17': 'subjectAltName', '2.5.29.19': 'basicConstraints',
+  '2.5.29.15': 'keyUsage', '2.5.29.37': 'extKeyUsage',
+  '1.2.840.10045.3.1.7': 'prime256v1 (P-256)',
+  '1.3.132.0.34': 'secp384r1 (P-384)', '1.3.132.0.35': 'secp521r1 (P-521)',
+}
+
+function parseRdn(seq: AsnNode): Record<string, string> {
+  const result: Record<string, string> = {}
+  for (const rdn of seq.children) {
+    for (const atv of rdn.children) {
+      if (atv.children.length >= 2) {
+        const oidStr = asnOid(atv.children[0].value)
+        result[OID[oidStr] ?? oidStr] = asnStr(atv.children[1])
+      }
+    }
+  }
+  return result
+}
 
 interface ParsedCert {
   subject: Record<string, string>
@@ -10,345 +125,242 @@ interface ParsedCert {
   notBefore: string
   notAfter: string
   isExpired: boolean
-  isValid: boolean
   signatureAlgorithm: string
   publicKeyAlgorithm: string
   publicKeySize: string
   san: string[]
-  fingerprint: {
-    sha256: string
-    sha1: string
-  }
+  fingerprint: { sha256: string; sha1: string }
   version: number
-  raw: string
+  isCA: boolean
 }
 
-function parsePemCertificate(pem: string): ParsedCert | null {
-  try {
-    const base64 = pem
-      .replace(/-----BEGIN CERTIFICATE-----/g, '')
-      .replace(/-----END CERTIFICATE-----/g, '')
-      .replace(/\s/g, '')
+async function parsePem(pem: string): Promise<ParsedCert> {
+  const b64 = pem.replace(/-----[^-]+-----/g, '').replace(/\s/g, '')
+  if (!b64) throw new Error('空证书内容')
+  const bin = Uint8Array.from(atob(b64), c => c.charCodeAt(0))
 
-    if (!base64) return null
+  const fp256 = await crypto.subtle.digest('SHA-256', bin)
+  const fp1   = await crypto.subtle.digest('SHA-1', bin)
+  const toFP  = (b: ArrayBuffer) =>
+    Array.from(new Uint8Array(b)).map(x => x.toString(16).padStart(2, '0')).join(':').toUpperCase()
 
-    const binaryString = atob(base64)
-    const bytes = new Uint8Array(binaryString.length)
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i)
-    }
+  const { node: root } = parseAsn1(bin)
+  if (root.children.length < 3) throw new Error('证书结构不完整')
 
-    const cert: ParsedCert = {
-      subject: {},
-      issuer: {},
-      serialNumber: '',
-      notBefore: '',
-      notAfter: '',
-      isExpired: false,
-      isValid: false,
-      signatureAlgorithm: '',
-      publicKeyAlgorithm: '',
-      publicKeySize: '',
-      san: [],
-      fingerprint: { sha256: '', sha1: '' },
-      version: 3,
-      raw: pem,
-    }
+  const tbs    = root.children[0]
+  const sigAlgSeq = root.children[1]
 
-    const now = new Date()
-    const notBeforeMatch = pem.match(/Not Before:\s*(.+)/i)
-    const notAfterMatch = pem.match(/Not After:\s*(.+)/i)
-
-    if (notBeforeMatch) {
-      cert.notBefore = notBeforeMatch[1].trim()
-    }
-    if (notAfterMatch) {
-      cert.notAfter = notAfterMatch[1].trim()
-      const expiryDate = new Date(cert.notAfter)
-      cert.isExpired = expiryDate < now
-      cert.isValid = !cert.isExpired
-    }
-
-    const cnMatch = pem.match(/CN\s*=\s*([^,\n]+)/gi)
-    if (cnMatch) {
-      cert.subject['CN'] = cnMatch[0].replace(/CN\s*=\s*/i, '').trim()
-    }
-
-    const oMatch = pem.match(/O\s*=\s*([^,\n]+)/gi)
-    if (oMatch) {
-      cert.subject['O'] = oMatch[0].replace(/O\s*=\s*/i, '').trim()
-    }
-
-    const issuerCnMatch = pem.match(/Issuer:.*?CN\s*=\s*([^,\n]+)/i)
-    if (issuerCnMatch) {
-      cert.issuer['CN'] = issuerCnMatch[1].trim()
-    }
-
-    const issuerOMatch = pem.match(/Issuer:.*?O\s*=\s*([^,\n]+)/i)
-    if (issuerOMatch) {
-      cert.issuer['O'] = issuerOMatch[1].trim()
-    }
-
-    const sanMatch = pem.match(/Subject Alternative Name:\s*(.+?)(?:\n|$)/i)
-    if (sanMatch) {
-      cert.san = sanMatch[1]
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean)
-    }
-
-    const sigAlgMatch = pem.match(/Signature Algorithm:\s*(\S+)/i)
-    if (sigAlgMatch) {
-      cert.signatureAlgorithm = sigAlgMatch[1]
-    }
-
-    const pubKeyAlgMatch = pem.match(/Public Key Algorithm:\s*(\S+)/i)
-    if (pubKeyAlgMatch) {
-      cert.publicKeyAlgorithm = pubKeyAlgMatch[1]
-    }
-
-    const rsaBitsMatch = pem.match(/RSA Public-Key:\s*\((\d+)\s*bit\)/i)
-    if (rsaBitsMatch) {
-      cert.publicKeySize = rsaBitsMatch[1] + ' bit'
-    }
-
-    const serialMatch = pem.match(/Serial Number:\s*([0-9a-fA-F:\s]+?)(?:\n|$)/i)
-    if (serialMatch) {
-      cert.serialNumber = serialMatch[1].replace(/\s/g, '').trim()
-    }
-
-    cert.fingerprint.sha256 = generateFingerprint(bytes, 'SHA-256')
-    cert.fingerprint.sha1 = generateFingerprint(bytes, 'SHA-1')
-
-    return cert
-  } catch {
-    return null
+  let idx = 0
+  let version = 1
+  if (tbs.children[idx]?.cls === 2 && tbs.children[idx]?.tag === 0) {
+    version = (tbs.children[idx].children[0]?.value[0] ?? 0) + 1
+    idx++
   }
-}
 
-function generateFingerprint(bytes: Uint8Array, algorithm: string): string {
-  let hash: number[] = []
-  
-  if (algorithm === 'SHA-256') {
-    const k: number[] = []
-    for (let i = 0; i < 64; i++) k.push(i)
-    let h: number[] = []
-    for (let i = 0; i < 32; i++) h.push(0x67 ^ k[i])
-    
-    for (let i = 0; i < bytes.length; i += 64) {
-      const chunk = bytes.slice(i, i + 64)
-      for (let j = 0; j < h.length; j++) {
-        h[j] ^= chunk[j % chunk.length]
+  const serialBytes = tbs.children[idx++]?.value ?? new Uint8Array()
+  const serialNumber = asnHex(serialBytes[0] === 0 ? serialBytes.slice(1) : serialBytes)
+
+  idx++ // inner sig alg
+
+  const issuer   = parseRdn(tbs.children[idx++])
+  const validity = tbs.children[idx++]
+  const notBefore = asnDate(validity.children[0])
+  const notAfter  = asnDate(validity.children[1])
+  const subject  = parseRdn(tbs.children[idx++])
+  const spki     = tbs.children[idx++]
+
+  const pubAlgOid = asnOid(spki.children[0]?.children[0]?.value ?? new Uint8Array())
+  const publicKeyAlgorithm = OID[pubAlgOid] ?? pubAlgOid
+  let publicKeySize = ''
+
+  if (pubAlgOid === '1.2.840.113549.1.1.1') {
+    // RSA: bit-string -> nested SEQUENCE -> INTEGER (modulus)
+    const bitStr = spki.children[1]?.value ?? new Uint8Array()
+    try {
+      const { node: rsaKey } = parseAsn1(bitStr.slice(1)) // skip unused-bits byte
+      const mod = rsaKey.children[0]?.value ?? new Uint8Array()
+      const bits = (mod.length - (mod[0] === 0 ? 1 : 0)) * 8
+      publicKeySize = `${bits} bit`
+    } catch { /* ignore */ }
+  } else if (pubAlgOid === '1.2.840.10045.2.1') {
+    const curveOid = asnOid(spki.children[0]?.children[1]?.value ?? new Uint8Array())
+    publicKeySize = OID[curveOid] ?? curveOid
+  }
+
+  const sigOid = asnOid(sigAlgSeq.children[0]?.value ?? new Uint8Array())
+  const signatureAlgorithm = OID[sigOid] ?? sigOid
+
+  // Extensions
+  const san: string[] = []
+  let isCA = false
+  const extWrapper = tbs.children.find(n => n.cls === 2 && n.tag === 3)
+  if (extWrapper?.children[0]) {
+    for (const ext of extWrapper.children[0].children) {
+      const oidStr = asnOid(ext.children[0]?.value ?? new Uint8Array())
+      const valOctet = ext.children[ext.children.length - 1]
+      if (valOctet?.tag !== 0x04) continue
+      const { node: inner } = parseAsn1(valOctet.value)
+
+      if (oidStr === '2.5.29.17') {
+        for (const name of inner.children) {
+          if (name.tag === 2) san.push('DNS:' + new TextDecoder().decode(name.value))
+          else if (name.tag === 7 && name.value.length === 4) san.push('IP:' + Array.from(name.value).join('.'))
+          else if (name.tag === 7 && name.value.length === 16) {
+            // IPv6
+            const parts = []
+            for (let i = 0; i < 16; i += 2)
+              parts.push(((name.value[i] << 8) | name.value[i + 1]).toString(16))
+            san.push('IP:' + parts.join(':'))
+          }
+          else if (name.tag === 1) san.push('email:' + new TextDecoder().decode(name.value))
+        }
+      } else if (oidStr === '2.5.29.19') {
+        isCA = inner.children[0]?.value[0] === 0xff
       }
     }
-    
-    hash = h.slice(0, 32)
-  } else {
-    for (let i = 0; i < 20; i++) {
-      hash.push(bytes[i % bytes.length] ^ i)
-    }
   }
-  
-  return hash.map((b) => b.toString(16).padStart(2, '0')).join(':').toUpperCase()
+
+  return {
+    subject, issuer, serialNumber, notBefore, notAfter,
+    isExpired: new Date(notAfter) < new Date(),
+    signatureAlgorithm, publicKeyAlgorithm, publicKeySize,
+    san, fingerprint: { sha256: toFP(fp256), sha1: toFP(fp1) },
+    version, isCA,
+  }
+}
+
+// ─── UI ──────────────────────────────────────────────────────────────────────
+
+function Row({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div className="flex gap-3 py-2 border-b border-border-base last:border-0">
+      <span className="text-xs text-text-muted w-28 shrink-0 pt-0.5">{label}</span>
+      <span className={`text-xs text-text-primary break-all ${mono ? 'font-mono' : ''}`}>{value || '—'}</span>
+    </div>
+  )
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="bg-bg-surface rounded-lg border border-border-base p-3">
+      <p className="text-xs font-semibold text-text-primary mb-2 uppercase tracking-wider">{title}</p>
+      {children}
+    </div>
+  )
 }
 
 export default function CertDecoder() {
-  const [input, setInput] = useState('')
-  const [error, setError] = useState('')
+  const [input, setInput]   = useState('')
+  const [cert, setCert]     = useState<ParsedCert | null>(null)
+  const [error, setError]   = useState('')
+  const [loading, setLoading] = useState(false)
+  const { copy, copied }    = useClipboard()
 
-  const parsedCert = useMemo(() => {
-    if (!input.trim()) return null
-    setError('')
-    const cert = parsePemCertificate(input)
-    if (!cert) {
-      setError('无法解析证书，请确保输入的是有效的 PEM 格式证书')
-      return null
-    }
-    return cert
+  const parse = useCallback(async () => {
+    const trimmed = input.trim()
+    if (!trimmed) { setCert(null); setError(''); return }
+    setLoading(true); setError('')
+    try {
+      setCert(await parsePem(trimmed))
+    } catch (e) {
+      setError('解析失败：' + (e as Error).message)
+      setCert(null)
+    } finally { setLoading(false) }
   }, [input])
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+  const reset = () => { setInput(''); setCert(null); setError('') }
 
-    const text = await file.text()
-    setInput(text)
-  }
-
-  const reset = () => {
-    setInput('')
-    setError('')
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]; if (!file) return
+    const r = new FileReader()
+    r.onload = ev => { setInput(ev.target?.result as string); setCert(null) }
+    r.readAsText(file)
   }
 
   return (
     <ToolLayout meta={meta} onReset={reset}>
-      <div className="space-y-4">
-        <div>
-          <label className="text-xs font-medium text-text-muted uppercase tracking-wider block mb-2">
-            输入 PEM 证书
-          </label>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-medium text-text-muted uppercase tracking-wider">PEM 证书</label>
+            <label className="btn-ghost text-xs cursor-pointer">
+              <Upload className="w-3.5 h-3.5" /> 上传文件
+              <input type="file" accept=".pem,.crt,.cer,.der" className="hidden" onChange={handleFile} />
+            </label>
+          </div>
           <textarea
-            className="tool-input w-full font-mono text-xs leading-relaxed min-h-[200px]"
+            className="tool-input font-mono text-xs h-40 resize-none"
+            placeholder="粘贴 PEM 格式证书 (-----BEGIN CERTIFICATE-----...)"
             value={input}
-            onChange={(e) => {
-              setInput(e.target.value)
-              setError('')
-            }}
-            placeholder="-----BEGIN CERTIFICATE-----&#10;...&#10;-----END CERTIFICATE-----"
+            onChange={e => { setInput(e.target.value); setCert(null) }}
             spellCheck={false}
           />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <label className="btn-secondary cursor-pointer flex items-center gap-2">
-            <Upload className="w-4 h-4" />
-            上传证书文件
-            <input
-              type="file"
-              accept=".pem,.crt,.cer"
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-          </label>
+          <button onClick={parse} disabled={loading || !input.trim()} className="btn-primary self-start">
+            {loading ? '解析中...' : '解析证书'}
+          </button>
         </div>
 
         {error && (
-          <div className="bg-rose-500/10 border border-rose-500/30 rounded-lg p-4">
-            <p className="text-sm text-rose-400">{error}</p>
+          <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 flex gap-2 text-xs text-rose-400">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />{error}
           </div>
         )}
 
-        {parsedCert && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              {parsedCert.isValid ? (
-                <div className="flex items-center gap-2 text-green-400">
-                  <CheckCircle className="w-5 h-5" />
-                  <span className="text-sm font-medium">证书有效</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 text-red-400">
-                  <AlertCircle className="w-5 h-5" />
-                  <span className="text-sm font-medium">证书已过期</span>
-                </div>
-              )}
+        {cert && (
+          <div className="flex flex-col gap-3">
+            <div className={`flex items-center gap-3 p-3 rounded-lg border ${
+              cert.isExpired ? 'bg-rose-500/10 border-rose-500/30' : 'bg-emerald-500/10 border-emerald-500/30'}`}>
+              {cert.isExpired
+                ? <ShieldAlert className="w-5 h-5 text-rose-400 shrink-0" />
+                : <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0" />}
+              <div>
+                <p className={`text-sm font-medium ${cert.isExpired ? 'text-rose-400' : 'text-emerald-400'}`}>
+                  {cert.isExpired ? '证书已过期' : '证书有效'}
+                </p>
+                <p className="text-xs text-text-muted">到期时间：{cert.notAfter}</p>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-bg-raised border border-border-base rounded-lg p-4">
-                <h3 className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">
-                  主体
-                </h3>
-                <div className="space-y-1 text-sm">
-                  {Object.entries(parsedCert.subject).map(([key, value]) => (
-                    <div key={key} className="flex justify-between">
-                      <span className="text-text-muted">{key}:</span>
-                      <span className="text-text-primary font-mono">{value}</span>
-                    </div>
+            <Section title="主题 (Subject)">
+              {Object.entries(cert.subject).map(([k, v]) => <Row key={k} label={k} value={v} />)}
+            </Section>
+
+            <Section title="颁发者 (Issuer)">
+              {Object.entries(cert.issuer).map(([k, v]) => <Row key={k} label={k} value={v} />)}
+            </Section>
+
+            <Section title="证书详情">
+              <Row label="版本" value={`V${cert.version}`} />
+              <Row label="序列号" value={cert.serialNumber} mono />
+              <Row label="生效时间" value={cert.notBefore} />
+              <Row label="到期时间" value={cert.notAfter} />
+              <Row label="签名算法" value={cert.signatureAlgorithm} />
+              <Row label="公钥算法" value={cert.publicKeyAlgorithm} />
+              {cert.publicKeySize && <Row label="密钥大小" value={cert.publicKeySize} />}
+              <Row label="CA 证书" value={cert.isCA ? '是' : '否'} />
+            </Section>
+
+            {cert.san.length > 0 && (
+              <Section title={`SAN (${cert.san.length})`}>
+                <div className="flex flex-wrap gap-1 pt-1">
+                  {cert.san.map((s, i) => (
+                    <span key={i} className="px-2 py-0.5 rounded bg-bg-raised text-xs font-mono text-text-secondary">{s}</span>
                   ))}
                 </div>
-              </div>
-
-              <div className="bg-bg-raised border border-border-base rounded-lg p-4">
-                <h3 className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">
-                  颁发者
-                </h3>
-                <div className="space-y-1 text-sm">
-                  {Object.entries(parsedCert.issuer).map(([key, value]) => (
-                    <div key={key} className="flex justify-between">
-                      <span className="text-text-muted">{key}:</span>
-                      <span className="text-text-primary font-mono">{value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-bg-raised border border-border-base rounded-lg p-4">
-              <h3 className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">
-                有效期
-              </h3>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-text-muted">生效时间:</span>
-                  <span className="ml-2 text-text-primary">{parsedCert.notBefore || '未知'}</span>
-                </div>
-                <div>
-                  <span className="text-text-muted">过期时间:</span>
-                  <span className={`ml-2 ${parsedCert.isExpired ? 'text-red-400' : 'text-text-primary'}`}>
-                    {parsedCert.notAfter || '未知'}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-bg-raised border border-border-base rounded-lg p-4">
-              <h3 className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">
-                证书信息
-              </h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                <div>
-                  <span className="text-text-muted">签名算法:</span>
-                  <span className="ml-2 text-text-primary font-mono">{parsedCert.signatureAlgorithm || '未知'}</span>
-                </div>
-                <div>
-                  <span className="text-text-muted">公钥算法:</span>
-                  <span className="ml-2 text-text-primary font-mono">{parsedCert.publicKeyAlgorithm || '未知'}</span>
-                </div>
-                <div>
-                  <span className="text-text-muted">公钥大小:</span>
-                  <span className="ml-2 text-text-primary font-mono">{parsedCert.publicKeySize || '未知'}</span>
-                </div>
-                <div>
-                  <span className="text-text-muted">版本:</span>
-                  <span className="ml-2 text-text-primary">v{parsedCert.version}</span>
-                </div>
-                <div className="col-span-2">
-                  <span className="text-text-muted">序列号:</span>
-                  <span className="ml-2 text-text-primary font-mono text-xs break-all">
-                    {parsedCert.serialNumber || '未知'}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {parsedCert.san.length > 0 && (
-              <div className="bg-bg-raised border border-border-base rounded-lg p-4">
-                <h3 className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">
-                  主题备用名称 (SAN)
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {parsedCert.san.map((name, index) => (
-                    <span
-                      key={index}
-                      className="px-2 py-1 bg-bg-base rounded text-xs font-mono text-text-primary"
-                    >
-                      {name}
-                    </span>
-                  ))}
-                </div>
-              </div>
+              </Section>
             )}
 
-            <div className="bg-bg-raised border border-border-base rounded-lg p-4">
-              <h3 className="text-xs font-medium text-text-muted uppercase tracking-wider mb-3">
-                指纹
-              </h3>
-              <div className="space-y-2 text-sm">
-                <div>
-                  <span className="text-text-muted">SHA-256:</span>
-                  <div className="font-mono text-xs text-text-primary break-all mt-1">
-                    {parsedCert.fingerprint.sha256}
-                  </div>
+            <Section title="指纹">
+              {([['SHA-256', cert.fingerprint.sha256], ['SHA-1', cert.fingerprint.sha1]] as [string, string][]).map(([alg, fp]) => (
+                <div key={alg} className="flex items-start gap-3 py-2 border-b border-border-base last:border-0">
+                  <span className="text-xs text-text-muted w-14 shrink-0 pt-0.5">{alg}</span>
+                  <span className="font-mono text-xs text-text-primary break-all flex-1">{fp}</span>
+                  <button onClick={() => copy(fp)} className="btn-ghost text-xs shrink-0">
+                    {copied ? <CheckCircle className="w-3.5 h-3.5 text-accent" /> : '复制'}
+                  </button>
                 </div>
-                <div>
-                  <span className="text-text-muted">SHA-1:</span>
-                  <div className="font-mono text-xs text-text-primary break-all mt-1">
-                    {parsedCert.fingerprint.sha1}
-                  </div>
-                </div>
-              </div>
-            </div>
+              ))}
+            </Section>
           </div>
         )}
       </div>

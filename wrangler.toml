@@ -9,6 +9,10 @@ ENVIRONMENT = "production"
 [[kv_namespaces]]
 binding = "CACHE"
 id = "7fd0a5eff59f466cbc71335ad3c843bb"
+# preview_id 用于本地 wrangler pages dev 调试
+# 创建方式: wrangler kv namespace create CACHE --preview
+# 然后将生成的 id 填入下方
+preview_id = "7fd0a5eff59f466cbc71335ad3c843bb"
 
 [[r2_buckets]]
 binding = "FILES"

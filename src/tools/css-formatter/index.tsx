@@ -6,48 +6,123 @@ import { useAppStore } from '@/store/app'
 type Mode = 'format' | 'minify'
 
 function formatCss(css: string, indent: number = 2): string {
-  let result = css
-  result = result.replace(/\s*{\s*/g, ' {\n')
-  result = result.replace(/\s*}\s*/g, '\n}\n\n')
-  result = result.replace(/\s*;\s*/g, ';\n')
-  result = result.replace(/\s*:\s*/g, ': ')
-  result = result.replace(/,\s*/g, ',\n')
-  
-  const lines = result.split('\n')
-  let indentLevel = 0
   const indentStr = ' '.repeat(indent)
   
-  const formatted = lines.map((line) => {
-    line = line.trim()
-    if (!line) return ''
-    
-    if (line === '}') {
-      indentLevel = Math.max(0, indentLevel - 1)
+  // Tokenize: strings, comments, and chars
+  const tokens: string[] = []
+  let i = 0
+  while (i < css.length) {
+    // Strings
+    if (css[i] === '"' || css[i] === "'") {
+      const q = css[i]; let tok = q; i++
+      while (i < css.length && css[i] !== q) {
+        if (css[i] === '\\') { tok += css[i] + css[i+1]; i += 2; continue }
+        tok += css[i++]
+      }
+      tokens.push(tok + (css[i++] || '')); continue
     }
-    
-    const indentedLine = indentStr.repeat(indentLevel) + line
-    
-    if (line.endsWith('{')) {
-      indentLevel++
+    // Block comment
+    if (css[i] === '/' && css[i+1] === '*') {
+      let tok = '/*'; i += 2
+      while (i < css.length && !(css[i] === '*' && css[i+1] === '/')) tok += css[i++]
+      tokens.push(tok + '*/'); i += 2; continue
     }
-    
-    return indentedLine
-  })
+    // Line comment (SCSS/Less)
+    if (css[i] === '/' && css[i+1] === '/') {
+      let tok = ''
+      while (i < css.length && css[i] !== '\n') tok += css[i++]
+      tokens.push(tok); continue
+    }
+    tokens.push(css[i++])
+  }
+
+  let result = ''
+  let level = 0
+  let inRule = false
+  let buf = ''
   
-  return formatted.filter((line) => line !== '').join('\n')
+  const flush = () => {
+    const trimmed = buf.trim()
+    if (trimmed) {
+      result += indentStr.repeat(level) + trimmed + '\n'
+    }
+    buf = ''
+  }
+
+  const raw = tokens.join('')
+  let pos = 0
+  
+  while (pos < raw.length) {
+    const ch = raw[pos]
+    
+    if (ch === '{') {
+      const selector = buf.trim()
+      if (selector) {
+        result += indentStr.repeat(level) + selector + ' {\n'
+      }
+      buf = ''
+      level++
+      inRule = true
+      pos++
+      continue
+    }
+    
+    if (ch === '}') {
+      flush()
+      level = Math.max(0, level - 1)
+      result += indentStr.repeat(level) + '}\n'
+      if (level === 0) result += '\n'
+      inRule = false
+      pos++
+      continue
+    }
+    
+    if (ch === ';') {
+      buf += ';'
+      flush()
+      pos++
+      continue
+    }
+    
+    // Preserve comments
+    if (ch === '/' && raw[pos+1] === '*') {
+      let comment = ''
+      while (pos < raw.length && !(raw[pos] === '*' && raw[pos+1] === '/')) comment += raw[pos++]
+      comment += '*/' ; pos += 2
+      flush()
+      result += indentStr.repeat(level) + comment.trim() + '\n'
+      continue
+    }
+    
+    if (ch === '\n' || ch === '\r') {
+      if (!inRule) {
+        const trimmed = buf.trim()
+        if (trimmed && !trimmed.endsWith('{') && !trimmed.endsWith('}')) {
+          buf += ' '
+        }
+      }
+      pos++
+      continue
+    }
+    
+    buf += ch
+    pos++
+  }
+  
+  flush()
+  return result.trim()
 }
 
 function minifyCss(css: string): string {
-  let result = css
-  result = result.replace(/\/\*[\s\S]*?\*\//g, '')
-  result = result.replace(/\s+/g, ' ')
-  result = result.replace(/\s*{\s*/g, '{')
-  result = result.replace(/\s*}\s*/g, '}')
-  result = result.replace(/\s*;\s*/g, ';')
-  result = result.replace(/\s*:\s*/g, ':')
-  result = result.replace(/\s*,\s*/g, ',')
-  result = result.trim()
-  return result
+  return css
+    .replace(/\/\*[\s\S]*?\*\//g, '') // remove comments
+    .replace(/\s+/g, ' ')              // collapse whitespace
+    .replace(/\s*{\s*/g, '{')
+    .replace(/\s*}\s*/g, '}')
+    .replace(/\s*;\s*/g, ';')
+    .replace(/\s*:\s*/g, ':')
+    .replace(/\s*,\s*/g, ',')
+    .trim()
 }
 
 export default function CssFormatter() {

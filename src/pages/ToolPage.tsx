@@ -72,6 +72,9 @@ const toolComponents: Record<string, React.LazyExoticComponent<() => JSX.Element
   'yaml-json': lazy(() => import('@/tools/yaml-json/index')),
   'ip-lookup': lazy(() => import('@/tools/ip-lookup/index')),
   'dns-lookup': lazy(() => import('@/tools/dns-lookup/index')),
+  'ai-regex': lazy(() => import('@/tools/ai-regex/index')),
+  'ai-sql': lazy(() => import('@/tools/ai-sql/index')),
+  'ai-code-explain': lazy(() => import('@/tools/ai-code-explain/index')),
 }
 
 function ToolSkeleton() {

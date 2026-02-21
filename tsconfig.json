@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2022",
     "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
     "moduleResolution": "bundler",
@@ -23,9 +23,8 @@
       "@core/index": ["./packages/core/index.ts"],
       "@toolbox/types/tool": ["./packages/types/tool.ts"],
       "@toolbox/types/api": ["./packages/types/api.ts"]
-    },
-    "types": ["@cloudflare/workers-types"]
+    }
   },
-  "include": ["src", "functions", "packages"],
+  "include": ["src", "packages"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

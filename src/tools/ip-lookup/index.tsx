@@ -23,7 +23,10 @@ export default function IpLookup() {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch('/api/ip')
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 8000)
+      const res = await fetch('/api/ip', { signal: controller.signal })
+      clearTimeout(timeoutId)
       const json: IpApiResponse = await res.json()
       if (json.success && json.data) {
         setIpInfo(json.data)
@@ -31,7 +34,9 @@ export default function IpLookup() {
         setError(json.error || '查询失败')
       }
     } catch (e) {
-      setError('网络请求失败')
+      const err = e as Error
+      if (err.name === 'AbortError') setError('请求超时，请检查网络连接')
+      else setError('网络请求失败：' + err.message)
     }
     setLoading(false)
   }

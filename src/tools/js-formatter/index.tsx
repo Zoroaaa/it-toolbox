@@ -7,104 +7,163 @@ type Mode = 'format' | 'minify'
 
 function formatJs(code: string, indent: number = 2): string {
   const indentStr = ' '.repeat(indent)
-  let result = ''
-  let indentLevel = 0
-  let inString = false
-  let stringChar = ''
-  let inComment = false
-  let inLineComment = false
-
-  const isNewline = (char: string) => char === '\n'
-  const isWhitespace = (char: string) => /\s/.test(char)
-
-  for (let i = 0; i < code.length; i++) {
-    const char = code[i]
-    const nextChar = code[i + 1] || ''
-    const prevChar = code[i - 1] || ''
-
-    if (inLineComment) {
-      result += char
-      if (isNewline(char)) {
-        inLineComment = false
+  
+  // Tokenize the code into meaningful chunks
+  const tokens: string[] = []
+  let i = 0
+  
+  while (i < code.length) {
+    // Template literals
+    if (code[i] === '`') {
+      let tok = '`'; i++
+      let depth = 0
+      while (i < code.length) {
+        if (code[i] === '\\') { tok += code[i] + code[i+1]; i += 2; continue }
+        if (code[i] === '$' && code[i+1] === '{') { depth++; tok += '${'; i += 2; continue }
+        if (code[i] === '}' && depth > 0) { depth--; tok += '}'; i++; continue }
+        if (code[i] === '`' && depth === 0) { tok += '`'; i++; break }
+        tok += code[i++]
       }
-      continue
+      tokens.push(tok); continue
     }
-
-    if (inComment) {
-      result += char
-      if (prevChar === '*' && char === '/') {
-        inComment = false
+    // String literals
+    if (code[i] === '"' || code[i] === "'") {
+      const q = code[i]; let tok = q; i++
+      while (i < code.length && code[i] !== q) {
+        if (code[i] === '\\') { tok += code[i] + code[i+1]; i += 2; continue }
+        tok += code[i++]
       }
-      continue
+      tok += code[i++] || ''
+      tokens.push(tok); continue
     }
-
-    if (!inString && char === '/' && nextChar === '/') {
-      inLineComment = true
-      result += char
-      continue
+    // Line comment
+    if (code[i] === '/' && code[i+1] === '/') {
+      let tok = ''
+      while (i < code.length && code[i] !== '\n') tok += code[i++]
+      tokens.push(tok); continue
     }
-
-    if (!inString && char === '/' && nextChar === '*') {
-      inComment = true
-      result += char
-      continue
+    // Block comment
+    if (code[i] === '/' && code[i+1] === '*') {
+      let tok = '/*'; i += 2
+      while (i < code.length && !(code[i] === '*' && code[i+1] === '/')) tok += code[i++]
+      tok += '*/'; i += 2
+      tokens.push(tok); continue
     }
-
-    if (!inString && (char === '"' || char === "'" || char === '`')) {
-      inString = true
-      stringChar = char
-      result += char
-      continue
-    }
-
-    if (inString) {
-      result += char
-      if (char === stringChar && prevChar !== '\\') {
-        inString = false
+    // Regex literal (basic detection: after = ( , [ ! & | ? : return)
+    if (code[i] === '/') {
+      const prev = tokens.filter(t => t.trim()).at(-1) ?? ''
+      const lastChar = prev.trim().slice(-1)
+      if ('=([,!&|?:'.includes(lastChar) || prev.trim() === 'return' || prev.trim() === 'typeof') {
+        let tok = '/'; i++
+        while (i < code.length && code[i] !== '/' && code[i] !== '\n') {
+          if (code[i] === '\\') { tok += code[i] + code[i+1]; i += 2; continue }
+          tok += code[i++]
+        }
+        tok += code[i++] || ''
+        // flags
+        while (i < code.length && /[gimsuy]/.test(code[i])) tok += code[i++]
+        tokens.push(tok); continue
       }
-      continue
     }
-
-    if (char === '{') {
-      result += ' {\n' + indentStr.repeat(indentLevel + 1)
-      indentLevel++
-      continue
+    // Whitespace/newlines - collapse
+    if (/\s/.test(code[i])) {
+      while (i < code.length && /\s/.test(code[i])) i++
+      tokens.push(' '); continue
     }
-
-    if (char === '}') {
-      indentLevel = Math.max(0, indentLevel - 1)
-      result = result.trimEnd()
-      result += '\n' + indentStr.repeat(indentLevel) + '}\n' + indentStr.repeat(indentLevel)
-      continue
-    }
-
-    if (char === ';') {
-      result += ';\n' + indentStr.repeat(indentLevel)
-      continue
-    }
-
-    if (char === '\n' || char === '\r') {
-      continue
-    }
-
-    if (isWhitespace(char) && isWhitespace(prevChar)) {
-      continue
-    }
-
-    result += char
+    tokens.push(code[i++])
   }
-
+  
+  // Now reconstruct with proper formatting
+  let result = ''
+  let level = 0
+  let lineStart = true
+  const toks = tokens.filter(t => t !== ' ' || !lineStart)
+  
+  const writeIndent = () => { result += indentStr.repeat(level) }
+  const writeln = () => { result += '\n'; lineStart = true }
+  
+  for (let idx = 0; idx < toks.length; idx++) {
+    const tok = toks[idx]
+    const next = toks[idx + 1] ?? ''
+    
+    if (tok === ' ') {
+      if (!lineStart && result.slice(-1) !== ' ') result += ' '
+      continue
+    }
+    
+    if (tok === '{' || tok === '[' || tok === '(') {
+      if (lineStart) writeIndent()
+      result += tok
+      lineStart = false
+      // Check if closing is on same line (inline objects/arrays)
+      let depth = 1, j = idx + 1
+      while (j < toks.length && depth > 0) {
+        const t = toks[j].trim()
+        if (t === tok || t === '{' || t === '[' || t === '(') depth++
+        if (t === '}' || t === ']' || t === ')') depth--
+        j++
+      }
+      // If closing bracket is right next or only whitespace between, keep inline
+      const inner = toks.slice(idx + 1, j - 1).join('').trim()
+      if (!inner || (inner.length < 60 && !inner.includes('\n') && !inner.includes('{'))) {
+        continue // keep inline
+      }
+      level++; writeln()
+      continue
+    }
+    
+    if (tok === '}' || tok === ']' || tok === ')') {
+      if (level > 0) level--
+      if (!lineStart) { writeln(); writeIndent() }
+      else writeIndent()
+      result += tok
+      lineStart = false
+      if (next === ';' || next === ',' || next === ')' || next === ']' || next === '}') continue
+      if (next === '{') { result += ' '; continue }
+      if (next && next !== ' ' && !next.startsWith('//')) writeln()
+      continue
+    }
+    
+    if (tok === ';') {
+      result += ';'
+      lineStart = false
+      if (next && next !== '}' && next !== ')') writeln()
+      continue
+    }
+    
+    if (tok === ',') {
+      result += ','
+      lineStart = false
+      // Check if we're in a multi-line context
+      if (level > 0) writeln()
+      else result += ' '
+      continue
+    }
+    
+    if (tok.startsWith('//') || tok.startsWith('/*')) {
+      if (lineStart) writeIndent()
+      else result += ' '
+      result += tok
+      lineStart = false
+      if (tok.startsWith('//')) writeln()
+      continue
+    }
+    
+    if (lineStart) { writeIndent(); lineStart = false }
+    else if (result.slice(-1) !== ' ' && result.slice(-1) !== '(' && result.slice(-1) !== '[') {
+      // Add space between tokens where needed
+      const prev = result.slice(-1)
+      if (prev !== '.' && tok !== '.' && prev !== '!' && prev !== '~' && tok !== '(' && tok !== '[' && tok !== ')' && tok !== ']' && tok !== ';' && tok !== ',') {
+        // keywords and operators need spaces
+        if (/[a-zA-Z0-9_$]/.test(prev) && /[a-zA-Z0-9_$]/.test(tok[0])) result += ' '
+        else if (/[=+\-*/<>!&|^%?:]/.test(prev) || /^[=+\-*/<>!&|^%?:]/.test(tok)) result += ' '
+      }
+    }
+    
+    result += tok
+  }
+  
   return result.trim()
-}
-
-function minifyJs(code: string): string {
-  let result = code
-  result = result.replace(/\/\*[\s\S]*?\*\//g, '')
-  result = result.replace(/\/\/.*$/gm, '')
-  result = result.replace(/\s+/g, ' ')
-  result = result.replace(/\s*([{}();,:<>=+\-*/&|!?.])\s*/g, '$1')
-  result = result.trim()
-  return result
 }
 
 export default function JsFormatter() {

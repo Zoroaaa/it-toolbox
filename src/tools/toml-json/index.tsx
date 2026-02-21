@@ -6,101 +6,404 @@ import { useAppStore } from '@/store/app'
 
 type Mode = 'toml-to-json' | 'json-to-toml'
 
-function parseToml(toml: string): Record<string, unknown> {
-  const result: Record<string, unknown> = {}
-  const lines = toml.split('\n')
-  let currentSection = result
-  let currentSectionName = ''
+// ─── Full-featured TOML v1.0 Parser ─────────────────────────────────────────
 
-  for (let line of lines) {
-    line = line.trim()
-    if (!line || line.startsWith('#')) continue
+class TomlParser {
+  private src: string
+  private pos: number
 
-    const sectionMatch = line.match(/^\[([^\]]+)\]$/)
-    if (sectionMatch) {
-      currentSectionName = sectionMatch[1]
-      const parts = currentSectionName.split('.')
-      currentSection = result
-      for (const part of parts) {
-        if (!currentSection[part]) {
-          currentSection[part] = {}
-        }
-        currentSection = currentSection[part] as Record<string, unknown>
-      }
-      continue
-    }
+  constructor(src: string) {
+    this.src = src
+    this.pos = 0
+  }
 
-    const keyValueMatch = line.match(/^([^=]+)=(.*)$/)
-    if (keyValueMatch) {
-      const key = keyValueMatch[1].trim()
-      let value: unknown = keyValueMatch[2].trim()
+  private get done() { return this.pos >= this.src.length }
+  private peek() { return this.src[this.pos] }
+  private advance() { return this.src[this.pos++] }
 
-      if (typeof value === 'string') {
-        if (value.startsWith('"') && value.endsWith('"')) {
-          value = value.slice(1, -1)
-        } else if (value.startsWith("'") && value.endsWith("'")) {
-          value = value.slice(1, -1)
-        } else if (value === 'true') {
-          value = true
-        } else if (value === 'false') {
-          value = false
-        } else if (!isNaN(Number(value))) {
-          value = Number(value)
-        } else if (value.startsWith('[')) {
-          try {
-            value = JSON.parse(value.replace(/'/g, '"'))
-          } catch {
-            value = value
-          }
-        }
-      }
+  private skipWhitespace() {
+    while (!this.done && (this.peek() === ' ' || this.peek() === '\\t')) this.advance()
+  }
 
-      currentSection[key] = value
+  private skipWhitespaceAndNewlines() {
+    while (!this.done && /[ \\t\\r\\n]/.test(this.peek())) this.advance()
+  }
+
+  private skipComment() {
+    if (this.peek() === '#') {
+      while (!this.done && this.peek() !== '\\n') this.advance()
     }
   }
 
-  return result
-}
+  private skipLineEnd() {
+    this.skipWhitespace()
+    this.skipComment()
+    if (!this.done && (this.peek() === '\\r' || this.peek() === '\\n')) {
+      if (this.peek() === '\\r') this.advance()
+      if (!this.done && this.peek() === '\\n') this.advance()
+    }
+  }
 
-function jsonToToml(obj: Record<string, unknown>, prefix = ''): string {
-  let result = ''
-  const sections: string[] = []
-  const values: string[] = []
+  private parseKey(): string[] {
+    const keys: string[] = []
+    keys.push(this.parseSimpleKey())
+    while (!this.done && this.peek() === '.') {
+      this.advance()
+      this.skipWhitespace()
+      keys.push(this.parseSimpleKey())
+    }
+    return keys
+  }
 
-  for (const [key, value] of Object.entries(obj)) {
-    const fullKey = prefix ? `${prefix}.${key}` : key
+  private parseSimpleKey(): string {
+    this.skipWhitespace()
+    if (this.peek() === '"') return this.parseBasicString()
+    if (this.peek() === "'") return this.parseLiteralString()
+    // bare key
+    let key = ''
+    while (!this.done && /[a-zA-Z0-9_-]/.test(this.peek())) key += this.advance()
+    if (!key) throw new Error(`Invalid key at position ${this.pos}`)
+    return key
+  }
 
-    if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
-      sections.push(`[${fullKey}]`)
-      sections.push(jsonToToml(value as Record<string, unknown>, fullKey))
-    } else {
-      let tomlValue: string
-      if (typeof value === 'string') {
-        tomlValue = `"${value}"`
-      } else if (Array.isArray(value)) {
-        tomlValue = JSON.stringify(value)
-      } else if (value === null) {
-        tomlValue = 'null'
+  private parseBasicString(): string {
+    this.advance() // opening "
+    // Check for triple-quote
+    if (this.src.startsWith('""', this.pos)) {
+      this.pos += 2
+      return this.parseMultilineBasicString()
+    }
+    let s = ''
+    while (!this.done && this.peek() !== '"') {
+      if (this.peek() === '\\\\') {
+        this.advance()
+        const esc = this.advance()
+        switch (esc) {
+          case 'b': s += '\\b'; break
+          case 't': s += '\\t'; break
+          case 'n': s += '\\n'; break
+          case 'f': s += '\\f'; break
+          case 'r': s += '\\r'; break
+          case '"': s += '"'; break
+          case '\\\\': s += '\\\\'; break
+          case 'u': s += String.fromCodePoint(parseInt(this.src.slice(this.pos, this.pos + 4), 16)); this.pos += 4; break
+          case 'U': s += String.fromCodePoint(parseInt(this.src.slice(this.pos, this.pos + 8), 16)); this.pos += 8; break
+          default: throw new Error(`Invalid escape \\\\${esc}`)
+        }
       } else {
-        tomlValue = String(value)
+        s += this.advance()
       }
-      values.push(`${key} = ${tomlValue}`)
     }
+    if (this.done) throw new Error('Unterminated string')
+    this.advance() // closing "
+    return s
   }
 
-  if (prefix && values.length > 0) {
-    result = values.join('\n') + '\n'
-  } else if (!prefix) {
-    result = values.join('\n')
-    if (sections.length > 0 && values.length > 0) {
-      result += '\n\n'
+  private parseMultilineBasicString(): string {
+    // Skip optional first newline
+    if (!this.done && this.peek() === '\\n') this.advance()
+    else if (!this.done && this.peek() === '\\r' && this.src[this.pos + 1] === '\\n') this.pos += 2
+    let s = ''
+    while (!this.done) {
+      if (this.src.startsWith('"""', this.pos)) { this.pos += 3; return s }
+      if (this.peek() === '\\\\') {
+        this.advance()
+        if (this.peek() === '\\n' || this.peek() === '\\r' || this.peek() === ' ' || this.peek() === '\\t') {
+          // line ending backslash - skip whitespace/newlines
+          while (!this.done && /[ \\t\\r\\n]/.test(this.peek())) this.advance()
+          continue
+        }
+        const esc = this.advance()
+        switch (esc) {
+          case 'n': s += '\\n'; break
+          case 't': s += '\\t'; break
+          case '"': s += '"'; break
+          case '\\\\': s += '\\\\'; break
+          default: s += esc
+        }
+      } else {
+        s += this.advance()
+      }
     }
+    throw new Error('Unterminated multiline string')
   }
 
-  result += sections.join('\n\n')
+  private parseLiteralString(): string {
+    this.advance() // opening '
+    if (this.src.startsWith("''", this.pos)) {
+      this.pos += 2
+      return this.parseMultilineLiteralString()
+    }
+    let s = ''
+    while (!this.done && this.peek() !== "'") s += this.advance()
+    if (this.done) throw new Error('Unterminated literal string')
+    this.advance()
+    return s
+  }
 
-  return result
+  private parseMultilineLiteralString(): string {
+    if (!this.done && this.peek() === '\\n') this.advance()
+    else if (!this.done && this.peek() === '\\r' && this.src[this.pos + 1] === '\\n') this.pos += 2
+    let s = ''
+    while (!this.done) {
+      if (this.src.startsWith("'''", this.pos)) { this.pos += 3; return s }
+      s += this.advance()
+    }
+    throw new Error('Unterminated multiline literal string')
+  }
+
+  private parseValue(): unknown {
+    this.skipWhitespace()
+    const ch = this.peek()
+
+    if (ch === '"') return this.parseBasicString()
+    if (ch === "'") return this.parseLiteralString()
+    if (ch === '[') return this.parseArray()
+    if (ch === '{') return this.parseInlineTable()
+
+    // Boolean
+    if (this.src.startsWith('true', this.pos) && !/[a-zA-Z0-9_-]/.test(this.src[this.pos + 4] ?? '')) { this.pos += 4; return true }
+    if (this.src.startsWith('false', this.pos) && !/[a-zA-Z0-9_-]/.test(this.src[this.pos + 5] ?? '')) { this.pos += 5; return false }
+
+    // Numbers and dates - collect the token
+    let tok = ''
+    while (!this.done && /[-0-9a-zA-Z_.:+TZ]/.test(this.peek())) tok += this.advance()
+
+    if (!tok) throw new Error(`Unexpected character '${ch}' at position ${this.pos}`)
+
+    // Date/DateTime detection (contains T or - between digits)
+    if (/^\\d{4}-\\d{2}-\\d{2}/.test(tok)) {
+      const d = new Date(tok)
+      return isNaN(d.getTime()) ? tok : d.toISOString()
+    }
+
+    // Float
+    if (/[._]/.test(tok) || tok === 'inf' || tok === '-inf' || tok === '+inf' || tok === 'nan') {
+      if (tok === 'inf' || tok === '+inf') return Infinity
+      if (tok === '-inf') return -Infinity
+      if (tok === 'nan') return NaN
+      return parseFloat(tok.replace(/_/g, ''))
+    }
+
+    // Integer (hex, octal, binary, decimal)
+    if (tok.startsWith('0x')) return parseInt(tok.slice(2), 16)
+    if (tok.startsWith('0o')) return parseInt(tok.slice(2), 8)
+    if (tok.startsWith('0b')) return parseInt(tok.slice(2), 2)
+
+    const n = parseInt(tok.replace(/_/g, ''), 10)
+    if (!isNaN(n)) return n
+
+    throw new Error(`Cannot parse value: ${tok}`)
+  }
+
+  private parseArray(): unknown[] {
+    this.advance() // [
+    const arr: unknown[] = []
+    this.skipWhitespaceAndNewlines()
+    while (!this.done && this.peek() !== ']') {
+      this.skipComment()
+      this.skipWhitespaceAndNewlines()
+      if (this.peek() === ']') break
+      arr.push(this.parseValue())
+      this.skipWhitespaceAndNewlines()
+      this.skipComment()
+      this.skipWhitespaceAndNewlines()
+      if (this.peek() === ',') { this.advance(); this.skipWhitespaceAndNewlines() }
+    }
+    if (this.done) throw new Error('Unterminated array')
+    this.advance() // ]
+    return arr
+  }
+
+  private parseInlineTable(): Record<string, unknown> {
+    this.advance() // {
+    const table: Record<string, unknown> = {}
+    this.skipWhitespace()
+    while (!this.done && this.peek() !== '}') {
+      const keys = this.parseKey()
+      this.skipWhitespace()
+      if (this.advance() !== '=') throw new Error('Expected = in inline table')
+      const val = this.parseValue()
+      setNested(table, keys, val)
+      this.skipWhitespace()
+      if (this.peek() === ',') { this.advance(); this.skipWhitespace() }
+    }
+    if (this.done) throw new Error('Unterminated inline table')
+    this.advance() // }
+    return table
+  }
+
+  parse(): Record<string, unknown> {
+    const root: Record<string, unknown> = {}
+    let current = root
+    let currentPath: string[] = []
+
+    while (!this.done) {
+      this.skipWhitespace()
+      if (this.done) break
+      const ch = this.peek()
+
+      // Comment or blank line
+      if (ch === '#' || ch === '\\n' || ch === '\\r') {
+        this.skipComment()
+        if (!this.done && (this.peek() === '\\n' || this.peek() === '\\r')) {
+          if (this.peek() === '\\r') this.advance()
+          if (!this.done && this.peek() === '\\n') this.advance()
+        }
+        continue
+      }
+
+      // Array of tables [[...]]
+      if (ch === '[' && this.src[this.pos + 1] === '[') {
+        this.pos += 2
+        const keys = this.parseKey()
+        if (this.advance() !== ']' || this.advance() !== ']') throw new Error('Expected ]] to close array of tables')
+        this.skipLineEnd()
+        currentPath = keys
+        // Navigate to the array
+        let node = root
+        for (let i = 0; i < keys.length - 1; i++) {
+          if (!(keys[i] in node)) node[keys[i]] = {}
+          node = node[keys[i]] as Record<string, unknown>
+        }
+        const last = keys[keys.length - 1]
+        if (!(last in node)) node[last] = []
+        const arr = node[last] as Record<string, unknown>[]
+        const newTable: Record<string, unknown> = {}
+        arr.push(newTable)
+        current = newTable
+        void currentPath
+        continue
+      }
+
+      // Table header [...]
+      if (ch === '[') {
+        this.advance()
+        const keys = this.parseKey()
+        if (this.advance() !== ']') throw new Error('Expected ] to close table header')
+        this.skipLineEnd()
+        currentPath = keys
+        current = root
+        for (const key of keys) {
+          if (!(key in current)) current[key] = {}
+          const next = current[key]
+          if (Array.isArray(next)) current = next[next.length - 1] as Record<string, unknown>
+          else current = next as Record<string, unknown>
+        }
+        continue
+      }
+
+      // Key-value pair
+      const keys = this.parseKey()
+      this.skipWhitespace()
+      if (this.advance() !== '=') throw new Error(`Expected = after key "${keys.join('.')}"`)
+      const val = this.parseValue()
+      setNested(current, keys, val)
+      this.skipLineEnd()
+    }
+
+    return root
+  }
 }
+
+function setNested(obj: Record<string, unknown>, keys: string[], val: unknown): void {
+  let node = obj
+  for (let i = 0; i < keys.length - 1; i++) {
+    if (!(keys[i] in node)) node[keys[i]] = {}
+    const next = node[keys[i]]
+    if (Array.isArray(next)) node = next[next.length - 1] as Record<string, unknown>
+    else node = next as Record<string, unknown>
+  }
+  const last = keys[keys.length - 1]
+  if (last in node) throw new Error(`Duplicate key: ${keys.join('.')}`)
+  node[last] = val
+}
+
+export function parseToml(input: string): Record<string, unknown> {
+  return new TomlParser(input).parse()
+}
+
+function jsonValueToToml(val: unknown, indent: number, path: string): string {
+  if (val === null) return 'null' // TOML doesn't have null but we'll handle it gracefully
+  if (typeof val === 'boolean') return val ? 'true' : 'false'
+  if (typeof val === 'number') return isFinite(val) ? String(val) : (val > 0 ? 'inf' : '-inf')
+  if (typeof val === 'string') {
+    // Use basic string with escaping
+    return '"' + val.replace(/\\\\/g, '\\\\\\\\').replace(/"/g, '\\\\"').replace(/\\n/g, '\\\\n').replace(/\\r/g, '\\\\r').replace(/\\t/g, '\\\\t') + '"'
+  }
+  if (Array.isArray(val)) {
+    // Check if array contains only primitives
+    const allPrimitive = val.every(v => typeof v !== 'object' || v === null)
+    if (allPrimitive) {
+      return '[' + val.map(v => jsonValueToToml(v, 0, '')).join(', ') + ']'
+    }
+    // Array of tables - handled at key level
+    return '[]' // placeholder, handled separately
+  }
+  if (typeof val === 'object') {
+    return '{' + Object.entries(val as Record<string, unknown>).map(([k, v]) => `${k} = ${jsonValueToToml(v, 0, '')}`).join(', ') + '}'
+  }
+  return String(val)
+}
+
+export function jsonToToml(obj: Record<string, unknown>, _prefix = ''): string {
+  const lines: string[] = []
+  const tableEntries: [string, Record<string, unknown>][] = []
+  const arrayTableEntries: [string, Record<string, unknown>[]][] = []
+
+  for (const [key, val] of Object.entries(obj)) {
+    if (Array.isArray(val) && val.length > 0 && typeof val[0] === 'object' && val[0] !== null) {
+      arrayTableEntries.push([key, val as Record<string, unknown>[]])
+    } else if (typeof val === 'object' && val !== null && !Array.isArray(val)) {
+      tableEntries.push([key, val as Record<string, unknown>])
+    } else {
+      lines.push(`${key} = ${jsonValueToToml(val, 0, key)}`)
+    }
+  }
+
+  const sections: string[] = []
+
+  for (const [key, tableVal] of tableEntries) {
+    const nested: string[] = []
+    const subTableEntries: [string, Record<string, unknown>][] = []
+    const subArrayTableEntries: [string, Record<string, unknown>[]][] = []
+
+    for (const [k, v] of Object.entries(tableVal)) {
+      if (Array.isArray(v) && v.length > 0 && typeof v[0] === 'object' && v[0] !== null) {
+        subArrayTableEntries.push([k, v as Record<string, unknown>[]])
+      } else if (typeof v === 'object' && v !== null && !Array.isArray(v)) {
+        subTableEntries.push([k, v as Record<string, unknown>])
+      } else {
+        nested.push(`${k} = ${jsonValueToToml(v, 0, k)}`)
+      }
+    }
+
+    sections.push(`[${key}]\\n${nested.join('\\n')}`)
+
+    for (const [k, tableArr] of subArrayTableEntries) {
+      for (const item of tableArr) {
+        const itemLines = Object.entries(item).map(([ik, iv]) => `${ik} = ${jsonValueToToml(iv, 0, ik)}`)
+        sections.push(`[[${key}.${k}]]\\n${itemLines.join('\\n')}`)
+      }
+    }
+
+    for (const [k, v] of subTableEntries) {
+      const subLines = Object.entries(v).map(([sk, sv]) => `${sk} = ${jsonValueToToml(sv, 0, sk)}`)
+      sections.push(`[${key}.${k}]\\n${subLines.join('\\n')}`)
+    }
+  }
+
+  for (const [key, arr] of arrayTableEntries) {
+    for (const item of arr) {
+      const itemLines = Object.entries(item).map(([k, v]) => `${k} = ${jsonValueToToml(v, 0, k)}`)
+      sections.push(`[[${key}]]\\n${itemLines.join('\\n')}`)
+    }
+  }
+
+  const result = [lines.join('\\n'), ...sections].filter(Boolean)
+  return result.join('\\n\\n')
+}
+
 
 export default function TomlJson() {
   const [input, setInput] = useState('')
@@ -121,7 +424,7 @@ export default function TomlJson() {
         const parsed = parseToml(input)
         result = JSON.stringify(parsed, null, 2)
       } else {
-        const parsed = JSON.parse(input)
+        const parsed = JSON.parse(input) as Record<string, unknown>
         result = jsonToToml(parsed)
       }
       setOutput(result)

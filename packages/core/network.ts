@@ -1,6 +1,5 @@
 import { Result } from './common'
 import UAParser from 'ua-parser-js'
-import * as curlConverter from 'curlconverter'
 
 export interface ParsedUrl {
   href: string
@@ -281,22 +280,245 @@ export interface CurlConversion {
   php: string
 }
 
+interface ParsedCurl {
+  url: string
+  method: string
+  headers: Record<string, string>
+  body: string | null
+  user: string | null
+  compressed: boolean
+  insecure: boolean
+}
+
+function parseCurlCommand(cmd: string): ParsedCurl {
+  // Normalize line continuations and collapse whitespace
+  const normalized = cmd
+    .replace(/\\\r?\n/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+  // Tokenize respecting single/double quotes
+  const tokens: string[] = []
+  let current = ''
+  let inSingle = false
+  let inDouble = false
+
+  for (let i = 0; i < normalized.length; i++) {
+    const ch = normalized[i]
+    if (ch === "'" && !inDouble) {
+      inSingle = !inSingle
+    } else if (ch === '"' && !inSingle) {
+      inDouble = !inDouble
+    } else if (ch === ' ' && !inSingle && !inDouble) {
+      if (current) { tokens.push(current); current = '' }
+    } else {
+      current += ch
+    }
+  }
+  if (current) tokens.push(current)
+
+  const result: ParsedCurl = {
+    url: '',
+    method: 'GET',
+    headers: {},
+    body: null,
+    user: null,
+    compressed: false,
+    insecure: false,
+  }
+
+  let i = 1 // skip 'curl'
+  while (i < tokens.length) {
+    const token = tokens[i]
+
+    if ((token === '-H' || token === '--header') && i + 1 < tokens.length) {
+      const header = tokens[++i]
+      const colonIdx = header.indexOf(':')
+      if (colonIdx > 0) {
+        const key = header.slice(0, colonIdx).trim()
+        const val = header.slice(colonIdx + 1).trim()
+        result.headers[key] = val
+      }
+    } else if ((token === '-X' || token === '--request') && i + 1 < tokens.length) {
+      result.method = tokens[++i].toUpperCase()
+    } else if ((token === '-d' || token === '--data' || token === '--data-raw' || token === '--data-binary') && i + 1 < tokens.length) {
+      result.body = tokens[++i]
+      if (result.method === 'GET') result.method = 'POST'
+    } else if ((token === '-u' || token === '--user') && i + 1 < tokens.length) {
+      result.user = tokens[++i]
+    } else if (token === '--compressed') {
+      result.compressed = true
+    } else if (token === '-k' || token === '--insecure') {
+      result.insecure = true
+    } else if ((token === '-L' || token === '--location' || token === '--include' || token === '-i' || token === '-s' || token === '--silent' || token === '-v' || token === '--verbose')) {
+      // flags we parse but ignore in output
+    } else if ((token === '-o' || token === '--output' || token === '--max-time' || token === '-m' || token === '--connect-timeout') && i + 1 < tokens.length) {
+      i++ // skip value
+    } else if (!token.startsWith('-') && !result.url) {
+      result.url = token
+    }
+
+    i++
+  }
+
+  return result
+}
+
+function headersObj(parsed: ParsedCurl): string {
+  const entries = Object.entries(parsed.headers)
+  if (parsed.user) entries.push(['Authorization', `Basic ${btoa(parsed.user)}`])
+  return entries.length
+    ? `{\n    ${entries.map(([k, v]) => `'${k}': '${v.replace(/'/g, "\\'")}'`).join(',\n    ')}\n  }`
+    : '{}'
+}
+
+function curlToFetch(parsed: ParsedCurl): string {
+  const parts: string[] = []
+  const opts: string[] = []
+  
+  if (parsed.method !== 'GET') opts.push(`  method: '${parsed.method}'`)
+  
+  const entries = Object.entries(parsed.headers)
+  if (parsed.user) entries.push(['Authorization', `Basic ${btoa(parsed.user)}`])
+  if (entries.length) {
+    opts.push(`  headers: {\n    ${entries.map(([k, v]) => `'${k}': '${v.replace(/'/g, "\\'")}'`).join(',\n    ')}\n  }`)
+  }
+  if (parsed.body) opts.push(`  body: '${parsed.body.replace(/'/g, "\\'")}'`)
+
+  parts.push(`const response = await fetch('${parsed.url}'${opts.length ? `, {\n${opts.join(',\n')}\n}` : ''});`)
+  parts.push('const data = await response.json();')
+  parts.push('console.log(data);')
+  return parts.join('\n')
+}
+
+function curlToAxios(parsed: ParsedCurl): string {
+  const entries = Object.entries(parsed.headers)
+  if (parsed.user) entries.push(['Authorization', `Basic ${btoa(parsed.user)}`])
+  const opts: string[] = [`  url: '${parsed.url}'`, `  method: '${parsed.method.toLowerCase()}'`]
+  if (entries.length) {
+    opts.push(`  headers: {\n    ${entries.map(([k, v]) => `'${k}': '${v.replace(/'/g, "\\'")}'`).join(',\n    ')}\n  }`)
+  }
+  if (parsed.body) {
+    try { const j = JSON.parse(parsed.body); opts.push(`  data: ${JSON.stringify(j, null, 2).replace(/\n/g, '\n  ')}`) }
+    catch { opts.push(`  data: '${parsed.body.replace(/'/g, "\\'")}'`) }
+  }
+  return `const response = await axios({\n${opts.join(',\n')}\n});\nconsole.log(response.data);`
+}
+
+function curlToPython(parsed: ParsedCurl): string {
+  const lines = ['import requests', '']
+  const headers = { ...parsed.headers }
+  if (parsed.user) headers['Authorization'] = `Basic ${btoa(parsed.user)}`
+  
+  if (Object.keys(headers).length) {
+    lines.push(`headers = {`)
+    for (const [k, v] of Object.entries(headers)) lines.push(`    '${k}': '${v.replace(/'/g, "\\'")}',`)
+    lines.push(`}`, '')
+  }
+  
+  const method = parsed.method.toLowerCase()
+  const args: string[] = [`'${parsed.url}'`]
+  if (Object.keys(headers).length) args.push('headers=headers')
+  
+  if (parsed.body) {
+    try { const j = JSON.parse(parsed.body); lines.push(`json_data = ${JSON.stringify(j, null, 4).replace(/\n/g, '\n')}`); args.push('json=json_data') }
+    catch { lines.push(`data = '${parsed.body.replace(/'/g, "\\'")}'`); args.push('data=data') }
+    lines.push('')
+  }
+  
+  lines.push(`response = requests.${method}(${args.join(', ')})`)
+  lines.push('print(response.json())')
+  return lines.join('\n')
+}
+
+function curlToGo(parsed: ParsedCurl): string {
+  const lines: string[] = [
+    'package main',
+    '',
+    'import (',
+    '\t"fmt"',
+    '\t"io"',
+    '\t"net/http"',
+  ]
+  if (parsed.body) lines.splice(4, 0, '\t"strings"')
+  lines.push(')', '')
+
+  lines.push('func main() {')
+  if (parsed.body) {
+    lines.push(`\tbody := strings.NewReader(\`${parsed.body}\`)`)
+    lines.push(`\treq, _ := http.NewRequest("${parsed.method}", "${parsed.url}", body)`)
+  } else {
+    lines.push(`\treq, _ := http.NewRequest("${parsed.method}", "${parsed.url}", nil)`)
+  }
+
+  const headers = { ...parsed.headers }
+  if (parsed.user) headers['Authorization'] = `Basic ${btoa(parsed.user)}`
+  for (const [k, v] of Object.entries(headers)) {
+    lines.push(`\treq.Header.Set("${k}", "${v.replace(/"/g, '\\"')}")`)
+  }
+
+  lines.push('\tclient := &http.Client{}')
+  lines.push('\tresp, err := client.Do(req)')
+  lines.push('\tif err != nil { panic(err) }')
+  lines.push('\tdefer resp.Body.Close()')
+  lines.push('\tbody2, _ := io.ReadAll(resp.Body)')
+  lines.push('\tfmt.Println(string(body2))')
+  lines.push('}')
+  return lines.join('\n')
+}
+
+function curlToPhp(parsed: ParsedCurl): string {
+  const lines: string[] = [
+    '<?php',
+    '',
+    '$ch = curl_init();',
+    `curl_setopt($ch, CURLOPT_URL, '${parsed.url}');`,
+    'curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);',
+  ]
+
+  if (parsed.method !== 'GET') {
+    lines.push(`curl_setopt($ch, CURLOPT_CUSTOMREQUEST, '${parsed.method}');`)
+  }
+
+  const headers = { ...parsed.headers }
+  if (parsed.user) headers['Authorization'] = `Basic ${btoa(parsed.user)}`
+  if (Object.keys(headers).length) {
+    lines.push('curl_setopt($ch, CURLOPT_HTTPHEADER, [')
+    for (const [k, v] of Object.entries(headers)) lines.push(`    '${k}: ${v.replace(/'/g, "\\'")}',`)
+    lines.push(']);')
+  }
+
+  if (parsed.body) {
+    lines.push(`curl_setopt($ch, CURLOPT_POSTFIELDS, '${parsed.body.replace(/'/g, "\\'")}');`)
+  }
+
+  if (parsed.insecure) lines.push('curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);')
+  lines.push('', '$response = curl_exec($ch);')
+  lines.push('curl_close($ch);')
+  lines.push('echo $response;')
+  return lines.join('\n')
+}
+
 export function convertCurl(curlCommand: string): Result<CurlConversion> {
   try {
     const trimmed = curlCommand.trim()
-    if (!trimmed.startsWith('curl')) {
+    if (!trimmed.toLowerCase().startsWith('curl')) {
       return { ok: false, error: 'Command must start with "curl"' }
     }
-    
-    const cc = curlConverter as unknown as Record<string, (cmd: string) => string>
+
+    const parsed = parseCurlCommand(trimmed)
+    if (!parsed.url) {
+      return { ok: false, error: 'Could not find URL in cURL command' }
+    }
+
     return {
       ok: true,
       value: {
-        fetch: cc.toFetch(trimmed),
-        axios: cc.toAxios(trimmed),
-        python: cc.toPython(trimmed),
-        go: cc.toGo(trimmed),
-        php: cc.toPhp(trimmed),
+        fetch: curlToFetch(parsed),
+        axios: curlToAxios(parsed),
+        python: curlToPython(parsed),
+        go: curlToGo(parsed),
+        php: curlToPhp(parsed),
       },
     }
   } catch (e) {
