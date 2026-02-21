@@ -67,7 +67,7 @@ export const useAppStore = create<AppStore>()(
         set(s => {
           const prev = s.history[toolId] ?? []
           const filtered = prev.filter(r => r.input !== input)
-          const updated = [{ input, timestamp: Date.now() }, ...filtered].slice(0, 10)
+          const updated = [{ input, timestamp: Date.now() }, ...filtered].slice(0, 20)
           return { history: { ...s.history, [toolId]: updated } }
         })
       },

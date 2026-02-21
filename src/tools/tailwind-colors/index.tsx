@@ -1,8 +1,18 @@
+import { useState } from 'react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
 import { TAILWIND_COLORS } from '@it-toolbox/core'
 
 export default function TailwindColorsTool() {
+  const [copiedKey, setCopiedKey] = useState<string | null>(null)
+
+  const handleCopy = (colorName: string, shade: string, color: string) => {
+    navigator.clipboard.writeText(color)
+    const key = `${colorName}-${shade}`
+    setCopiedKey(key)
+    setTimeout(() => setCopiedKey(null), 1500)
+  }
+
   return (
     <ToolLayout meta={meta}>
       <div className="space-y-6">
@@ -10,25 +20,31 @@ export default function TailwindColorsTool() {
           <div key={colorName}>
             <h3 className="text-sm font-medium text-text-primary mb-2 capitalize">{colorName}</h3>
             <div className="flex gap-1">
-              {Object.entries(shades).map(([shade, color]) => (
-                <div
-                  key={shade}
-                  className="flex-1 cursor-pointer group"
-                  onClick={() => navigator.clipboard.writeText(color)}
-                  title={`${colorName}-${shade}: ${color}`}
-                >
+              {Object.entries(shades).map(([shade, color]) => {
+                const key = `${colorName}-${shade}`
+                const isCopied = copiedKey === key
+                return (
                   <div
-                    className="h-12 rounded group-hover:ring-2 group-hover:ring-accent-primary transition-all"
-                    style={{ backgroundColor: color }}
-                  />
-                  <div className="mt-1 text-xs text-text-tertiary text-center">{shade}</div>
-                </div>
-              ))}
+                    key={shade}
+                    className="flex-1 cursor-pointer group"
+                    onClick={() => handleCopy(colorName, shade, color)}
+                    title={`${colorName}-${shade}: ${color}`}
+                  >
+                    <div
+                      className="h-12 rounded transition-all group-hover:ring-2 group-hover:ring-accent group-hover:scale-105"
+                      style={{ backgroundColor: color }}
+                    />
+                    <div className="mt-1 text-xs text-center select-none" style={{ color: isCopied ? 'var(--accent)' : 'var(--text-muted)' }}>
+                      {isCopied ? '✓' : shade}
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </div>
         ))}
 
-        <p className="text-sm text-text-tertiary">点击颜色块可复制颜色值</p>
+        <p className="text-sm text-text-muted">点击颜色块复制 HEX 值</p>
       </div>
     </ToolLayout>
   )

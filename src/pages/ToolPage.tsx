@@ -1,6 +1,7 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { useParams } from '@tanstack/react-router'
 import { Loader2 } from 'lucide-react'
+import { useAppStore } from '@/store/app'
 
 const toolComponents: Record<string, React.LazyExoticComponent<() => JSX.Element>> = {
   'json-formatter': lazy(() => import('@/tools/json-formatter/index')),
@@ -114,13 +115,20 @@ function ComingSoon({ id }: { id: string }) {
 
 export function ToolPage() {
   const { id } = useParams({ from: '/tool/$id' })
+  const { addRecentTool } = useAppStore()
   const Component = toolComponents[id]
 
-  if (!Component) return <ComingSoon id={id} />
+  useEffect(() => {
+    if (Component) addRecentTool(id)
+  }, [id, Component, addRecentTool])
+
+  if (!Component) return <div className="p-6"><ComingSoon id={id} /></div>
 
   return (
-    <Suspense fallback={<ToolSkeleton />}>
-      <Component />
-    </Suspense>
+    <div className="p-6 h-full">
+      <Suspense fallback={<ToolSkeleton />}>
+        <Component />
+      </Suspense>
+    </div>
   )
 }

@@ -9,6 +9,7 @@ import { HomePage } from '@/pages/HomePage'
 import { ToolPage } from '@/pages/ToolPage'
 import { FavoritesPage } from '@/pages/FavoritesPage'
 import { CategoryPage } from '@/pages/CategoryPage'
+import { HistoryPage } from '@/pages/HistoryPage'
 
 const rootRoute = createRootRoute({
   component: () => (
@@ -51,12 +52,7 @@ const categoryRoute = createRoute({
 const historyRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/history',
-  component: () => (
-    <div className="p-6">
-      <h1 className="text-2xl font-semibold text-text-primary mb-2">最近使用</h1>
-      <p className="text-text-secondary text-sm">即将上线...</p>
-    </div>
-  ),
+  component: HistoryPage,
 })
 
 export const routeTree = rootRoute.addChildren([

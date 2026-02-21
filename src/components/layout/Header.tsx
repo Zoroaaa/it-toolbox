@@ -10,6 +10,7 @@ import { ThemeToggle } from '@/components/ui/ThemeToggle'
 
 export function Header() {
   const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -24,8 +25,13 @@ export function Header() {
     return () => document.removeEventListener('keydown', down)
   }, [])
 
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen)
+    if (!nextOpen) setQuery('')
+  }
+
   const handleSelect = (tool: ToolMeta) => {
-    setOpen(false)
+    handleOpenChange(false)
     navigate({ to: '/tool/$id', params: { id: tool.id } })
   }
 
@@ -47,7 +53,7 @@ export function Header() {
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4">
-          <div className="fixed inset-0 bg-bg-base/60 backdrop-blur-sm" onClick={() => setOpen(false)} />
+          <div className="fixed inset-0 bg-bg-base/60 backdrop-blur-sm" onClick={() => handleOpenChange(false)} />
           <div className="relative w-full max-w-lg bg-bg-surface border border-border-strong rounded-xl shadow-theme-lg overflow-hidden animate-slide-up">
             <Cmd className="[&_[cmdk-input-wrapper]]:border-b [&_[cmdk-input-wrapper]]:border-border-base" label="Search tools">
               <div className="flex items-center gap-2 px-4 py-3">
@@ -55,14 +61,15 @@ export function Header() {
                 <CommandInput
                   placeholder="搜索工具..."
                   className="flex-1 bg-transparent text-text-primary placeholder-text-muted outline-none text-sm"
-                  onValueChange={(v) => searchTools(v)}
+                  value={query}
+                  onValueChange={setQuery}
                 />
               </div>
               <CommandList className="max-h-80 overflow-y-auto p-2">
                 <CommandEmpty className="py-8 text-center text-text-muted text-sm">
                   没有找到相关工具
                 </CommandEmpty>
-                <SearchResults onSelect={handleSelect} />
+                <SearchResults query={query} onSelect={handleSelect} />
               </CommandList>
             </Cmd>
             <div className="px-4 py-2 border-t border-border-base flex items-center gap-4 text-xs text-text-muted">
@@ -77,8 +84,7 @@ export function Header() {
   )
 }
 
-function SearchResults({ onSelect }: { onSelect: (t: ToolMeta) => void }) {
-  const [query] = useState('')
+function SearchResults({ query, onSelect }: { query: string; onSelect: (t: ToolMeta) => void }) {
   const results = searchTools(query)
 
   const grouped = results.reduce<Record<string, ToolMeta[]>>((acc, tool) => {

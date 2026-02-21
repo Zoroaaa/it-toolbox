@@ -41,10 +41,16 @@ function hello() {
   const renderMarkdown = useCallback(async (text: string) => {
     try {
       const { marked } = await import('marked')
-      marked.setOptions({
-        gfm: true,
-        breaks: true,
-      })
+      const { markedHighlight } = await import('marked-highlight')
+      const hljs = await import('highlight.js')
+      marked.use(markedHighlight({
+        langPrefix: 'hljs language-',
+        highlight(code, lang) {
+          const language = hljs.default.getLanguage(lang) ? lang : 'plaintext'
+          return hljs.default.highlight(code, { language }).value
+        },
+      }))
+      marked.setOptions({ gfm: true, breaks: true })
       const result = await marked(text)
       setHtml(result)
     } catch {
@@ -63,6 +69,7 @@ function hello() {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Markdown Export</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/github.min.css">
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; line-height: 1.6; }
     pre { background: #f5f5f5; padding: 1rem; border-radius: 8px; overflow-x: auto; }

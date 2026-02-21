@@ -31,6 +31,7 @@ export default function DnsLookup() {
   const [result, setResult] = useState<DnsResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [isCached, setIsCached] = useState(false)
 
   const handleLookup = async () => {
     if (!domain.trim()) return
@@ -46,6 +47,7 @@ export default function DnsLookup() {
       const json: ApiResponse = await res.json()
       if (json.success && json.data) {
         setResult(json.data)
+        setIsCached(json.cached === true)
       } else {
         setError(json.error || '查询失败')
       }
@@ -106,6 +108,9 @@ export default function DnsLookup() {
             <span className="text-sm text-text-secondary">
               {result.domain} - {result.type} 记录 ({result.records.length} 条)
             </span>
+            {isCached && (
+              <span className="ml-auto text-xs text-text-muted bg-bg-overlay px-2 py-0.5 rounded">缓存</span>
+            )}
           </div>
           {result.records.length > 0 ? (
             <div className="overflow-x-auto">

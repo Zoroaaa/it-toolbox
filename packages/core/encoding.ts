@@ -143,8 +143,10 @@ const HTML_ENTITIES_REVERSE: Record<string, string> = Object.fromEntries(
 
 export function encodeHtmlEntities(input: string): Result<string> {
   try {
-    let result = input
-    for (const [char, entity] of Object.entries(HTML_ENTITIES)) {
+    // & must be replaced first to prevent double-encoding (e.g. < -> &lt; -> &amp;lt;)
+    let result = input.replace(/&/g, '&amp;')
+    const rest = Object.entries(HTML_ENTITIES).filter(([char]) => char !== '&')
+    for (const [char, entity] of rest) {
       result = result.split(char).join(entity)
     }
     return { ok: true, value: result }
@@ -156,11 +158,14 @@ export function encodeHtmlEntities(input: string): Result<string> {
 export function decodeHtmlEntities(input: string): Result<string> {
   try {
     let result = input
-    result = result.replace(/&#(\d+);/g, (_, code) => String.fromCharCode(parseInt(code, 10)))
-    result = result.replace(/&#x([0-9a-fA-F]+);/g, (_, code) => String.fromCharCode(parseInt(code, 16)))
+    // Named entities first (e.g. &amp; &lt; &gt;)
     for (const [entity, char] of Object.entries(HTML_ENTITIES_REVERSE)) {
       result = result.split(entity).join(char)
     }
+    // Then numeric decimal (e.g. &#65;)
+    result = result.replace(/&#(\d+);/g, (_, code) => String.fromCharCode(parseInt(code, 10)))
+    // Then numeric hex (e.g. &#x41;)
+    result = result.replace(/&#x([0-9a-fA-F]+);/g, (_, code) => String.fromCharCode(parseInt(code, 16)))
     return { ok: true, value: result }
   } catch (e) {
     return { ok: false, error: (e as Error).message }
