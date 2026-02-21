@@ -4,7 +4,7 @@
 
 ## 1. 项目概述
 
-IT Toolbox 是面向开发者的在线工具箱，集成 150+ 高频开发工具。基于 Cloudflare Pages Functions 全栈部署，前后端同域，无需传统服务器，全球边缘节点低延迟响应。
+IT Toolbox 是面向开发者的在线工具箱，集成 72 款高频开发工具。基于 Cloudflare Pages Functions 全栈部署，前后端同域，无需传统服务器，全球边缘节点低延迟响应。
 
 ### 核心特性
 
@@ -81,7 +81,7 @@ IT Toolbox 是面向开发者的在线工具箱，集成 150+ 高频开发工具
          │
          ├─ /api/health → 直接响应
          │
-         ├─ /api/ip → 读取 CF Headers → KV 缓存检查 → 返回 IP 信息
+         ├─ /api/ip → 读取 CF Headers / ip-api.com → KV 缓存检查 → 返回 IP 信息
          │
          ├─ /api/dns → 参数校验 → KV 缓存检查 → 代理 1.1.1.1 DoH → 缓存结果 → 返回
          │
@@ -110,7 +110,8 @@ it-toolbox/
 │   │   ├── HomePage.tsx          # 首页
 │   │   ├── CategoryPage.tsx      # 分类页
 │   │   ├── ToolPage.tsx          # 工具页
-│   │   └── FavoritesPage.tsx     # 收藏页
+│   │   ├── FavoritesPage.tsx     # 收藏页
+│   │   └── HistoryPage.tsx       # 历史页
 │   ├── store/                    # 状态管理
 │   │   └── app.ts                # Zustand Store
 │   ├── tools/                    # 工具目录 (每个工具一个文件夹)
@@ -119,7 +120,7 @@ it-toolbox/
 │   │   │   └── index.tsx         # 工具 UI 组件
 │   │   ├── base64/
 │   │   ├── hash-calculator/
-│   │   └── ...                   # 其他工具
+│   │   └── ...                   # 其他工具 (共72个)
 │   ├── utils/                    # 工具函数
 │   │   └── icons.ts              # 图标映射
 │   ├── index.css                 # 全局样式
@@ -129,7 +130,7 @@ it-toolbox/
 │
 ├── functions/                    # Cloudflare Pages Functions
 │   └── api/
-│       ├── route.ts              # Hono 入口 (统一路由)
+│       ├── [[route]].ts          # Hono 入口 (统一路由)
 │       └── routes/               # API 路由模块
 │           ├── ip.ts             # IP 查询接口
 │           ├── dns.ts            # DNS 查询接口
@@ -137,12 +138,20 @@ it-toolbox/
 │
 ├── packages/                     # 共享包
 │   ├── core/                     # 核心计算逻辑
-│   │   └── src/
-│   │       └── index.ts          # 纯函数 (前后端共用)
+│   │   ├── index.ts              # 导出入口
+│   │   ├── common.ts             # 通用工具函数
+│   │   ├── encoding.ts           # 编解码逻辑
+│   │   ├── crypto.ts             # 加密逻辑
+│   │   ├── format.ts             # 格式化逻辑
+│   │   ├── text.ts               # 文本处理逻辑
+│   │   ├── color.ts              # 颜色处理逻辑
+│   │   ├── datetime.ts           # 时间日期逻辑
+│   │   ├── generator.ts          # 生成器逻辑
+│   │   ├── network.ts            # 网络相关逻辑
+│   │   └── number.ts             # 数字处理逻辑
 │   └── types/                    # 类型定义
-│       └── src/
-│           ├── api.ts            # API 类型
-│           └── tool.ts           # 工具类型
+│       ├── api.ts                # API 类型
+│       └── tool.ts               # 工具类型
 │
 ├── docs/                         # 文档目录
 │   ├── API.md
@@ -174,10 +183,20 @@ it-toolbox/
 | Vite | 6.0 | 构建工具 | 快速 HMR，优化产物 |
 | Fuse.js | 7.0 | 模糊搜索 | 轻量级客户端搜索 |
 | cmdk | 1.0 | 命令面板 | Cmd+K 搜索体验 |
-| CodeMirror | 6.0 | 代码编辑器 | 高性能，可扩展 |
 | marked | 15.0 | Markdown 渲染 | 快速，支持 GFM |
+| highlight.js | 11.10 | 代码高亮 | 多语言支持 |
 | dayjs | 1.11 | 日期处理 | 轻量，API 友好 |
 | chroma-js | 2.6 | 颜色处理 | 全面的颜色空间转换 |
+| bcryptjs | 2.4 | Bcrypt 哈希 | 密码哈希计算 |
+| jose | 5.9 | JWT 处理 | JWT 生成与验证 |
+| sql-formatter | 15.0 | SQL 格式化 | 多方言支持 |
+| papaparse | 5.4 | CSV 解析 | 高性能 CSV 处理 |
+| cron-parser | 4.9 | Cron 解析 | Cron 表达式处理 |
+| nanoid | 5.0 | ID 生成 | 轻量级唯一 ID |
+| @faker-js/faker | 9.0 | 假数据生成 | 多语言假数据 |
+| ua-parser-js | 1.0 | UA 解析 | User-Agent 解析 |
+| ulid | 2.3 | ULID 生成 | 时间有序 ID |
+| qrcode | 1.5 | 二维码生成 | QR Code 生成 |
 
 ### 4.2 后端技术栈
 
@@ -223,7 +242,7 @@ export const toolRegistry: ToolMeta[] = [
     requiresApi: false,          // 是否需要后端 API
     isNew: false,                // 是否新工具
   },
-  // ... 更多工具
+  // ... 更多工具 (共72个)
 ]
 
 // 模糊搜索索引
@@ -237,6 +256,15 @@ export const searchIndex = new Fuse(toolRegistry, {
   ],
   threshold: 0.35,
 })
+
+// 搜索工具
+export function searchTools(query: string): ToolMeta[]
+
+// 按分类获取工具
+export function getToolsByCategory(category: string): ToolMeta[]
+
+// 按 ID 获取工具
+export function getToolById(id: string): ToolMeta | undefined
 ```
 
 ### 5.2 工具分类
@@ -246,16 +274,27 @@ export const searchIndex = new Fuse(toolRegistry, {
 export type Category =
   | 'format'     // 格式化
   | 'encoding'   // 编码解码
-  | 'crypto'     // 加密哈希
+  | 'crypto'     // 加密安全
   | 'network'    // 网络 HTTP
   | 'text'       // 文本处理
-  | 'image'      // 图片媒体
   | 'color'      // 颜色设计
   | 'generator'  // 数据生成
   | 'converter'  // 单位转换
   | 'datetime'   // 时间日期
   | 'ai'         // AI 增强
-  | 'devops'     // 开发规范
+
+export const CATEGORY_LABELS: Record<Category, string> = {
+  encoding:  '编码解码',
+  crypto:    '加密安全',
+  format:    '格式化',
+  text:      '文本处理',
+  color:     '颜色设计',
+  network:   '网络HTTP',
+  datetime:  '时间日期',
+  generator: '生成器',
+  converter: '单位换算',
+  ai:        'AI增强',
+}
 ```
 
 ### 5.3 状态管理
@@ -273,6 +312,7 @@ interface AppStore {
   // 使用历史
   history: Record<string, HistoryRecord[]>
   addHistory: (toolId: string, input: string) => void
+  getHistory: (toolId: string) => HistoryRecord[]
 
   // 最近使用
   recentTools: string[]
@@ -280,8 +320,12 @@ interface AppStore {
 
   // 主题
   themeMode: ThemeMode
+  resolvedTheme: 'dark' | 'light'
   setThemeMode: (mode: ThemeMode) => void
+  applyTheme: () => void
 }
+
+type ThemeMode = 'dark' | 'light' | 'system'
 ```
 
 ### 5.4 路由设计
@@ -294,6 +338,7 @@ interface AppStore {
 /category/:category  → 分类页
 /tool/:id            → 工具页 (懒加载组件)
 /favorites           → 收藏页
+/history             → 历史页
 ```
 
 ### 5.5 核心计算模块
@@ -303,34 +348,35 @@ interface AppStore {
 ```typescript
 // packages/core/src/index.ts
 
-// JSON 处理
-export function formatJson(input: string, indent: number): Result<string>
-export function minifyJson(input: string): Result<string>
-export function validateJson(input: string): Result<{ type: string }>
+// 通用工具
+export * from './common'
 
-// Base64 编解码
-export function encodeBase64(input: string): Result<string>
-export function decodeBase64(input: string): Result<string>
+// 编解码
+export * from './encoding'
 
-// Hash 计算 (Web Crypto API)
-export async function sha256(input: string): Promise<Result<string>>
-export async function sha512(input: string): Promise<Result<string>>
+// 加密
+export * from './crypto'
 
-// UUID 生成
-export function generateUUID(): string
-export function generateUUIDs(count: number, options?: Options): string[]
+// 格式化
+export * from './format'
 
-// JWT 解析
-export function parseJwt(token: string): Result<JwtPayload>
+// 文本处理
+export * from './text'
 
-// 密码生成
-export function generatePassword(opts: PasswordOptions): Result<string>
+// 颜色处理
+export * from './color'
 
-// 时间戳转换
-export function parseTimestamp(input: string | number): Result<TimestampResult>
+// 网络相关
+export * from './network'
 
-// 颜色转换
-export function convertColor(hex: string): Result<ColorConversion>
+// 时间日期
+export * from './datetime'
+
+// 生成器
+export * from './generator'
+
+// 数字处理
+export * from './number'
 ```
 
 ---
@@ -340,10 +386,13 @@ export function convertColor(hex: string): Result<ColorConversion>
 ### 6.1 Hono 路由入口
 
 ```typescript
-// functions/api/route.ts
+// functions/api/[[route]].ts
 import { Hono } from 'hono'
 import { handle } from 'hono/cloudflare-pages'
 import { cors } from 'hono/cors'
+import { ipRoute } from './routes/ip'
+import { dnsRoute } from './routes/dns'
+import { aiRoute } from './routes/ai'
 
 export interface Env {
   CACHE: KVNamespace
@@ -371,7 +420,7 @@ export const onRequest = handle(app)
 | 接口 | 方法 | 功能 | 实现方式 |
 |------|------|------|----------|
 | `/api/health` | GET | 健康检查 | 直接响应 |
-| `/api/ip` | GET | IP 信息查询 | CF Headers + KV 缓存 |
+| `/api/ip` | GET | IP 信息查询 | CF Headers + ip-api.com + KV 缓存 |
 | `/api/dns` | GET | DNS 查询 | 代理 1.1.1.1 DoH + KV 缓存 |
 | `/api/ai/explain` | POST | AI 代码解释 | Workers AI |
 | `/api/ai/regex` | POST | AI 生成正则 | Workers AI |
@@ -405,12 +454,15 @@ export const onRequest = handle(app)
 // vite.config.ts
 export default defineConfig({
   build: {
+    target: 'esnext',
     rollupOptions: {
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom'],
           'router': ['@tanstack/react-router'],
-          'editor': ['@uiw/react-codemirror'],
+          'crypto-vendor': ['bcryptjs', 'jose'],
+          'text-vendor': ['diff', 'fuse.js'],
+          'data-vendor': ['papaparse', 'js-yaml', 'sql-formatter'],
         }
       }
     }
@@ -451,7 +503,7 @@ export default defineConfig({
 3. 创建 `index.tsx`（工具 UI 组件）
 4. 在 `src/registry.ts` 中添加注册记录
 5. 在 `src/pages/ToolPage.tsx` 添加懒加载映射
-6. 如有纯计算逻辑，添加到 `packages/core/src/index.ts`
+6. 如有纯计算逻辑，添加到 `packages/core/src/`
 7. 如需后端 API，在 `functions/api/routes/` 中添加路由
 
 ### 10.2 工具模板
@@ -521,11 +573,13 @@ export default function XxxTool() {
 │                      共享包 (packages/)                          │
 │  ┌─────────────────────────┐  ┌─────────────────────────────┐  │
 │  │        core/            │  │         types/              │  │
-│  │  • JSON 处理            │  │  • ToolMeta 类型            │  │
-│  │  • Base64 编解码        │  │  • Category 类型            │  │
-│  │  • Hash 计算            │  │  • ApiResponse 类型         │  │
-│  │  • UUID 生成            │  │  • IpInfo 类型              │  │
-│  │  • JWT 解析             │  │  • DnsRecord 类型           │  │
+│  │  • encoding.ts          │  │  • ToolMeta 类型            │  │
+│  │  • crypto.ts            │  │  • Category 类型            │  │
+│  │  • format.ts            │  │  • ApiResponse 类型         │  │
+│  │  • text.ts              │  │  • IpInfo 类型              │  │
+│  │  • color.ts             │  │  • DnsRecord 类型           │  │
+│  │  • datetime.ts          │  │                             │  │
+│  │  • generator.ts         │  │                             │  │
 │  └─────────────────────────┘  └─────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────┘
          │
@@ -533,14 +587,14 @@ export default function XxxTool() {
 ┌─────────────────────────────────────────────────────────────────┐
 │                   后端 API (functions/api/)                      │
 │  ┌──────────────────────────────────────────────────────────┐  │
-│  │                    route.ts (Hono 入口)                  │  │
+│  │                    [[route]].ts (Hono 入口)              │  │
 │  └──────────────────────────────────────────────────────────┘  │
 │         │                                                       │
 │         ├────────────┬────────────┬────────────┐               │
 │         ▼            ▼            ▼            ▼               │
 │  ┌───────────┐ ┌───────────┐ ┌───────────┐ ┌───────────┐       │
-│  │ routes/   │ │ routes/   │ │ routes/   │ │ routes/   │       │
-│  │ ip.ts     │ │ dns.ts    │ │ ai.ts     │ │ ...       │       │
+│  │ routes/   │ │ routes/   │ │ routes/   │ │           │       │
+│  │ ip.ts     │ │ dns.ts    │ │ ai.ts     │ │           │       │
 │  └───────────┘ └───────────┘ └───────────┘ └───────────┘       │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -551,4 +605,5 @@ export default function XxxTool() {
 
 | 版本 | 日期 | 变更内容 |
 |------|------|----------|
+| 2.0.0 | 2026-02-21 | 更新架构文档，反映 72 款工具的实际状态 |
 | 1.0.0 | 2026-02-20 | 初始架构设计文档 |

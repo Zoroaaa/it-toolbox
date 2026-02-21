@@ -144,13 +144,17 @@ pnpm install
 pnpm dev
 
 # 全栈开发（调试 API 时使用）
-pnpm dev:full
+# 终端1：启动 Vite
+pnpm dev
+
+# 终端2：启动 Wrangler Pages Dev
+pnpm pages:dev
 ```
 
 | 命令 | 底层工具 | 用途 |
 |------|----------|------|
 | `pnpm dev` | Vite | 前端开发，热更新快 |
-| `pnpm dev:full` | wrangler pages dev | 全栈开发，包含 API |
+| `pnpm pages:dev` | wrangler pages dev | 全栈开发，包含 API |
 
 ### 5.3 本地调试 Pages Functions
 
@@ -158,8 +162,12 @@ pnpm dev:full
 # 首次使用需登录
 npx wrangler login
 
-# 启动全栈本地开发
-pnpm dev:full
+# 启动全栈本地开发（需要两个终端）
+# 终端1
+pnpm dev
+
+# 终端2
+pnpm pages:dev
 
 # 访问
 # 前端: http://localhost:5173
@@ -188,6 +196,12 @@ pnpm build
 
 ```bash
 pnpm preview
+```
+
+### 6.4 手动部署
+
+```bash
+pnpm deploy
 ```
 
 ---
@@ -326,9 +340,15 @@ pnpm typecheck
 **解决方案**：
 
 ```bash
-# 使用全栈开发模式
-pnpm dev:full
+# 使用全栈开发模式（两个终端）
+# 终端1
+pnpm dev
+
+# 终端2
+pnpm pages:dev
 ```
+
+Vite 开发服务器会自动代理 `/api/*` 请求到 Wrangler Pages Dev 服务器（端口 8788）。
 
 ### 10.5 部署后样式丢失
 
@@ -429,8 +449,9 @@ pnpm install
 # 本地开发
 pnpm dev
 
-# 全栈开发
-pnpm dev:full
+# 全栈开发（两个终端）
+pnpm dev          # 终端1
+pnpm pages:dev    # 终端2
 
 # 类型检查
 pnpm typecheck
@@ -440,6 +461,9 @@ pnpm build
 
 # 本地预览
 pnpm preview
+
+# 部署
+pnpm deploy
 
 # 部署（自动，通过 Git push）
 git push origin main
@@ -460,4 +484,5 @@ git push origin main
 
 | 版本 | 日期 | 变更内容 |
 |------|------|----------|
+| 2.0.0 | 2026-02-21 | 更新部署文档，反映项目实际配置 |
 | 1.0.0 | 2026-02-20 | 初始部署文档 |

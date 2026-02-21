@@ -66,17 +66,20 @@ curl https://your-domain.com/api/health
 
 ### 2. IP 地址查询
 
-查询当前请求的 IP 地址及其地理位置信息。
+查询指定 IP 地址或当前请求的 IP 地址及其地理位置信息。
 
 **请求**
 
 ```
 GET /api/ip
+GET /api/ip?ip={ip}
 ```
 
 **参数**
 
-无（自动从请求头获取 IP）
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| ip | string | 否 | 要查询的 IP 地址，不传则查询当前请求 IP |
 
 **响应**
 
@@ -93,13 +96,14 @@ GET /api/ip
     "asOrganization": "China Telecom",
     "latitude": 31.2304,
     "longitude": 121.4737
-  }
+  },
+  "cached": false
 }
 ```
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| ip | string | 客户端 IP 地址 |
+| ip | string | 查询的 IP 地址 |
 | city | string | 城市名称 |
 | country | string | 国家代码（ISO 3166-1 alpha-2） |
 | region | string | 省/州名称 |
@@ -108,6 +112,12 @@ GET /api/ip
 | asOrganization | string | ASN 所属组织 |
 | latitude | number | 纬度 |
 | longitude | number | 经度 |
+| cached | boolean | 是否来自缓存（仅查询任意 IP 时返回） |
+
+**实现说明**
+
+- 查询当前请求 IP：使用 Cloudflare 请求头中的地理位置信息
+- 查询任意 IP：使用 ip-api.com 免费服务（限制 45 次/分钟）
 
 **缓存策略**
 
@@ -117,13 +127,22 @@ GET /api/ip
 **示例**
 
 ```bash
+# 查询当前 IP
 curl https://your-domain.com/api/ip
+
+# 查询指定 IP
+curl "https://your-domain.com/api/ip?ip=8.8.8.8"
 ```
 
 ```javascript
 const response = await fetch('/api/ip')
 const { success, data } = await response.json()
 console.log(data.ip) // 当前 IP 地址
+
+// 查询指定 IP
+const ipResponse = await fetch('/api/ip?ip=1.1.1.1')
+const ipData = await ipResponse.json()
+console.log(ipData.data.city) // 城市名称
 ```
 
 ---
@@ -477,6 +496,11 @@ const result = await generateSql(
 
 当前版本为公共服务，暂不实施速率限制。建议合理使用，避免频繁请求。
 
+**注意**：
+
+- IP 查询任意 IP 使用 ip-api.com 服务，限制 45 次/分钟
+- AI 功能使用 Workers AI，有每日配额限制
+
 ---
 
 ## CORS 配置
@@ -545,7 +569,7 @@ export interface IpInfo {
 // DNS 记录类型
 export interface DnsRecord {
   name: string
-  type: string
+  type: number
   TTL: number
   data: string
 }
@@ -557,12 +581,22 @@ export interface DnsResponse {
   records: DnsRecord[]
 }
 
-// 汇率类型
-export interface ExchangeRate {
-  from: string
-  to: string
-  rate: number
-  timestamp: number
+// AI 代码解释响应
+export interface AiExplainResponse {
+  explanation: string
+}
+
+// AI 正则生成响应
+export interface AiRegexResponse {
+  pattern: string
+  flags: string
+  explanation: string
+}
+
+// AI SQL 生成响应
+export interface AiSqlResponse {
+  sql: string
+  explanation: string
 }
 ```
 
@@ -572,4 +606,5 @@ export interface ExchangeRate {
 
 | 版本 | 日期 | 变更内容 |
 |------|------|----------|
+| 2.0.0 | 2026-02-21 | 更新 API 文档，补充 IP 查询任意 IP 功能说明 |
 | 1.0.0 | 2026-02-20 | 初始版本，包含 IP、DNS、AI 接口 |

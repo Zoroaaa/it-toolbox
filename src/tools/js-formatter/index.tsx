@@ -1,276 +1,173 @@
 import { useState, useCallback } from 'react'
+import { Copy, Check, Minimize2, Maximize2 } from 'lucide-react'
+import * as prettier from 'prettier/standalone'
+import * as babelPlugin from 'prettier/plugins/babel'
+import * as estreePlugin from 'prettier/plugins/estree'
 import { ToolLayout } from '@/components/tool/ToolLayout'
-import { meta } from './meta'
 import { useAppStore } from '@/store/app'
+import { useClipboard } from '@/hooks/useClipboard'
+import { meta } from './meta'
 
 type Mode = 'format' | 'minify'
+type Parser = 'babel' | 'babel-ts' | 'json' | 'json5'
 
-function formatJs(code: string, indent: number = 2): string {
-  const indentStr = ' '.repeat(indent)
-  
-  // Tokenize the code into meaningful chunks
-  const tokens: string[] = []
-  let i = 0
-  
-  while (i < code.length) {
-    // Template literals
-    if (code[i] === '`') {
-      let tok = '`'; i++
-      let depth = 0
-      while (i < code.length) {
-        if (code[i] === '\\') { tok += code[i] + code[i+1]; i += 2; continue }
-        if (code[i] === '$' && code[i+1] === '{') { depth++; tok += '${'; i += 2; continue }
-        if (code[i] === '}' && depth > 0) { depth--; tok += '}'; i++; continue }
-        if (code[i] === '`' && depth === 0) { tok += '`'; i++; break }
-        tok += code[i++]
-      }
-      tokens.push(tok); continue
-    }
-    // String literals
-    if (code[i] === '"' || code[i] === "'") {
-      const q = code[i]; let tok = q; i++
-      while (i < code.length && code[i] !== q) {
-        if (code[i] === '\\') { tok += code[i] + code[i+1]; i += 2; continue }
-        tok += code[i++]
-      }
-      tok += code[i++] || ''
-      tokens.push(tok); continue
-    }
-    // Line comment
-    if (code[i] === '/' && code[i+1] === '/') {
-      let tok = ''
-      while (i < code.length && code[i] !== '\n') tok += code[i++]
-      tokens.push(tok); continue
-    }
-    // Block comment
-    if (code[i] === '/' && code[i+1] === '*') {
-      let tok = '/*'; i += 2
-      while (i < code.length && !(code[i] === '*' && code[i+1] === '/')) tok += code[i++]
-      tok += '*/'; i += 2
-      tokens.push(tok); continue
-    }
-    // Regex literal (basic detection: after = ( , [ ! & | ? : return)
-    if (code[i] === '/') {
-      const prev = tokens.filter(t => t.trim()).at(-1) ?? ''
-      const lastChar = prev.trim().slice(-1)
-      if ('=([,!&|?:'.includes(lastChar) || prev.trim() === 'return' || prev.trim() === 'typeof') {
-        let tok = '/'; i++
-        while (i < code.length && code[i] !== '/' && code[i] !== '\n') {
-          if (code[i] === '\\') { tok += code[i] + code[i+1]; i += 2; continue }
-          tok += code[i++]
-        }
-        tok += code[i++] || ''
-        // flags
-        while (i < code.length && /[gimsuy]/.test(code[i])) tok += code[i++]
-        tokens.push(tok); continue
-      }
-    }
-    // Whitespace/newlines - collapse
-    if (/\s/.test(code[i])) {
-      while (i < code.length && /\s/.test(code[i])) i++
-      tokens.push(' '); continue
-    }
-    tokens.push(code[i++])
-  }
-  
-  // Now reconstruct with proper formatting
-  let result = ''
-  let level = 0
-  let lineStart = true
-  const toks = tokens.filter(t => t !== ' ' || !lineStart)
-  
-  const writeIndent = () => { result += indentStr.repeat(level) }
-  const writeln = () => { result += '\n'; lineStart = true }
-  
-  for (let idx = 0; idx < toks.length; idx++) {
-    const tok = toks[idx]
-    const next = toks[idx + 1] ?? ''
-    
-    if (tok === ' ') {
-      if (!lineStart && result.slice(-1) !== ' ') result += ' '
-      continue
-    }
-    
-    if (tok === '{' || tok === '[' || tok === '(') {
-      if (lineStart) writeIndent()
-      result += tok
-      lineStart = false
-      // Check if closing is on same line (inline objects/arrays)
-      let depth = 1, j = idx + 1
-      while (j < toks.length && depth > 0) {
-        const t = toks[j].trim()
-        if (t === tok || t === '{' || t === '[' || t === '(') depth++
-        if (t === '}' || t === ']' || t === ')') depth--
-        j++
-      }
-      // If closing bracket is right next or only whitespace between, keep inline
-      const inner = toks.slice(idx + 1, j - 1).join('').trim()
-      if (!inner || (inner.length < 60 && !inner.includes('\n') && !inner.includes('{'))) {
-        continue // keep inline
-      }
-      level++; writeln()
-      continue
-    }
-    
-    if (tok === '}' || tok === ']' || tok === ')') {
-      if (level > 0) level--
-      if (!lineStart) { writeln(); writeIndent() }
-      else writeIndent()
-      result += tok
-      lineStart = false
-      if (next === ';' || next === ',' || next === ')' || next === ']' || next === '}') continue
-      if (next === '{') { result += ' '; continue }
-      if (next && next !== ' ' && !next.startsWith('//')) writeln()
-      continue
-    }
-    
-    if (tok === ';') {
-      result += ';'
-      lineStart = false
-      if (next && next !== '}' && next !== ')') writeln()
-      continue
-    }
-    
-    if (tok === ',') {
-      result += ','
-      lineStart = false
-      // Check if we're in a multi-line context
-      if (level > 0) writeln()
-      else result += ' '
-      continue
-    }
-    
-    if (tok.startsWith('//') || tok.startsWith('/*')) {
-      if (lineStart) writeIndent()
-      else result += ' '
-      result += tok
-      lineStart = false
-      if (tok.startsWith('//')) writeln()
-      continue
-    }
-    
-    if (lineStart) { writeIndent(); lineStart = false }
-    else if (result.slice(-1) !== ' ' && result.slice(-1) !== '(' && result.slice(-1) !== '[') {
-      // Add space between tokens where needed
-      const prev = result.slice(-1)
-      if (prev !== '.' && tok !== '.' && prev !== '!' && prev !== '~' && tok !== '(' && tok !== '[' && tok !== ')' && tok !== ']' && tok !== ';' && tok !== ',') {
-        // keywords and operators need spaces
-        if (/[a-zA-Z0-9_$]/.test(prev) && /[a-zA-Z0-9_$]/.test(tok[0])) result += ' '
-        else if (/[=+\-*/<>!&|^%?:]/.test(prev) || /^[=+\-*/<>!&|^%?:]/.test(tok)) result += ' '
-      }
-    }
-    
-    result += tok
-  }
-  
-  return result.trim()
-}
+const PARSER_OPTIONS: { value: Parser; label: string }[] = [
+  { value: 'babel', label: 'JavaScript' },
+  { value: 'babel-ts', label: 'TypeScript' },
+  { value: 'json', label: 'JSON' },
+  { value: 'json5', label: 'JSON5' },
+]
 
-export default function JsFormatter() {
-  const [input, setInput] = useState('')
+const SAMPLE = `const fetchUser=async(id)=>{try{const response=await fetch('/api/users/'+id);if(!response.ok){throw new Error('HTTP error! status: '+response.status)}const data=await response.json();return{id:data.id,name:data.name,email:data.email,createdAt:new Date(data.created_at)}}catch(error){console.error('Failed to fetch user:',error);throw error}}`
+
+export default function JSFormatter() {
+  const [input, setInput] = useState(SAMPLE)
   const [output, setOutput] = useState('')
-  const [error, setError] = useState('')
   const [mode, setMode] = useState<Mode>('format')
+  const [parser, setParser] = useState<Parser>('babel')
   const [indent, setIndent] = useState(2)
-  const [isProcessing, setIsProcessing] = useState(false)
-  const { addHistory, addRecentTool } = useAppStore()
+  const [semi, setSemi] = useState(true)
+  const [singleQuote, setSingleQuote] = useState(false)
+  const [printWidth, setPrintWidth] = useState(80)
+  const [trailingComma, setTrailingComma] = useState<'all' | 'es5' | 'none'>('all')
+  const [error, setError] = useState('')
+  const [processing, setProcessing] = useState(false)
+  const { addRecentTool } = useAppStore()
+  const { copy, copied } = useClipboard()
 
-  const runTransform = useCallback(() => {
+  const handleProcess = useCallback(async () => {
     if (!input.trim()) return
     addRecentTool(meta.id)
-    setIsProcessing(true)
+    setError('')
+    setProcessing(true)
 
     try {
-      const result = mode === 'format' ? formatJs(input, indent) : minifyJs(input)
-      setOutput(result)
-      setError('')
-      addHistory(meta.id, input)
+      if (mode === 'minify') {
+        // For JS minify: remove comments and collapse whitespace (basic)
+        // Real minification needs terser which is CF-incompatible; do safe collapse
+        let minified = input
+          .replace(/\/\/[^\n]*/g, '')
+          .replace(/\/\*[\s\S]*?\*\//g, '')
+          .replace(/\s*\n\s*/g, ' ')
+          .replace(/\s{2,}/g, ' ')
+          .trim()
+        setOutput(minified)
+      } else {
+        const formatted = await prettier.format(input, {
+          parser,
+          plugins: [babelPlugin, estreePlugin],
+          tabWidth: indent,
+          useTabs: false,
+          semi,
+          singleQuote,
+          printWidth,
+          trailingComma,
+        })
+        setOutput(formatted)
+      }
     } catch (e) {
-      setError((e as Error).message)
-      setOutput('')
+      setError(e instanceof Error ? e.message : '格式化失败，请检查代码语法')
+    } finally {
+      setProcessing(false)
     }
-    setIsProcessing(false)
-  }, [input, mode, indent, addHistory, addRecentTool])
+  }, [input, mode, parser, indent, semi, singleQuote, printWidth, trailingComma, addRecentTool])
 
-  const reset = () => {
-    setInput('')
-    setOutput('')
-    setError('')
-  }
+  const reset = () => { setInput(''); setOutput(''); setError('') }
 
   return (
     <ToolLayout meta={meta} onReset={reset} outputValue={output}>
-      <div className="flex items-center gap-2 mb-4 flex-wrap">
-        <button onClick={runTransform} disabled={isProcessing} className="btn-primary">
-          {isProcessing ? '处理中...' : mode === 'format' ? '格式化' : '压缩'}
-        </button>
+      <div className="flex flex-col gap-4 h-[calc(100vh-12rem)]">
 
-        <div className="flex items-center gap-1 bg-bg-raised rounded-lg p-1">
-          {(['format', 'minify'] as Mode[]).map((m) => (
-            <button
-              key={m}
-              onClick={() => {
-                setMode(m)
-                setOutput('')
-                setError('')
-              }}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                mode === m ? 'bg-accent text-bg-base' : 'text-text-muted hover:text-text-primary'
-              }`}
-            >
-              {m === 'format' ? '格式化' : '压缩'}
-            </button>
-          ))}
+        {/* Controls row 1 */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex rounded-lg overflow-hidden border border-border-base">
+            {(['format', 'minify'] as Mode[]).map(m => (
+              <button key={m} onClick={() => setMode(m)}
+                className={`px-4 py-1.5 text-sm transition-colors ${mode === m ? 'bg-accent text-bg-base' : 'bg-bg-surface text-text-secondary hover:bg-bg-raised'}`}>
+                {m === 'format' ? '格式化' : '压缩'}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex rounded-lg overflow-hidden border border-border-base">
+            {PARSER_OPTIONS.map(p => (
+              <button key={p.value} onClick={() => setParser(p.value)}
+                className={`px-3 py-1.5 text-sm transition-colors ${parser === p.value ? 'bg-accent/10 text-accent' : 'bg-bg-surface text-text-secondary hover:bg-bg-raised'}`}>
+                {p.label}
+              </button>
+            ))}
+          </div>
         </div>
 
+        {/* Controls row 2 */}
         {mode === 'format' && (
-          <div className="flex items-center gap-2 ml-auto">
-            <label className="text-xs text-text-muted">缩进:</label>
-            <select
-              value={indent}
-              onChange={(e) => setIndent(parseInt(e.target.value))}
-              className="px-3 py-1.5 bg-bg-raised border border-border-base rounded-lg text-sm text-text-primary"
-            >
-              <option value={2}>2 空格</option>
-              <option value={4}>4 空格</option>
-            </select>
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="flex items-center gap-2 text-sm text-text-secondary">
+              缩进:
+              <select value={indent} onChange={e => setIndent(+e.target.value)}
+                className="px-2 py-1 rounded-md bg-bg-raised border border-border-base text-sm text-text-primary focus:outline-none">
+                <option value={2}>2 空格</option>
+                <option value={4}>4 空格</option>
+              </select>
+            </label>
+            <label className="flex items-center gap-2 text-sm text-text-secondary">
+              行宽:
+              <select value={printWidth} onChange={e => setPrintWidth(+e.target.value)}
+                className="px-2 py-1 rounded-md bg-bg-raised border border-border-base text-sm text-text-primary focus:outline-none">
+                <option value={80}>80</option>
+                <option value={100}>100</option>
+                <option value={120}>120</option>
+              </select>
+            </label>
+            <label className="flex items-center gap-2 text-sm text-text-secondary">
+              末尾逗号:
+              <select value={trailingComma} onChange={e => setTrailingComma(e.target.value as 'all' | 'es5' | 'none')}
+                className="px-2 py-1 rounded-md bg-bg-raised border border-border-base text-sm text-text-primary focus:outline-none">
+                <option value="all">all</option>
+                <option value="es5">es5</option>
+                <option value="none">none</option>
+              </select>
+            </label>
+            <label className="flex items-center gap-2 text-sm text-text-secondary cursor-pointer">
+              <input type="checkbox" checked={semi} onChange={e => setSemi(e.target.checked)} />分号
+            </label>
+            <label className="flex items-center gap-2 text-sm text-text-secondary cursor-pointer">
+              <input type="checkbox" checked={singleQuote} onChange={e => setSingleQuote(e.target.checked)} />单引号
+            </label>
           </div>
         )}
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 h-[calc(100vh-16rem)]">
-        <div className="flex flex-col gap-2">
-          <label className="text-xs font-medium text-text-muted uppercase tracking-wider">输入</label>
-          <textarea
-            className="tool-input flex-1 font-mono text-xs leading-relaxed"
-            value={input}
-            onChange={(e) => {
-              setInput(e.target.value)
-              setError('')
-            }}
-            placeholder="输入 JavaScript/TypeScript 代码..."
-            spellCheck={false}
-          />
-          <div className="text-xs text-text-muted">{input.length} 字符</div>
-        </div>
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-red-400 text-sm font-mono whitespace-pre-wrap overflow-auto max-h-32">{error}</div>
+        )}
 
-        <div className="flex flex-col gap-2">
-          <label className="text-xs font-medium text-text-muted uppercase tracking-wider">输出</label>
-          {error ? (
-            <div className="flex-1 rounded-lg bg-rose-500/10 border border-rose-500/30 p-4">
-              <p className="text-xs text-rose-400/80">{error}</p>
+        <div className="flex-1 grid grid-cols-2 gap-4 min-h-0">
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-medium text-text-muted uppercase tracking-wider">输入</label>
+            <textarea value={input} onChange={e => { setInput(e.target.value); setOutput('') }}
+              placeholder="粘贴 JavaScript / TypeScript / JSON 代码..."
+              className="flex-1 px-3 py-2.5 rounded-lg bg-bg-surface border border-border-base text-sm font-mono text-text-primary focus:outline-none focus:border-accent resize-none" />
+          </div>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-medium text-text-muted uppercase tracking-wider">输出</label>
+              {output && (
+                <button onClick={() => copy(output)}
+                  className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-bg-raised hover:bg-bg-surface text-xs text-text-secondary transition-colors">
+                  {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}复制
+                </button>
+              )}
             </div>
-          ) : (
-            <textarea
-              className="tool-input flex-1 font-mono text-xs leading-relaxed"
-              value={output}
-              readOnly
-              placeholder="结果将在这里显示..."
-              spellCheck={false}
-            />
-          )}
-          {output && !error && <div className="text-xs text-text-muted">{output.length} 字符</div>}
+            <textarea value={output} readOnly placeholder="处理结果将显示在这里..."
+              className="flex-1 px-3 py-2.5 rounded-lg bg-bg-surface border border-border-base text-sm font-mono text-text-muted resize-none" />
+          </div>
         </div>
+
+        <button onClick={handleProcess} disabled={!input.trim() || processing}
+          className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-accent text-bg-base font-medium text-sm hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          {mode === 'format' ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
+          {processing ? '处理中...' : mode === 'format' ? '使用 Prettier 格式化' : '压缩'}
+        </button>
       </div>
     </ToolLayout>
   )

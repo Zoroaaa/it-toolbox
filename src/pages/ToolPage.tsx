@@ -76,6 +76,23 @@ const toolComponents: Record<string, React.LazyExoticComponent<() => JSX.Element
   'ai-regex': lazy(() => import('@/tools/ai-regex/index')),
   'ai-sql': lazy(() => import('@/tools/ai-sql/index')),
   'ai-code-explain': lazy(() => import('@/tools/ai-code-explain/index')),
+  // Phase 3.1 - 图片&媒体
+  'svg-optimizer': lazy(() => import('@/tools/svg-optimizer/index')),
+  'svg-to-data-uri': lazy(() => import('@/tools/svg-to-data-uri/index')),
+  'favicon-gen': lazy(() => import('@/tools/favicon-gen/index')),
+  'exif-reader': lazy(() => import('@/tools/exif-reader/index')),
+  'color-extractor': lazy(() => import('@/tools/color-extractor/index')),
+  'image-compress': lazy(() => import('@/tools/image-compress/index')),
+  'image-convert': lazy(() => import('@/tools/image-convert/index')),
+  'image-resize': lazy(() => import('@/tools/image-resize/index')),
+  // Phase 3.2 - 开发规范&文档
+  'gitignore-gen': lazy(() => import('@/tools/gitignore-gen/index')),
+  'license-gen': lazy(() => import('@/tools/license-gen/index')),
+  'readme-gen': lazy(() => import('@/tools/readme-gen/index')),
+  'conventional-commit': lazy(() => import('@/tools/conventional-commit/index')),
+  'semver-calc': lazy(() => import('@/tools/semver-calc/index')),
+  'openapi-viewer': lazy(() => import('@/tools/openapi-viewer/index')),
+  'json-schema-gen': lazy(() => import('@/tools/json-schema-gen/index')),
 }
 
 function ToolSkeleton() {
