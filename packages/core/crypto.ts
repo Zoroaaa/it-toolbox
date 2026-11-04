@@ -79,9 +79,7 @@ function md5Bytes(bytes: Uint8Array): string {
     6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21,
   ])
 
-  const padLen = bytes.length + 9
-  const padBytes = ((padLen + 63) & ~63) - padLen + 8
-  const totalLen = bytes.length + 1 + padBytes + 8
+  const totalLen = ((bytes.length + 8) >> 6 << 6) + 64
   const data = new Uint8Array(totalLen)
   data.set(bytes)
   data[bytes.length] = 0x80

@@ -1,7 +1,7 @@
 import { vi } from 'vitest'
 
 // happy-dom 未实现 matchMedia，主题逻辑依赖它
-if (!window.matchMedia) {
+if (typeof window !== 'undefined' && !window.matchMedia) {
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
     value: (query: string) => ({
@@ -17,7 +17,7 @@ if (!window.matchMedia) {
   })
 }
 
-if (!globalThis.ResizeObserver) {
+if (typeof globalThis.ResizeObserver === 'undefined') {
   globalThis.ResizeObserver = class {
     observe() {}
     unobserve() {}

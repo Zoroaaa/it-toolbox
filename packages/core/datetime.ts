@@ -12,10 +12,12 @@ export interface TimestampResult {
 export function parseTimestamp(input: string | number): Result<TimestampResult> {
   try {
     let date: Date
-    const num = typeof input === 'number' ? input : parseInt(input, 10)
+    const raw = typeof input === 'number' ? String(input) : input.trim()
+    // 仅当整串都是数字时才按时间戳处理，避免把 ISO 日期中的年份当成秒
+    const num = typeof input === 'number' ? input : /^\d+$/.test(raw) ? parseInt(raw, 10) : NaN
 
     if (isNaN(num)) {
-      date = new Date(input)
+      date = new Date(raw)
     } else {
       if (num > 1e12) {
         date = new Date(num)

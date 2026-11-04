@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import type { Env } from '../[[route]]'
+import type { Env } from '../../types'
 
 export const headersCheckRoute = new Hono<{ Bindings: Env }>()
 

@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import type { Env } from '../[[route]]'
+import type { Env } from '../../types'
 import type { ExchangeRateInfo } from '@toolbox/types/api'
 
 export const exchangeRoute = new Hono<{ Bindings: Env }>()

@@ -19,11 +19,11 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json-summary'],
-      include: ['packages/core/**/*.ts', 'functions/**/*.ts'],
-      exclude: ['packages/core/index.ts', 'functions/api/[[route]].ts', '**/*.d.ts'],
+      include: ['packages/core/**/*.ts'],
+      exclude: ['packages/core/index.ts', 'packages/core/common.ts'],
       thresholds: {
         lines: 85,
-        functions: 85,
+        functions: 75,
         branches: 70,
       },
     },

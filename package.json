@@ -17,7 +17,7 @@
     "test:coverage": "vitest run --coverage",
     "audit:meta": "node scripts/audit-meta.mjs",
     "report:bundle": "node scripts/report-bundle.mjs",
-    "check": "pnpm typecheck && pnpm typecheck:api && pnpm lint && pnpm test",
+    "check": "pnpm typecheck && pnpm typecheck:api && pnpm lint && pnpm test && pnpm audit:meta --check",
     "deploy": "pnpm check && vite build && wrangler pages deploy dist --project-name=it-toolbox"
   },
   "dependencies": {
