@@ -1,0 +1,22 @@
+{
+  "repo": "Zoroaaa/it-toolbox",
+  "finalTag": "v1.6.0",
+  "releases": [
+    { "tag": "v1.0.0", "commit": "c0a21d6", "tools": 87, "notes": "docs/changelog/changelog-1.0.0.md" },
+    { "tag": "v1.1.0", "commit": "bca2df6", "tools": 96, "notes": "docs/changelog/changelog-1.1.0.md" },
+    { "tag": "v1.2.0", "commit": "f4b8230", "tools": 106, "notes": "docs/changelog/changelog-1.2.0.md" },
+    { "tag": "v1.3.0", "commit": "b6b52fd", "tools": 116, "notes": "docs/changelog/changelog-1.3.0.md" },
+    { "tag": "v1.4.0", "commit": "c3d14b3", "tools": 126, "notes": "docs/changelog/changelog-1.4.0.md" },
+    { "tag": "v1.5.0", "commit": "2817f76", "tools": 135, "notes": "docs/changelog/changelog-1.5.0.md" },
+    { "tag": "v1.6.0", "commit": "HEAD", "tools": 144, "notes": "docs/releases/v1.6.0-notes.md" }
+  ],
+  "archive": [
+    { "tag": "archive/v2.0.0", "commit": "bca2df6" },
+    { "tag": "archive/v2.1.0", "commit": "f4b8230" },
+    { "tag": "archive/v2.2.0", "commit": "b6b52fd" },
+    { "tag": "archive/v2.3.0", "commit": "c3d14b3" },
+    { "tag": "archive/v2.4.0", "commit": "2817f76" },
+    { "tag": "archive/v3.0.0", "commit": "6dbfcf6" }
+  ],
+  "obsoleteTags": ["v2.0.0", "v2.1.0", "v2.2.0", "v2.3.0", "v2.4.0", "v3.0.0"]
+}

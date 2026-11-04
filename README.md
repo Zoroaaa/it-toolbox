@@ -2,9 +2,9 @@
 
 <div align="center">
 
-**开发者工具箱** — 146 款实用工具，基于 Cloudflare Pages Functions 全栈部署
+**开发者工具箱** — 144 款实用工具，基于 Cloudflare Pages Functions 全栈部署
 
-[![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)](https://github.com/your-username/it-toolbox)
+[![Version](https://img.shields.io/badge/version-1.6.0-blue.svg)](https://github.com/Zoroaaa/it-toolbox/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Cloudflare](https://img.shields.io/badge/Cloudflare-Pages-orange.svg)](https://pages.cloudflare.com/)
 [![zread](https://img.shields.io/badge/Ask_Zread-_.svg?style=flat&color=00b0aa&labelColor=000000&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTQuOTYxNTYgMS42MDAxSDIuMjQxNTZDMS44ODgxIDEuNjAwMSAxLjYwMTU2IDEuODg2NjQgMS42MDE1NiAyLjI0MDFWNC45NjAxQzEuNjAxNTYgNS4zMTM1NiAxLjg4ODEgNS42MDAxIDIuMjQxNTYgNS42MDAxSDQuOTYxNTZDNS4zMTUwMiA1LjYwMDEgNS42MDE1NiA1LjMxMzU2IDUuNjAxNTYgNC45NjAxVjIuMjQwMUM1LjYwMTU2IDEuODg2NjQgNS4zMTUwMiAxLjYwMDEgNC45NjE1NiAxLjYwMDFaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik00Ljk2MTU2IDEwLjM5OTlIMi4yNDE1NkMxLjg4ODEgMTAuMzk5OSAxLjYwMTU2IDEwLjY4NjQgMS42MDE1NiAxMS4wMzk5VjEzLjc1OTlDMS42MDE1NiAxNC4xMTM0IDEuODg4MSAxNC4zOTk5IDIuMjQxNTYgMTQuMzk5OUg0Ljk2MTU2QzUuMzE1MDIgMTQuMzk5OSA1LjYwMTU2IDE0LjExMzQgNS42MDE1NiAxMy43NTk5VjExLjAzOTlDNS42MDE1NiAxMC42ODY0IDUuMzE1MDIgMTAuMzk5OSA0Ljk2MTU2IDEwLjM5OTlaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik0xMy43NTg0IDEuNjAwMUgxMS4wMzg0QzEwLjY4NSAxLjYwMDEgMTAuMzk4NCAxLjg4NjY0IDEwLjM5ODQgMi4yNDAxVjQuOTYwMUMxMC4zOTg0IDUuMzEzNTYgMTAuNjg1IDUuNjAwMSAxMS4wMzg0IDUuNjAwMUgxMy43NTg0QzE0LjExMTkgNS42MDAxIDE0LjM5ODQgNS4zMTM1NiAxNC4zOTg0IDQuOTYwMVYyLjI0MDFDMTQuMzk4NCAxLjg4NjY0IDE0LjExMTkgMS42MDAxIDEzLjc1ODQgMS42MDAxWiIgZmlsbD0iI2ZmZiIvPgo8cGF0aCBkPSJNNCAxMkwxMiA0TDQgMTJaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik00IDEyTDEyIDQiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgo8L3N2Zz4K&logoColor=ffffff)](https://zread.ai/Zoroaaa/it-toolbox)
@@ -28,7 +28,9 @@
 
 ## 项目简介
 
-IT Toolbox 是一款面向开发者的在线工具箱，集成 146 款高频开发工具，覆盖格式化、编码解码、加密安全、网络查询、文本处理、颜色设计、AI增强等多个类别。
+IT Toolbox 是一款面向开发者的在线工具箱，集成 144 款高频开发工具，覆盖格式化、编码解码、加密安全、网络查询、文本处理、颜色设计、AI增强等多个类别。
+
+> **版本说明**：项目版本已统一为 `v1.0.0` → `v1.6.0` 连续序列，旧的 `v2.x` / `v3.0.0` 标签已归档。对应关系见 [版本映射表](./docs/releases/VERSION-MAP.md)。
 
 ### 核心特性
 
@@ -63,19 +65,18 @@ IT Toolbox 是一款面向开发者的在线工具箱，集成 146 款高频开�
 | 格式化 | 15 | JSON/Markdown/YAML/XML/SQL/CSS/JS/TOML/CSV/JSONPath/JSON转CSV/HTML预览/JSON表格/JSON合并/Schema验证 |
 | 编码解码 | 11 | Base64/URL/JWT/HTML实体/Hex/Unicode/摩斯密码/二进制/ROT13/Punycode/ASCII表 |
 | 加密安全 | 11 | Hash/AES/RSA/HMAC/Bcrypt/SSH/JWT生成/证书解析/文件校验/JWT验证/密码强度 |
-| 文本处理 | 13 | 命名转换/占位文本/正则测试/文本统计/Diff/变换/转义/Cron/相似度/行处理/JSON转类型/数学计算/正则生成 |
-| 颜色设计 | 10 | 颜色选择器/渐变生成/配色方案/对比度/色盲模拟/Tailwind色板/Box Shadow/色彩空间/clip-path/Flexbox |
-| 网络 HTTP | 15 | IP查询/DNS/URL解析/HTTP状态码/请求头/MIME类型/子网计算/UA解析/cURL转换/API测试/WHOIS/SSL检测/安全头/端口参考/邮箱验证 |
-| 时间日期 | 7 | 时间戳转换/日期计算/时区转换/时长格式化/日历生成/多格式时间 |
+| 文本处理 | 16 | 命名转换/占位文本/正则测试/文本统计/Diff/变换/转义/Cron/相似度/行处理/JSON转类型/数学计算/正则生成/JSON Schema 验证 |
+| 颜色设计 | 14 | 颜色选择器/渐变生成/配色方案/对比度/色盲模拟/Tailwind色板/Box Shadow/色彩空间/clip-path/Flexbox/Grid/动画/字体搭配 |
+| 网络 HTTP | 16 | IP查询/DNS/URL解析/HTTP状态码/请求头/MIME类型/子网计算/UA解析/cURL转换/API测试/RDAP/SSL检测/安全头/端口参考/邮箱验证 |
+| 时间日期 | 6 | 时间戳转换/日期计算/时区转换/时长格式化/日历生成/多格式时间 |
 | 生成器 | 12 | UUID/密码/NanoID/ULID/ObjectID/假数据/二维码生成/二维码识别/占位图/条形码/JSON生成/SQL生成 |
 | 图片媒体 | 8 | 图片压缩/格式转换/尺寸调整/SVG优化/SVG转DataURI/Favicon/EXIF/取色 |
-| 开发规范 | 8 | gitignore/许可证/README/Commit规范/SemVer/OpenAPI/JSON Schema/Meta标签 |
-| 单位换算 | 9 | 进制转换/汇率换算/数字单位/数据存储/色彩空间/CSS单位/宽高比/罗马数字/扩展进制 |
+| 开发规范 | 12 | gitignore/许可证/README/Commit规范/SemVer/OpenAPI/JSON Schema/Meta标签/Sitemap/robots.txt/.htaccess/Changelog |
+| 单位换算 | 11 | 进制转换/汇率换算/数字单位/数据存储/色彩空间/CSS单位/宽高比/罗马数字/扩展进制/质数/GCD-LCM |
 | AI 增强 | 12 | AI代码解释/AI正则生成/AI SQL生成/AI代码Review/AI生成Schema/AI生成提交信息/AI结构化提取/AI翻译/AI报错解释/AI命名助手/AI生成Mock数据/AI Shell命令生成 |
-| DevOps | 4 | Sitemap生成/robots.txt生成/.htaccess生成/Changelog生成 |
-| **总计** | **146** | |
+| **总计** | **144** | |
 
-### 已实现工具（v2.0.0）
+### 工具清单（v1.6.0）
 
 #### 格式化
 
@@ -183,6 +184,7 @@ IT Toolbox 是一款面向开发者的在线工具箱，集成 146 款高频开�
 | MongoDB ObjectID | 生成/解析 ObjectID |
 | 假数据生成 | 姓名/邮箱/手机/地址等假数据生成 |
 | 二维码生成 | 生成二维码，支持文本、URL、WiFi 等格式 |
+| 二维码识别 | 上传图片或摄像头扫码识别二维码 |
 | 占位图生成 | 生成指定尺寸/颜色/文字的占位图 |
 
 #### 单位换算
@@ -246,13 +248,6 @@ IT Toolbox 是一款面向开发者的在线工具箱，集成 146 款高频开�
 |------|------|
 | HTML 实时预览 | 实时预览 HTML/CSS/JS 代码 |
 
-#### 二维码工具
-
-| 工具 | 说明 |
-|------|------|
-| 二维码生成 | 生成二维码，支持文本、URL、WiFi 等格式 |
-| 二维码识别 | 上传图片或摄像头扫码识别二维码 |
-
 #### 网络 HTTP 工具（补充）
 
 | 工具 | 说明 |
@@ -272,7 +267,7 @@ IT Toolbox 是一款面向开发者的在线工具箱，集成 146 款高频开�
 
 ```bash
 # 克隆仓库
-git clone https://github.com/your-username/it-toolbox.git
+git clone https://github.com/Zoroaaa/it-toolbox.git
 cd it-toolbox
 
 # 安装依赖
@@ -314,71 +309,43 @@ pnpm deploy
 ```
 it-toolbox/
 ├── src/                          # 前端源码
-│   ├── components/               # React 组件
-│   │   ├── layout/               # 布局组件
-│   │   │   ├── Header.tsx        # 顶部导航栏
-│   │   │   └── Sidebar.tsx       # 侧边栏分类导航
-│   │   ├── tool/                 # 工具相关组件
-│   │   │   └── ToolLayout.tsx    # 工具通用容器
-│   │   └── ui/                   # UI 基础组件
-│   │       ├── ThemeToggle.tsx   # 主题切换
-│   │       └── ToolCard.tsx      # 工具卡片
-│   ├── hooks/                    # 自定义 Hooks
-│   │   └── useClipboard.ts       # 剪贴板操作
-│   ├── pages/                    # 页面组件
-│   │   ├── HomePage.tsx          # 首页
-│   │   ├── CategoryPage.tsx      # 分类页
-│   │   ├── ToolPage.tsx          # 工具页
-│   │   ├── FavoritesPage.tsx     # 收藏页
-│   │   └── HistoryPage.tsx       # 历史页
-│   ├── store/                    # 状态管理
-│   │   └── app.ts                # Zustand Store
-│   ├── tools/                    # 工具目录
-│   │   ├── json-formatter/       # JSON 格式化工具
-│   │   │   ├── meta.ts           # 工具元信息
-│   │   │   └── index.tsx         # 工具 UI
-│   │   └── ...                   # 其他工具
-│   ├── utils/                    # 工具函数
-│   │   └── icons.ts              # 图标映射
-│   ├── index.css                 # 全局样式
-│   ├── main.tsx                  # 应用入口
-│   ├── registry.ts               # 工具注册表
-│   └── routeTree.tsx             # 路由配置
+│   ├── components/
+│   │   ├── layout/               # Header / Sidebar
+│   │   ├── system/               # ErrorBoundary / 路由错误态
+│   │   ├── tool/                 # ToolLayout
+│   │   └── ui/                   # ThemeToggle / ToolCard / Toaster
+│   ├── hooks/                    # useClipboard / useFocusTrap
+│   ├── lib/                      # ai / toast / tool-loader
+│   ├── pages/                    # Home / Category / Tool / Favorites / History
+│   ├── store/app.ts              # Zustand（字段级订阅 + 版本化持久化）
+│   ├── tools/                    # 144 个工具目录（meta.ts + index.tsx）
+│   ├── utils/                    # icons.ts + 自动生成的 icon-map.ts
+│   ├── i18n/                     # 中文内置，英文按需加载
+│   ├── main.tsx                  # 应用入口（分包错误兜底）
+│   ├── registry.ts               # 工具注册表（唯一事实源）
+│   └── routeTree.tsx             # 路由（页面级懒加载）
 │
 ├── functions/                    # Cloudflare Pages Functions
-│   └── api/
-│       ├── [[route]].ts          # Hono 入口
-│       └── routes/               # API 路由模块
-│           ├── ip.ts             # IP 查询接口
-│           ├── dns.ts            # DNS 查询接口
-│           └── ai.ts             # AI 增强接口
+│   ├── app.ts                    # createApp()，供测试直接调用
+│   ├── types.ts                  # Env 绑定类型
+│   ├── lib/ssrf.ts               # 外发请求安全校验
+│   └── api/routes/               # ip / dns / ai / exchange / proxy / whois / ssl / headers
 │
-├── packages/                     # 共享包
-│   ├── core/                     # 核心计算逻辑
-│   │   ├── index.ts              # 导出入口
-│   │   ├── encoding.ts           # 编解码逻辑
-│   │   ├── crypto.ts             # 加密逻辑
-│   │   ├── format.ts             # 格式化逻辑
-│   │   ├── text.ts               # 文本处理逻辑
-│   │   ├── color.ts              # 颜色处理逻辑
-│   │   ├── datetime.ts           # 时间日期逻辑
-│   │   ├── generator.ts          # 生成器逻辑
-│   │   └── ...                   # 其他模块
-│   └── types/                    # 类型定义
-│       ├── api.ts                # API 类型
-│       └── tool.ts               # 工具类型
+├── packages/
+│   ├── core/                     # 纯函数核心
+│   │   ├── encoding/crypto/color/datetime/number/regex
+│   │   ├── format.ts + format-yaml.ts
+│   │   ├── text.ts + text-diff.ts + text-cron.ts
+│   │   ├── generator.ts + generator-fake.ts
+│   │   └── network.ts + network-ua.ts
+│   └── types/                    # ToolMeta / API 类型
 │
-├── docs/                         # 文档
-│   ├── API.md                    # API 文档
-│   ├── ARCHITECTURE.md           # 架构设计
-│   ├── DEPLOYMENT.md             # 部署指南
-│   ├── QUICKSTART.md             # 快速开始
-│   └── changelog/                # 更新日志
-│
-├── wrangler.toml                 # Cloudflare 配置
-├── vite.config.ts                # Vite 配置
-├── tailwind.config.js            # Tailwind 配置
-└── package.json                  # 项目配置
+├── tests/                        # Vitest：core 单测 / API 契约 / 元数据 / store
+├── docs/                         # API / 架构 / 部署 / 快速开始 / changelog / releases
+├── scripts/                      # 图标生成、元数据审计、体积报告、导入迁移
+├── wrangler.example.toml         # Cloudflare 配置示例
+├── vite.config.ts                # Vite 配置（分包 + PWA）
+└── package.json
 ```
 
 ---
@@ -388,12 +355,12 @@ it-toolbox/
 添加新工具只需 5 步：
 
 1. 在 `src/tools/` 下创建新文件夹
-2. 创建 `meta.ts`（工具元信息）
-3. 创建 `index.tsx`（工具 UI 组件）
+2. 创建 `meta.ts`（工具元信息，`id` 必须与目录名一致）
+3. 创建 `index.tsx`（默认导出工具 UI 组件）
 4. 在 `src/registry.ts` 中添加注册记录
-5. 在 `src/pages/ToolPage.tsx` 添加懒加载映射
+5. 运行 `pnpm icons:gen && pnpm audit:meta --check && pnpm test`
 
-详细说明请参考 [架构设计文档](./docs/ARCHITECTURE.md)。
+工具页由 `src/lib/tool-loader.ts` 自动按目录懒加载，无需手工维护映射。详细说明见 [CONTRIBUTING.md](./docs/CONTRIBUTING.md)。
 
 ---
 
@@ -436,13 +403,18 @@ pnpm deploy
 | [架构设计](./docs/ARCHITECTURE.md) | 系统架构、模块划分、技术选型 |
 | [部署指南](./docs/DEPLOYMENT.md) | 环境要求、部署步骤、常见问题 |
 | [快速开始](./docs/QUICKSTART.md) | 面向新用户的入门指南 |
+| [测试指南](./docs/TESTING.md) | 测试分层、用例编写、覆盖率与 CI |
+| [贡献指南](./docs/CONTRIBUTING.md) | 新增工具五步、导入与状态规范 |
+| [版本映射](./docs/releases/VERSION-MAP.md) | v1.0.0–v1.6.0 与旧标签对应关系 |
+| [新增工具规划](./docs/planning/new-tools-v1.7.md) | 候选工具、优先级与重复性核对 |
+| [改造指标](./docs/metrics/before-after.md) | 首屏、缓存、测试与缺陷前后对比 |
 | [更新日志](./docs/changelog/) | 版本变更记录 |
 
 ---
 
 ## 开发路线图
 
-根据 [IT-Toolbox-开发路线图-v3.md](./docs/IT-Toolbox-开发路线图-v3.md) 规划：
+根据 [IT-Toolbox-开发路线图-v1.md](./docs/IT-Toolbox-开发路线图-v1.md) 规划：
 
 ### Phase 1（已完成 ✅）
 - 框架搭建 + 15 个高频工具
@@ -475,10 +447,17 @@ pnpm deploy
 - AI增强工具扩展（12个）
   - AI结构化提取、AI翻译、AI报错解释、AI命名助手、AI生成Mock数据、AI Shell命令生成
   - AI代码解释、AI正则生成、AI SQL生成、AI代码Review、AI生成Schema、AI生成提交信息
-- 效率&协作工具（7个）
-  - 快捷键系统、环境变量Diff、Changelog生成、JSON-RPC测试、Webhook测试、批量处理模式、工具对比模式
+- 效率&协作工具（6个）
+  - 环境变量Diff、Changelog生成、JSON-RPC测试、批量处理模式、工具对比模式、快捷键系统
 - 前端工具扩展（7个）
   - CSS Grid生成器、CSS动画生成、字体搭配、图标搜索、Sitemap生成、robots.txt生成、.htaccess生成
+
+### Phase 5（v1.6.0，已完成 ✅）
+- 修复 5 个 P0 缺陷（AI 报错解释、JSON-RPC 测试、WHOIS、AI 正则、Webhook 下线）
+- 修复 12 个 P1 问题（XSS 净化、SSRF 防护、时区换算、罗马数字、SSL 判定、AI 容错等）
+- 首屏 gzip 321KB → 169KB，预缓存 7.9MB → 1.5MB，工具 chunk 可读命名
+- 建立 Vitest 测试基线（331 用例）与 CI 门禁，lint 0 error / 0 warning
+- 版本号统一为 v1.0.0 → v1.6.0
 
 ---
 
@@ -504,6 +483,6 @@ pnpm deploy
 
 **IT Toolbox** - 让开发更高效！
 
-[在线使用](https://ittool.pp.ua) · [反馈建议](https://github.com/Zoroaaa/it-toolbox/issues)
+[在线使用](https://ittool.wort.uk) · [反馈建议](https://github.com/Zoroaaa/it-toolbox/issues)
 
 </div>

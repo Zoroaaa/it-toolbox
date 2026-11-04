@@ -1224,6 +1224,7 @@ export const toolRegistry: ToolMeta[] = [
     tags: ['whois', 'domain', 'lookup', 'register', 'dns'],
     keywords: ['WHOIS', '域名', '查询', '注册', 'DNS'],
     icon: 'Search',
+    requiresApi: true,
     isNew: true,
   },
   {
@@ -1235,6 +1236,7 @@ export const toolRegistry: ToolMeta[] = [
     tags: ['ssl', 'tls', 'certificate', 'https', 'security'],
     keywords: ['SSL', '证书', 'HTTPS', '安全', '加密'],
     icon: 'Shield',
+    requiresApi: true,
     isNew: true,
   },
   {
@@ -1246,6 +1248,7 @@ export const toolRegistry: ToolMeta[] = [
     tags: ['http', 'headers', 'security', 'csp', 'hsts', 'xss'],
     keywords: ['HTTP', '安全头', 'Header', '安全', '检测'],
     icon: 'ShieldCheck',
+    requiresApi: true,
     isNew: true,
   },
 
@@ -1484,6 +1487,7 @@ export const toolRegistry: ToolMeta[] = [
     tags: ['json-rpc', 'api', 'test', 'rpc', 'request'],
     keywords: ['JSON-RPC', 'API', '测试', 'RPC', '请求'],
     icon: 'Send',
+    requiresApi: true,
     isNew: true,
   },
 

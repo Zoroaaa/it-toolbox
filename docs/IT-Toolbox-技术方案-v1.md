@@ -1,14 +1,14 @@
-## 文档2：IT-Toolbox-技术方案-v3.docx
+## 文档2：IT-Toolbox-技术方案-v1.docx
 
 ### IT TOOLBOX
 全栈开发工具箱
-完整技术实施方案·v3.0
+完整技术实施方案·v1.0
 TypeScript·React·Hono·Cloudflare Pages Functions
 部署方式:GitHub直连 Cloudflare Pages·无 GitHub Actions·无 Wrangler CLI手动操作
 2026年2月
 
-#### 1. v3.0版本变更说明
-本版本相对v2.0做了三项核心调整，简化部署和架构复杂度。
+#### 1. 版本变更说明
+本版本相对早期方案做了三项核心调整，简化部署和架构复杂度。
 
 | 变更项 | 状态 | 原因 |
 | :--- | :--- | :--- |
@@ -19,7 +19,7 @@ TypeScript·React·Hono·Cloudflare Pages Functions
 | KV写入用途 | 仅缓存 | 移除限流计数器后,KV只写缓存数据,日写入量极低,免费 配额绰绰有余 |
 
 #### 2. 项目概述
-IT Toolbox是面向开发者的在线工具箱，集成150+高频开发工具。基于Cloudflare Pages Functions全栈部署，前后端同域，无需传统服务器，全球边缘节点低延迟响应。
+IT Toolbox是面向开发者的在线工具箱，集成 144 款高频开发工具。基于Cloudflare Pages Functions全栈部署，前后端同域，无需传统服务器，全球边缘节点低延迟响应。
 
 | 特性 | 说明 |
 | :--- | :--- |
@@ -238,7 +238,7 @@ export const toolRegistry: ToolMeta[] = [
     icon: "Braces",
     requiresApi: false, // 纯前端计算
   },
-  // ... 150+条
+  // ... 144 条
 ]
 
 // 应用启动时一次性构建Fuse.js内存搜索索引

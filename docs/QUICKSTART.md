@@ -4,7 +4,7 @@
 
 ## 1. 简介
 
-IT Toolbox 是一款面向开发者的在线工具箱，集成了 72 款高频开发工具，覆盖格式化、编码解码、加密安全、网络查询、文本处理、颜色设计等多个类别。
+IT Toolbox 是一款面向开发者的在线工具箱，集成了 144 款高频开发工具，覆盖格式化、编码解码、加密安全、网络查询、文本处理、颜色设计等多个类别。
 
 ### 核心优势
 
@@ -34,7 +34,7 @@ https://it-toolbox.pages.dev
 
 ```bash
 # 克隆仓库
-git clone https://github.com/your-username/it-toolbox.git
+git clone https://github.com/Zoroaaa/it-toolbox.git
 cd it-toolbox
 
 # 安装依赖
@@ -81,7 +81,7 @@ pnpm dev
 
 ## 4. 工具分类
 
-IT Toolbox 包含 10 大类共 72 款工具：
+IT Toolbox 包含 12 大类共 144 款工具：
 
 ### 格式化（9 款）
 - JSON 格式化、Markdown 预览、YAML ↔ JSON、SQL 格式化、XML 格式化
@@ -199,15 +199,15 @@ IT Toolbox 包含 10 大类共 72 款工具：
 
 输入：
 ```json
-{"name":"IT Toolbox","version":"2.0.0","tools":72}
+{"name":"IT Toolbox","version":"1.6.0","tools":144}
 ```
 
 输出：
 ```json
 {
   "name": "IT Toolbox",
-  "version": "2.0.0",
-  "tools": 72
+  "version": "1.6.0",
+  "tools": 144
 }
 ```
 
@@ -408,7 +408,7 @@ IT Toolbox 包含 10 大类共 72 款工具：
 请访问项目的 GitHub 仓库提交 Issue：
 
 ```
-https://github.com/your-username/it-toolbox/issues
+https://github.com/Zoroaaa/it-toolbox/issues
 ```
 
 ### Q5: 工具箱支持移动端吗？
@@ -462,5 +462,5 @@ AI 功能使用 Workers AI 进行推理，响应时间通常在 1-3 秒。复杂
 
 | 版本 | 日期 | 变更内容 |
 |------|------|----------|
-| 2.0.0 | 2026-02-21 | 更新快速开始指南，反映 72 款工具的实际状态 |
+| 1.6.0 | 2026-11-04 | 版本序列统一为 v1.x，补充测试与门禁说明 |
 | 1.0.0 | 2026-02-20 | 初始版本快速开始指南 |
