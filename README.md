@@ -300,6 +300,10 @@ pnpm preview
 
 # 部署到 Cloudflare Pages
 pnpm deploy
+
+# 线上冒烟测试（默认 https://ittool.wort.uk，可传其他环境）
+pnpm smoke
+pnpm smoke https://xxx.pages.dev
 ```
 
 ---

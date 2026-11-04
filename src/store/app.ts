@@ -91,13 +91,17 @@ const applyThemeToDOM = (theme: 'dark' | 'light') => {
 function createThrottledStorage(wait = 200): StateStorage {
   let timer: ReturnType<typeof setTimeout> | null = null
   const pending = new Map<string, string>()
+  // 创建时固定 storage 引用：节流写入可能在环境销毁后才触发（如测试 teardown），
+  // 此时全局 localStorage 已不存在，直接用全局变量会抛 ReferenceError。
+  const storage = typeof localStorage === 'undefined' ? null : localStorage
 
   const flush = () => {
     if (timer) {
       clearTimeout(timer)
       timer = null
     }
-    for (const [key, value] of pending) localStorage.setItem(key, value)
+    if (!storage) return
+    for (const [key, value] of pending) storage.setItem(key, value)
     pending.clear()
   }
 
@@ -109,7 +113,7 @@ function createThrottledStorage(wait = 200): StateStorage {
   }
 
   return {
-    getItem: (name) => localStorage.getItem(name),
+    getItem: (name) => storage?.getItem(name) ?? null,
     setItem: (name, value) => {
       pending.set(name, value)
       if (timer) return
@@ -117,7 +121,7 @@ function createThrottledStorage(wait = 200): StateStorage {
     },
     removeItem: (name) => {
       pending.delete(name)
-      localStorage.removeItem(name)
+      storage?.removeItem(name)
     },
   }
 }
