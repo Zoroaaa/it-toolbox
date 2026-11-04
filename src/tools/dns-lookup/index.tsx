@@ -25,6 +25,31 @@ interface ApiResponse {
 
 const DNS_TYPES = ['A', 'AAAA', 'MX', 'TXT', 'CNAME', 'NS', 'SOA']
 
+// Cloudflare DNS JSON API 返回的记录类型是 IANA 数字，需要映射为可读名称
+const DNS_TYPE_NAMES: Record<number, string> = {
+  1: 'A',
+  2: 'NS',
+  5: 'CNAME',
+  6: 'SOA',
+  12: 'PTR',
+  15: 'MX',
+  16: 'TXT',
+  28: 'AAAA',
+  33: 'SRV',
+  35: 'NAPTR',
+  39: 'DNAME',
+  41: 'OPT',
+  43: 'DS',
+  44: 'SSHFP',
+  46: 'RRSIG',
+  47: 'NSEC',
+  48: 'DNSKEY',
+  52: 'TLSA',
+  64: 'SVCB',
+  65: 'HTTPS',
+  257: 'CAA',
+}
+
 export default function DnsLookup() {
   const [domain, setDomain] = useState('')
   const [type, setType] = useState('A')
@@ -127,7 +152,7 @@ export default function DnsLookup() {
                   {result.records.map((record, i) => (
                     <tr key={i} className="text-text-primary">
                       <td className="px-4 py-2 font-mono text-xs">{record.name}</td>
-                      <td className="px-4 py-2">{record.type}</td>
+                      <td className="px-4 py-2 font-mono">{DNS_TYPE_NAMES[record.type] ?? record.type}</td>
                       <td className="px-4 py-2">{record.TTL}</td>
                       <td className="px-4 py-2 font-mono text-xs break-all">{record.data}</td>
                     </tr>

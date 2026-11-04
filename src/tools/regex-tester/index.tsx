@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react'
 import { AlertCircle } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
-import { testRegex } from '@core/index'
 import { meta } from './meta'
+import { useSafeRegex } from './useSafeRegex'
 
 const COMMON_REGEX = [
   { name: '邮箱', pattern: '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}' },
@@ -15,29 +15,37 @@ const COMMON_REGEX = [
   { name: '十六进制颜色', pattern: '#[0-9a-fA-F]{6}' },
 ]
 
+const escapeHtml = (text: string) =>
+  text.replace(/[&<>"']/g, ch => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  })[ch] as string)
+
+const MAX_DETAIL_ROWS = 200
+
 export default function RegexTester() {
   const [pattern, setPattern] = useState('')
   const [input, setInput] = useState('')
   const [flags, setFlags] = useState('g')
 
-  const result = useMemo(() => {
-    if (!pattern) return { matches: [], error: undefined }
-    return testRegex(pattern, input, flags)
-  }, [pattern, input, flags])
+  const { result, pending, timedOut } = useSafeRegex(pattern, input, flags)
 
   const highlightedText = useMemo(() => {
-    if (!pattern || result.error || result.matches.length === 0) return input
+    if (!pattern || result.error || result.matches.length === 0) return escapeHtml(input)
 
     let highlighted = ''
     let lastIndex = 0
 
     result.matches.forEach(match => {
-      highlighted += input.slice(lastIndex, match.start)
-      highlighted += `<mark class="bg-accent/30 text-accent rounded px-0.5">${input.slice(match.start, match.end)}</mark>`
+      highlighted += escapeHtml(input.slice(lastIndex, match.start))
+      highlighted += `<mark class="bg-accent/30 text-accent rounded px-0.5">${escapeHtml(input.slice(match.start, match.end))}</mark>`
       lastIndex = match.end
     })
 
-    highlighted += input.slice(lastIndex)
+    highlighted += escapeHtml(input.slice(lastIndex))
     return highlighted
   }, [pattern, input, result])
 
@@ -107,7 +115,8 @@ export default function RegexTester() {
         <div className="flex flex-col gap-2">
           <label className="text-xs font-medium text-text-muted uppercase tracking-wider">
             匹配结果
-            {result.matches.length > 0 && (
+            {pending && <span className="ml-2 text-text-muted">检测中...</span>}
+            {!pending && result.matches.length > 0 && (
               <span className="ml-2 text-accent">{result.matches.length} 个匹配</span>
             )}
           </label>
@@ -115,7 +124,9 @@ export default function RegexTester() {
             <div className="flex-1 rounded-lg bg-rose-500/10 border border-rose-500/30 p-4 flex items-start gap-3">
               <AlertCircle className="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-rose-500 mb-1">正则表达式错误</p>
+                <p className="text-sm font-medium text-rose-500 mb-1">
+                  {timedOut ? '执行超时' : '正则表达式错误'}
+                </p>
                 <p className="text-xs text-rose-400/80">{result.error}</p>
               </div>
             </div>
@@ -131,8 +142,13 @@ export default function RegexTester() {
       {result.matches.length > 0 && !result.error && (
         <div className="mt-4">
           <label className="text-xs font-medium text-text-muted uppercase tracking-wider mb-2 block">匹配详情</label>
+          {result.matches.length > MAX_DETAIL_ROWS && (
+            <p className="text-xs text-text-muted mb-2">
+              仅显示前 {MAX_DETAIL_ROWS} 条{result.truncated ? `，结果已达 ${result.matches.length} 条上限` : ''}
+            </p>
+          )}
           <div className="max-h-40 overflow-y-auto space-y-2">
-            {result.matches.map((m, i) => (
+            {result.matches.slice(0, MAX_DETAIL_ROWS).map((m, i) => (
               <div key={i} className="flex items-center gap-3 p-2 rounded-lg bg-bg-surface border border-border-base">
                 <span className="text-xs text-text-muted w-8">#{i + 1}</span>
                 <span className="font-mono text-sm text-text-primary flex-1 truncate">{m.match}</span>

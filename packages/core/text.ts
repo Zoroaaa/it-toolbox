@@ -33,51 +33,6 @@ export function convertCase(input: string, to: CaseType): Result<string> {
   }
 }
 
-export interface RegexMatch {
-  match: string
-  start: number
-  end: number
-  groups: Record<string, string> | null
-}
-
-export interface RegexResult {
-  matches: RegexMatch[]
-  error?: string
-}
-
-export function testRegex(pattern: string, input: string, flags: string = 'g'): RegexResult {
-  try {
-    const regex = new RegExp(pattern, flags)
-    const matches: RegexMatch[] = []
-
-    if (flags.includes('g')) {
-      let match
-      while ((match = regex.exec(input)) !== null) {
-        matches.push({
-          match: match[0],
-          start: match.index,
-          end: match.index + match[0].length,
-          groups: match.groups || null,
-        })
-      }
-    } else {
-      const match = regex.exec(input)
-      if (match) {
-        matches.push({
-          match: match[0],
-          start: match.index,
-          end: match.index + match[0].length,
-          groups: match.groups || null,
-        })
-      }
-    }
-
-    return { matches }
-  } catch (e) {
-    return { matches: [], error: (e as Error).message }
-  }
-}
-
 export interface TextStats {
   characters: number
   charactersNoSpaces: number

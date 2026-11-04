@@ -3,7 +3,13 @@ import { Calculator, AlertCircle, Copy, Check, Info } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
 import { useClipboard } from '@/hooks/useClipboard'
-import { evaluate } from 'mathjs'
+import { create, all } from 'mathjs'
+
+// 原生 Number 是 IEEE 754 双精度，超过 2^53 的整数会丢精度；
+// 统一使用 BigNumber（十进制任意精度），保证大数运算结果准确。
+const math = create(all, { number: 'BigNumber', precision: 64 })
+// mathjs 以 log 表示自然对数，补充 ln 别名以匹配工具文档
+math.import({ ln: math.log })
 
 const EXAMPLES = [
   { expr: '2 + 3 * 4', desc: '基础运算' },
@@ -27,8 +33,8 @@ const FUNCTIONS = [
   { name: 'ceil', desc: '向上取整' },
   { name: 'sin/cos/tan', desc: '三角函数' },
   { name: 'asin/acos/atan', desc: '反三角函数' },
-  { name: 'log', desc: '常用对数(10为底)' },
-  { name: 'ln', desc: '自然对数(e为底)' },
+  { name: 'log / ln', desc: '自然对数(e为底)' },
+  { name: 'log10', desc: '常用对数(10为底)' },
   { name: 'exp', desc: 'e的幂次' },
   { name: 'factorial', desc: '阶乘' },
 ]
@@ -49,7 +55,7 @@ export default function MathEval() {
     if (!expression.trim()) return null
     
     try {
-      const res = evaluate(expression)
+      const res = math.evaluate(expression)
       return res
     } catch (e) {
       setError((e as Error).message)
@@ -71,7 +77,13 @@ export default function MathEval() {
       return val.toPrecision(10).replace(/\.?0+$/, '')
     }
     if (typeof val === 'object' && val !== null) {
-      return JSON.stringify(val)
+      // 符号运算返回的是 AST 节点（如导数），用其表达式文本而不是序列化 JSON
+      if ('isNode' in val && (val as { isNode: true, toString: () => string }).isNode) {
+        return (val as { toString: () => string }).toString()
+      }
+      // BigNumber / Unit / Complex / Matrix 都实现了有意义的 toString
+      const str = String(val)
+      return str === '[object Object]' ? JSON.stringify(val) : str
     }
     return String(val)
   }
