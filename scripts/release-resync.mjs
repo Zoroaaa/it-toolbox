@@ -32,9 +32,11 @@ async function api(path, init = {}) {
   return { status: res.status, data: res.status === 204 ? null : await res.json() }
 }
 
-function resolveSha(commit) {
-  if (commit !== 'HEAD') return Promise.resolve(commit)
-  return api('/commits/main').then(({ data }) => data.sha)
+async function resolveSha(commit) {
+  // GitHub 创建 ref 要求完整 40 位 SHA，短 SHA 先通过 commits 接口展开
+  const path = commit === 'HEAD' ? '/commits/main' : `/commits/${commit}`
+  const { data } = await api(path)
+  return data.sha
 }
 
 async function ensureTag(tag, sha) {
@@ -63,7 +65,13 @@ async function ensureTag(tag, sha) {
 async function upsertRelease({ tag, notes }) {
   const body = readFileSync(join(root, notes), 'utf8')
   const list = (await api('/releases?per_page=100')).data ?? []
-  const existing = list.find((release) => release.tag_name === tag)
+  let existing = list.find((release) => release.tag_name === tag)
+
+  // GitHub 列表接口偶发短暂不一致，回退到按 tag 精确查询
+  if (!existing) {
+    const single = await api(`/releases/tags/${tag}`)
+    if (single.status === 200) existing = single.data
+  }
 
   if (existing) {
     log('release-update', tag)
@@ -78,10 +86,22 @@ async function upsertRelease({ tag, notes }) {
 
   log('release-create', tag)
   if (apply) {
-    await api('/releases', {
-      method: 'POST',
-      body: JSON.stringify({ tag_name: tag, name: tag, body, draft: false, prerelease: false }),
-    })
+    try {
+      await api('/releases', {
+        method: 'POST',
+        body: JSON.stringify({ tag_name: tag, name: tag, body, draft: false, prerelease: false }),
+      })
+    } catch (error) {
+      // GitHub 列表接口存在短暂不一致，POST 可能返回 already_exists，此时改为更新
+      if (!String(error.message).includes('already_exists')) throw error
+      const fresh = (await api('/releases?per_page=100')).data ?? []
+      const created = fresh.find((release) => release.tag_name === tag)
+      if (!created) throw error
+      await api(`/releases/${created.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ name: tag, body, draft: false, prerelease: false }),
+      })
+    }
   }
 }
 
@@ -109,7 +129,7 @@ async function main() {
   console.log(`仓库：${map.repo}；模式：${apply ? 'APPLY' : 'DRY-RUN'}；删除旧标签：${deleteOld ? '是' : '否'}`)
 
   for (const item of map.archive) {
-    await ensureTag(item.tag, item.commit)
+    await ensureTag(item.tag, await resolveSha(item.commit))
   }
 
   for (const release of map.releases) {
