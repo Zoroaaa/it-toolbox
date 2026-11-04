@@ -248,6 +248,44 @@ describe('WHOIS / RDAP 接口', () => {
     const body = await json(await app.request('/api/whois?domain=8.8.8.8', {}, env))
     expect(body).toMatchObject({ mode: 'ip', ip: '8.8.8.8', country: 'United States', isp: 'Google LLC' })
   })
+
+  it('rdap.org 返回 403 时自动回退到可用 RDAP 源', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input)
+        if (url.includes('data.iana.org')) {
+          return new Response(JSON.stringify({ services: [] }), { status: 200 })
+        }
+        if (url.includes('rdap.org')) {
+          return new Response('<html>403 Forbidden</html>', {
+            status: 403,
+            headers: { 'Content-Type': 'text/html' },
+          })
+        }
+        return new Response(JSON.stringify({ ldhName: 'example.com', status: ['active'] }), { status: 200 })
+      }),
+    )
+
+    const res = await app.request('/api/whois?domain=example.com', {}, env)
+    expect(res.status).toBe(200)
+    expect(await json(res)).toMatchObject({ mode: 'domain', source: 'RDAP' })
+  })
+
+  it('全部 RDAP 源不可用时返回结构化 502 而不是抛错', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input)
+        if (url.includes('data.iana.org')) return new Response('boom', { status: 500 })
+        return new Response('<html>blocked</html>', { status: 403, headers: { 'Content-Type': 'text/html' } })
+      }),
+    )
+
+    const res = await app.request('/api/whois?domain=example.com', {}, env)
+    expect(res.status).toBe(502)
+    expect(String((await json(res)).error)).toContain('RDAP 查询失败')
+  })
 })
 
 describe('代理 SSRF 防护', () => {
@@ -331,5 +369,28 @@ describe('AI 接口契约', () => {
     )
     expect(res.status).toBe(500)
     expect(await json(res)).toMatchObject({ success: false })
+  })
+
+  it('主模型退役报错时自动降级到下一个模型', async () => {
+    ai.run
+      .mockRejectedValueOnce(new Error('No such model: @cf/meta/llama-3.1-8b-instruct'))
+      .mockResolvedValueOnce({ response: '降级后的解释' })
+
+    const body = await json(
+      await app.request('/api/ai/explain', { method: 'POST', body: JSON.stringify({ code: 'const a=1' }) }, env),
+    )
+    expect(body).toMatchObject({ success: true, data: { explanation: '降级后的解释' } })
+    expect(ai.run).toHaveBeenCalledTimes(2)
+  })
+
+  it('未绑定 AI 时返回可读错误而不是崩溃', async () => {
+    const bareEnv = { ...env, AI: undefined } as unknown as Env
+    const res = await app.request(
+      '/api/ai/explain',
+      { method: 'POST', body: JSON.stringify({ code: 'const a=1' }) },
+      bareEnv,
+    )
+    expect(res.status).toBe(502)
+    expect(String((await json(res)).error)).toContain('AI 绑定未配置')
   })
 })

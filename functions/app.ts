@@ -26,5 +26,11 @@ export function createApp() {
   app.route('/api/ssl-check', sslCheckRoute)
   app.route('/api/headers-check', headersCheckRoute)
 
+  // 兜底：未捕获异常统一转成 JSON，避免边缘直接返回不可读的 "error code: 502"
+  app.onError((err, c) => {
+    console.error('[api] unhandled error:', err)
+    return c.json({ success: false, error: '服务内部错误，请稍后重试' }, 500)
+  })
+
   return app
 }

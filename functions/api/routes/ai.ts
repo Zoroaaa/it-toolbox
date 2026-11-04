@@ -3,36 +3,74 @@ import type { Env } from '../../types'
 
 export const aiRoute = new Hono<{ Bindings: Env }>()
 
-const MODEL = '@cf/meta/llama-3.1-8b-instruct' as const
-const AI_TIMEOUT_MS = 15000
+/**
+ * Workers AI 的模型 ID 是有生命周期的配置项，不是稳定的常量：
+ * @cf/meta/llama-3.1-8b-instruct 已于 2026-05-30 退役，继续调用会直接抛错，
+ * 导致整个 /api/ai/* 在边缘返回 502。这里收敛成有序候选，主模型不可用时自动降级。
+ */
+const AI_MODELS = [
+  '@cf/meta/llama-3.1-8b-instruct-fast',
+  '@cf/zai-org/glm-4.7-flash',
+  '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+] as const
+
+const AI_ATTEMPT_TIMEOUT_MS = 12000
+const AI_TOTAL_BUDGET_MS = 25000
 
 type AiMessage = { role: string; content: string }
+type AiOutcome = { ok: true; value: string } | { ok: false; error: string }
 
-/** 统一 AI 调用：15s 超时、空响应兜底、异常转结构化错误 */
-async function runAiModel(env: Env, messages: AiMessage[]) {
+/** 单模型调用：限时、空响应兜底、异常转结构化错误 */
+async function runSingleModel(
+  env: Env,
+  model: string,
+  messages: AiMessage[],
+  timeoutMs: number,
+): Promise<AiOutcome> {
   let timer: ReturnType<typeof setTimeout> | undefined
   try {
     const timeout = new Promise<never>((_, reject) => {
       timer = setTimeout(
-        () => reject(new Error(`AI 请求超时（${AI_TIMEOUT_MS / 1000}s）`)),
-        AI_TIMEOUT_MS,
+        () => reject(new Error(`请求超时（${Math.round(timeoutMs / 1000)}s）`)),
+        timeoutMs,
       )
     })
     const output = (await Promise.race([
-      env.AI.run(MODEL as keyof AiModels, { messages }),
+      env.AI.run(model as keyof AiModels, { messages }),
       timeout,
     ])) as { response?: unknown }
 
     if (typeof output?.response !== 'string' || !output.response.trim()) {
-      return { ok: false as const, error: 'AI 返回内容为空，请稍后重试' }
+      return { ok: false, error: '返回内容为空' }
     }
-    return { ok: true as const, value: output.response }
+    return { ok: true, value: output.response }
   } catch (e) {
-    const message = (e as Error).message || 'AI 调用失败'
-    return { ok: false as const, error: message.includes('超时') ? message : `AI 调用失败：${message}` }
+    const message = (e as Error).message || '调用失败'
+    return { ok: false, error: message.slice(0, 160) }
   } finally {
     if (timer) clearTimeout(timer)
   }
+}
+
+/** 统一 AI 调用：按候选模型逐个降级，任何失败都不抛异常 */
+async function runAiModel(env: Env, messages: AiMessage[]): Promise<AiOutcome> {
+  if (!env.AI || typeof env.AI.run !== 'function') {
+    return { ok: false, error: 'AI 绑定未配置，请在 Pages 项目中绑定 Workers AI' }
+  }
+
+  const deadline = Date.now() + AI_TOTAL_BUDGET_MS
+  const failures: string[] = []
+
+  for (const model of AI_MODELS) {
+    const remaining = deadline - Date.now()
+    if (remaining < 3000) break
+
+    const outcome = await runSingleModel(env, model, messages, Math.min(AI_ATTEMPT_TIMEOUT_MS, remaining))
+    if (outcome.ok) return outcome
+    failures.push(`${model} → ${outcome.error}`)
+  }
+
+  return { ok: false, error: `AI 调用失败（${failures.join('；')}）` }
 }
 
 aiRoute.post('/explain', async (c) => {
