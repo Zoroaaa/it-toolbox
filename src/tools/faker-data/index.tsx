@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
-import { generateFakeData } from '@it-toolbox/core'
+import { generateFakeData } from '@core/generator-fake'
 
 const DATA_TYPES = [
   { id: 'name', label: '姓名' },

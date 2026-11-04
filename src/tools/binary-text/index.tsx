@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { ArrowRightLeft } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
-import { textToBinary, binaryToText } from '@core/index'
+import { textToBinary, binaryToText } from '@core/encoding'
 import { useAppStore } from '@/store/app'
 import { meta } from './meta'
 

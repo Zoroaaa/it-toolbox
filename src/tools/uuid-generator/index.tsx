@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { RefreshCw, Download } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
-import { generateUUIDs } from '@core/index'
+import { generateUUIDs } from '@core/generator'
 import { useAppStore } from '@/store/app'
 import { meta } from './meta'
 

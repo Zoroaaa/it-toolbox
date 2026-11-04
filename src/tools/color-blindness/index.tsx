@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
-import { simulateColorBlindness, type ColorBlindnessType } from '@it-toolbox/core'
+import { simulateColorBlindness, ColorBlindnessType } from '@core/color'
 
 const BLINDNESS_TYPES: { value: ColorBlindnessType; label: string; description: string }[] = [
   { value: 'protanopia', label: '红色盲', description: '无法感知红色' },

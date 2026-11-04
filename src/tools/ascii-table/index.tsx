@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Search, Copy, Check } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
-import { getAsciiTable, searchAscii } from '@core/index'
+import { getAsciiTable, searchAscii } from '@core/encoding'
 import { useAppStore } from '@/store/app'
 import { useClipboard } from '@/hooks/useClipboard'
 import { meta } from './meta'

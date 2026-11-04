@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
-import { countText, type TextStats } from '@core/index'
+import { countText, TextStats } from '@core/text'
 import { useAppStore } from '@/store/app'
 import { meta } from './meta'
 

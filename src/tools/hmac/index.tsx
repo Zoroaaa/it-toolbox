@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { Shield, Copy, Check } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
-import { hmacSha256, hmacSha512 } from '@core/index'
+import { hmacSha256, hmacSha512 } from '@core/crypto'
 import { useAppStore } from '@/store/app'
 import { useClipboard } from '@/hooks/useClipboard'
 import { meta } from './meta'

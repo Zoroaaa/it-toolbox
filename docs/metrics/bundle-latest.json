@@ -1,19 +1,17 @@
 {
-  "generatedAt": "2026-11-04T09:12:39.040Z",
+  "generatedAt": "2026-11-04T09:21:42.887Z",
   "totals": {
-    "jsFiles": 173,
-    "jsRawKB": 7847,
-    "jsGzipKB": 2498
+    "jsFiles": 23,
+    "jsRawKB": 3366,
+    "jsGzipKB": 1090
   },
   "firstScreen": {
     "files": [
-      "assets/index-DJxpny5c.js",
-      "assets/react-vendor-DOtNnIzJ.js",
-      "assets/text-vendor-BOoqP6jN.js",
-      "assets/icons-vendor-BN6EH-A_.js",
+      "assets/index-I2gZFFI1.js",
+      "assets/vendor-react-DkCqO0-x.js",
       "assets/index-dkEw_VmX.css"
     ],
-    "rawKB": 1418,
+    "rawKB": 1414,
     "gzipKB": 321
   },
   "toolChunks": {
@@ -22,96 +20,61 @@
   },
   "top10": [
     {
-      "file": "main-B2dMYYSh.js",
+      "file": "main-CTh-frFL.js",
       "raw": 799.9,
       "gzip": 383.2
     },
     {
-      "file": "markdown-vendor-C7AzEeUO.js",
-      "raw": 986.5,
-      "gzip": 316.5
+      "file": "index-Cwt8g3nX.js",
+      "raw": 946.5,
+      "gzip": 304.6
     },
     {
-      "file": "svg-vendor-ChDknZ2F.js",
-      "raw": 647.5,
-      "gzip": 203.9
+      "file": "index-I2gZFFI1.js",
+      "raw": 1089.3,
+      "gzip": 222.3
     },
     {
-      "file": "math-vendor-COLI5X49.js",
-      "raw": 639.4,
-      "gzip": 186.4
-    },
-    {
-      "file": "faker-vendor-DGnR7yec.js",
-      "raw": 524.9,
-      "gzip": 182.4
-    },
-    {
-      "file": "icons-vendor-BN6EH-A_.js",
-      "raw": 864.5,
-      "gzip": 159.8
-    },
-    {
-      "file": "index-LX3LZupV.js",
-      "raw": 515.8,
-      "gzip": 141.6
-    },
-    {
-      "file": "data-vendor-DZnmsvN0.js",
-      "raw": 343.1,
-      "gzip": 93.5
-    },
-    {
-      "file": "react-vendor-DOtNnIzJ.js",
-      "raw": 281.2,
+      "file": "vendor-react-DkCqO0-x.js",
+      "raw": 281.4,
       "gzip": 90.2
     },
     {
-      "file": "qrcode-vendor-B4bQPXI5.js",
-      "raw": 152,
-      "gzip": 55.6
+      "file": "standalone-BgjtRwn_.js",
+      "raw": 85.1,
+      "gzip": 28.8
+    },
+    {
+      "file": "index-T8xJO8QF.js",
+      "raw": 34.3,
+      "gzip": 13.9
+    },
+    {
+      "file": "js-yaml-l1bQ09Yt.js",
+      "raw": 38.1,
+      "gzip": 12.8
+    },
+    {
+      "file": "marked.esm-BGwOOx1V.js",
+      "raw": 38.1,
+      "gzip": 11.7
+    },
+    {
+      "file": "network-B-i4sCBg.js",
+      "raw": 14.7,
+      "gzip": 5.2
+    },
+    {
+      "file": "crypto-sGKofrCU.js",
+      "raw": 8.4,
+      "gzip": 3.2
     }
   ],
   "vendors": [
     {
-      "file": "markdown-vendor-C7AzEeUO.js",
-      "raw": 986.5,
-      "gzip": 316.5
-    },
-    {
-      "file": "svg-vendor-ChDknZ2F.js",
-      "raw": 647.5,
-      "gzip": 203.9
-    },
-    {
-      "file": "math-vendor-COLI5X49.js",
-      "raw": 639.4,
-      "gzip": 186.4
-    },
-    {
-      "file": "faker-vendor-DGnR7yec.js",
-      "raw": 524.9,
-      "gzip": 182.4
-    },
-    {
-      "file": "icons-vendor-BN6EH-A_.js",
-      "raw": 864.5,
-      "gzip": 159.8
-    },
-    {
-      "file": "data-vendor-DZnmsvN0.js",
-      "raw": 343.1,
-      "gzip": 93.5
-    },
-    {
-      "file": "react-vendor-DOtNnIzJ.js",
-      "raw": 281.2,
+      "file": "vendor-react-DkCqO0-x.js",
+      "raw": 281.4,
       "gzip": 90.2
-    },
-    {
-      "file": "qrcode-vendor-B4bQPXI5.js",
-      "raw": 152,
-      "gzip": 55.6
     }
   ]
 }

@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback } from 'react'
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
-import { generateCalendar } from '@it-toolbox/core'
+import { generateCalendar } from '@core/datetime'
 import { useAppStore } from '@/store/app'
 
 const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六']

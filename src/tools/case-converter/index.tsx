@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { ArrowRightLeft, Copy, Check } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
-import { convertCase, type CaseType } from '@core/index'
+import { convertCase, CaseType } from '@core/text'
 import { useAppStore } from '@/store/app'
 import { useClipboard } from '@/hooks/useClipboard'
 import { meta } from './meta'

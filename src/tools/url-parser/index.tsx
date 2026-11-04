@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { Copy, Check } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
-import { parseUrl } from '@it-toolbox/core'
+import { parseUrl } from '@core/network'
 
 export default function UrlParser() {
   const [input, setInput] = useState('')

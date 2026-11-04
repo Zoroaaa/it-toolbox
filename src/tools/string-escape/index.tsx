@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
-import { escapeString, unescapeString } from '@it-toolbox/core'
+import { escapeString, unescapeString } from '@core/text'
 
 type Language = 'js' | 'python' | 'java' | 'c' | 'json'
 

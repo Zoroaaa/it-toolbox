@@ -1,7 +1,4 @@
 import { Result } from './common'
-import * as Diff from 'diff'
-import cronParser from 'cron-parser'
-import cronstrue from 'cronstrue'
 
 export type CaseType = 'camel' | 'pascal' | 'snake' | 'kebab' | 'upper' | 'lower' | 'constant' | 'title' | 'sentence'
 
@@ -71,34 +68,6 @@ export function countText(input: string): TextStats {
     readingTime,
     speakingTime,
   }
-}
-
-export interface DiffResult {
-  type: 'added' | 'removed' | 'unchanged'
-  value: string
-}
-
-export function diffText(oldText: string, newText: string, mode: 'chars' | 'words' | 'lines' = 'lines'): DiffResult[] {
-  const diffFn = {
-    chars: Diff.diffChars,
-    words: Diff.diffWords,
-    lines: Diff.diffLines,
-  }[mode]
-  
-  const changes = diffFn(oldText, newText)
-  const result: DiffResult[] = []
-  
-  for (const change of changes) {
-    if (change.added) {
-      result.push({ type: 'added', value: change.value })
-    } else if (change.removed) {
-      result.push({ type: 'removed', value: change.value })
-    } else {
-      result.push({ type: 'unchanged', value: change.value })
-    }
-  }
-  
-  return result
 }
 
 export function transformText(input: string, operations: string[]): Result<string> {
@@ -205,44 +174,6 @@ export function unescapeString(input: string): Result<string> {
     return { ok: true, value: result }
   } catch (e) {
     return { ok: false, error: (e as Error).message }
-  }
-}
-
-export interface CronResult {
-  expression: string
-  description: string
-  nextDates: Date[]
-  fields: {
-    minute: string
-    hour: string
-    dayOfMonth: string
-    month: string
-    dayOfWeek: string
-  }
-}
-
-export function parseCron(expression: string, count: number = 5): Result<CronResult> {
-  try {
-    const interval = cronParser.parseExpression(expression)
-    const nextDates: Date[] = []
-    for (let i = 0; i < count; i++) {
-      nextDates.push(interval.next().toDate())
-    }
-    
-    const description = cronstrue.toString(expression)
-    
-    const parts = expression.split(' ')
-    const fields = {
-      minute: parts[0] || '*',
-      hour: parts[1] || '*',
-      dayOfMonth: parts[2] || '*',
-      month: parts[3] || '*',
-      dayOfWeek: parts[4] || '*',
-    }
-    
-    return { ok: true, value: { expression, description, nextDates, fields } }
-  } catch (e) {
-    return { ok: false, error: 'Invalid cron expression: ' + (e as Error).message }
   }
 }
 

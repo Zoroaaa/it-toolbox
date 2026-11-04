@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { ArrowRightLeft, AlertCircle } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
-import { convertCurl } from '@it-toolbox/core'
+import { convertCurl } from '@core/network'
 import { useAppStore } from '@/store/app'
 
 const EXAMPLE_CURL = `curl 'https://api.example.com/users' \\

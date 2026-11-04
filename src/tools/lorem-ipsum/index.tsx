@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { RefreshCw, Copy, Check } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
-import { generateLoremIpsum } from '@core/index'
+import { generateLoremIpsum } from '@core/generator'
 import { useAppStore } from '@/store/app'
 import { useClipboard } from '@/hooks/useClipboard'
 import { meta } from './meta'

@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { ArrowRightLeft, AlertCircle } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
-import { yamlToJson, jsonToYaml } from '@it-toolbox/core'
+import { yamlToJson, jsonToYaml } from '@core/format-yaml'
 import { useAppStore } from '@/store/app'
 
 type Mode = 'yaml2json' | 'json2yaml'

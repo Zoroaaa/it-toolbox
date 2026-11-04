@@ -1,3 +1,5 @@
+// 轻量 barrel：重依赖模块（js-yaml / diff / cron / faker / ua-parser）请按子路径导入
+// 例：import { yamlToJson } from '@core/format-yaml'
 export * from './common'
 export * from './encoding'
 export * from './crypto'

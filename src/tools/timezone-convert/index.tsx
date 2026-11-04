@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
-import { TIMEZONES, formatInTimeZone, zonedWallTimeToUtc } from '@it-toolbox/core'
+import { formatInTimeZone, zonedWallTimeToUtc } from '@core/datetime'
+import { TIMEZONES } from '@core/network'
 
 export default function TimezoneConvertTool() {
   const [inputTime, setInputTime] = useState(new Date().toISOString().slice(0, 16))

@@ -12,10 +12,9 @@ import {
   generatePasswords,
   checkPasswordStrength,
   generateLoremIpsum,
-  generateFakeData,
-  generateFakeJson,
   generatePlaceholderSvg,
 } from '@core/generator'
+import { generateFakeData, generateFakeJson } from '@core/generator-fake'
 
 const ok = <T,>(r: { ok: true; value: T } | { ok: false; error: string }): T => {
   if (!r.ok) throw new Error(r.error)

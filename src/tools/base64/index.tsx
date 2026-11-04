@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from 'react'
 import { ArrowRightLeft, Upload, AlertCircle } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
-import { encodeBase64, decodeBase64, encodeBase64Url, decodeBase64Url, fileToBase64 } from '@core/index'
+import { encodeBase64, decodeBase64, encodeBase64Url, decodeBase64Url, fileToBase64 } from '@core/encoding'
 import { useAppStore } from '@/store/app'
 import { meta } from './meta'
 

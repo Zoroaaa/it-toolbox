@@ -5,12 +5,12 @@ import {
   searchHttpHeaders,
   searchMimeTypes,
   calculateSubnet,
-  parseUserAgent,
   convertCurl,
   HTTP_STATUS_CODES,
   HTTP_HEADERS,
   MIME_TYPES,
 } from '@core/network'
+import { parseUserAgent } from '@core/network-ua'
 
 const ok = <T,>(r: { ok: true; value: T } | { ok: false; error: string }): T => {
   if (!r.ok) throw new Error(r.error)

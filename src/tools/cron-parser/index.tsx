@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { Clock, AlertCircle } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
-import { parseCron, type CronResult } from '@it-toolbox/core'
+import { parseCron, CronResult } from '@core/text-cron'
 import { useAppStore } from '@/store/app'
 
 const COMMON_EXPRESSIONS = [

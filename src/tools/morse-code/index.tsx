@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from 'react'
 import { ArrowRightLeft, Play, Pause } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
-import { textToMorse, morseToText } from '@core/index'
+import { textToMorse, morseToText } from '@core/encoding'
 import { useAppStore } from '@/store/app'
 import { meta } from './meta'
 

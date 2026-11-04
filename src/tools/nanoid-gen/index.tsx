@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
-import { generateNanoIds } from '@it-toolbox/core'
+import { generateNanoIds } from '@core/generator'
 
 export default function NanoIdGenTool() {
   const [count, setCount] = useState(5)

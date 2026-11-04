@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
-import { generateObjectId, parseObjectId, type ObjectIdInfo } from '@it-toolbox/core'
+import { generateObjectId, parseObjectId, ObjectIdInfo } from '@core/generator'
 
 export default function ObjectIdGenTool() {
   const [count, setCount] = useState(5)

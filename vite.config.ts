@@ -52,10 +52,14 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globPatterns: ['**/*.{css,html,ico,png,svg,woff2}', 'assets/vendor-react-*.js', 'assets/index-*.js'],
+        globIgnores: ['tools/**'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api/],
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -86,12 +90,28 @@ export default defineConfig({
             },
           },
           {
-            urlPattern: /\.(?:js|css|woff2)$/i,
+            // 工具 chunk 首次访问后按需缓存，不再全量预缓存
+            urlPattern: /\/tools\/.*\.js$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'tool-chunks',
+              expiration: {
+                maxEntries: 60,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          {
+            // 共享 vendor / 应用 chunk 按需缓存
+            urlPattern: /\/assets\/.*\.(?:js|css)$/i,
             handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'static-resources',
+              cacheName: 'app-chunks',
               expiration: {
-                maxEntries: 100,
+                maxEntries: 80,
                 maxAgeSeconds: 60 * 60 * 24 * 30,
               },
               cacheableResponse: {
@@ -150,34 +170,25 @@ export default defineConfig({
   },
   build: {
     target: 'esnext',
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 900,
     rollupOptions: {
       output: {
-        manualChunks: {
-          // 核心依赖
-          'react-vendor': [
-            'react',
-            'react-dom',
-            '@tanstack/react-router',
-            'react-i18next',
-            'i18next',
-            'i18next-browser-languagedetector'
-          ],
-          // 大型依赖
-          'faker-vendor': ['@faker-js/faker'],
-          'math-vendor': ['mathjs'],
-          'icons-vendor': ['lucide-react'],
-          'markdown-vendor': ['highlight.js', 'marked', 'marked-highlight'],
-          'crypto-vendor': ['bcryptjs', 'jose'],
-          'image-vendor': ['browser-image-compression', 'exifr'],
-          'qrcode-vendor': ['qrcode', 'jsqr'],
-          'data-vendor': ['papaparse', 'js-yaml', 'sql-formatter'],
-          'color-vendor': ['chroma-js'],
-          'datetime-vendor': ['dayjs'],
-          'text-vendor': ['diff', 'fuse.js'],
-          'svg-vendor': ['svgo']
-        }
-      }
-    }
+        chunkFileNames: (chunkInfo) => {
+          const id = chunkInfo.facadeModuleId ?? ''
+          const tool = id.match(/[\\/]src[\\/]tools[\\/]([^\\/]+)[\\/]index\.tsx$/)
+          return tool ? `tools/${tool[1]}-[hash].js` : 'assets/[name]-[hash].js'
+        },
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return
+
+          // 仅固定分组首屏必需的 React 运行时；其余依赖交给 Rollup 按实际共享关系分块，
+          // 避免把互不相关的库绑成一个 chunk 被所有工具连带下载。
+          if (/[\\/]node_modules[\\/](react|react-dom|scheduler|@tanstack|i18next|react-i18next|i18next-browser-languagedetector)[\\/]/.test(id)) {
+            return 'vendor-react'
+          }
+          return undefined
+        },
+      },
+    },
   },
 })

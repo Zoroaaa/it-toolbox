@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { Terminal, Copy, Check, Download } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
-import { generateSshKeyPair, type SshKeyPair } from '@core/index'
+import { generateSshKeyPair, SshKeyPair } from '@core/crypto'
 import { useAppStore } from '@/store/app'
 import { useClipboard } from '@/hooks/useClipboard'
 import { meta } from './meta'

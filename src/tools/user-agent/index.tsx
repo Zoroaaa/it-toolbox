@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Search } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
-import { parseUserAgent } from '@it-toolbox/core'
+import { parseUserAgent } from '@core/network-ua'
 import { useAppStore } from '@/store/app'
 
 const EXAMPLE_UAS = [

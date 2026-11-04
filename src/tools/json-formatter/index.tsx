@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { Maximize2, Minimize2, CheckCircle, XCircle, AlertCircle } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
-import { formatJson, minifyJson, validateJson } from '@core/index'
+import { formatJson, minifyJson, validateJson } from '@core/format'
 import { useAppStore } from '@/store/app'
 import { meta } from './meta'
 

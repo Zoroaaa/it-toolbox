@@ -1,7 +1,8 @@
 import { useState, useCallback } from 'react'
 import { ArrowRightLeft, AlertCircle } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
-import { encodeUrl, decodeUrl, encodeUrlFull, decodeUrlFull, parseUrl } from '@core/index'
+import { encodeUrl, decodeUrl, encodeUrlFull, decodeUrlFull } from '@core/encoding'
+import { parseUrl } from '@core/network'
 import { useAppStore } from '@/store/app'
 import { meta } from './meta'
 

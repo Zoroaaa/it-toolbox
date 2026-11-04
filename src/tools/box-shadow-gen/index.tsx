@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { Plus, Trash2, Copy, Check } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
-import { generateBoxShadow, type BoxShadowConfig } from '@it-toolbox/core'
+import { generateBoxShadow, BoxShadowConfig } from '@core/color'
 
 const DEFAULT_SHADOW: BoxShadowConfig = {
   x: 0,

@@ -3,12 +3,11 @@ import {
   formatJson,
   minifyJson,
   validateJson,
-  yamlToJson,
-  jsonToYaml,
   formatXml,
   minifyXml,
   sanitizeMarkdownHtml,
 } from '@core/format'
+import { yamlToJson, jsonToYaml } from '@core/format-yaml'
 
 const ok = <T,>(r: { ok: true; value: T } | { ok: false; error: string }): T => {
   if (!r.ok) throw new Error(r.error)

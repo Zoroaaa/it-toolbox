@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
-import { HTTP_HEADERS, searchHttpHeaders } from '@it-toolbox/core'
+import { HTTP_HEADERS, searchHttpHeaders } from '@core/network'
 
 const CATEGORY_COLORS: Record<string, string> = {
   'request': 'bg-blue-500/20 text-blue-400',

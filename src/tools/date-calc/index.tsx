@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { Calculator } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
-import { dateDifference, addDays, addMonths, addYears, type DateDiff } from '@it-toolbox/core'
+import { dateDifference, addDays, addMonths, addYears, DateDiff } from '@core/datetime'
 import { useAppStore } from '@/store/app'
 
 type Mode = 'diff' | 'add'

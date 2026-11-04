@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { Lock, Unlock } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
-import { aesEncrypt, aesDecrypt } from '@core/index'
+import { aesEncrypt, aesDecrypt } from '@core/crypto'
 import { useAppStore } from '@/store/app'
 import { meta } from './meta'
 

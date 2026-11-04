@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
-import { TAILWIND_COLORS } from '@it-toolbox/core'
+import { TAILWIND_COLORS } from '@core/color'
 
 export default function TailwindColorsTool() {
   const [copiedKey, setCopiedKey] = useState<string | null>(null)

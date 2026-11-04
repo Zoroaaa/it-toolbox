@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { Maximize2, Minimize2, CheckCircle } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
-import { formatXml, minifyXml } from '@it-toolbox/core'
+import { formatXml, minifyXml } from '@core/format'
 import { useAppStore } from '@/store/app'
 
 type IndentSize = 2 | 4

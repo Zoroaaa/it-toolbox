@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
-import { MIME_TYPES, searchMimeTypes } from '@it-toolbox/core'
+import { MIME_TYPES, searchMimeTypes } from '@core/network'
 
 export default function MimeTypesTool() {
   const [search, setSearch] = useState('')

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
-import { generateUlids } from '@it-toolbox/core'
+import { generateUlids } from '@core/generator'
 
 export default function UlidGenTool() {
   const [count, setCount] = useState(5)

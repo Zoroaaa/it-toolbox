@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
-import { HTTP_STATUS_CODES, searchHttpStatus } from '@it-toolbox/core'
+import { HTTP_STATUS_CODES, searchHttpStatus } from '@core/network'
 
 const CATEGORY_COLORS: Record<string, string> = {
   'informational': 'bg-blue-500/20 text-blue-400',

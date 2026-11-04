@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
-import { diffText } from '@it-toolbox/core'
+import { diffText } from '@core/text-diff'
 
 type Mode = 'chars' | 'words' | 'lines'
 

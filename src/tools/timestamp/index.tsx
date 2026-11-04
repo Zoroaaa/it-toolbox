@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { ArrowRightLeft, RefreshCw } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
-import { parseTimestamp, nowTimestamp, type TimestampResult } from '@core/index'
+import { parseTimestamp, nowTimestamp, TimestampResult } from '@core/datetime'
 import { useAppStore } from '@/store/app'
 import { meta } from './meta'
 

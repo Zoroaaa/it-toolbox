@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
-import { textSimilarity, levenshteinDistance } from '@it-toolbox/core'
+import { textSimilarity, levenshteinDistance } from '@core/text'
 
 export default function TextSimilarity() {
   const [textA, setTextA] = useState('')

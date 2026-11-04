@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { Wand2, Copy, Check } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
-import { transformText } from '@it-toolbox/core'
+import { transformText } from '@core/text'
 import { useAppStore } from '@/store/app'
 import { useClipboard } from '@/hooks/useClipboard'
 

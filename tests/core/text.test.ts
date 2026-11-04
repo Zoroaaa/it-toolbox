@@ -2,14 +2,14 @@ import { describe, it, expect } from 'vitest'
 import {
   convertCase,
   countText,
-  diffText,
   transformText,
   escapeString,
   unescapeString,
-  parseCron,
   levenshteinDistance,
   textSimilarity,
 } from '@core/text'
+import { diffText } from '@core/text-diff'
+import { parseCron } from '@core/text-cron'
 
 const ok = <T,>(r: { ok: true; value: T } | { ok: false; error: string }): T => {
   if (!r.ok) throw new Error(r.error)

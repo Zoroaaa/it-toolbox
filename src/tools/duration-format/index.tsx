@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
-import { formatDuration, parseDuration, humanizeDuration } from '@it-toolbox/core'
+import { formatDuration, parseDuration, humanizeDuration } from '@core/datetime'
 import { useAppStore } from '@/store/app'
 
 type InputFormat = 'seconds' | 'hhmmss'

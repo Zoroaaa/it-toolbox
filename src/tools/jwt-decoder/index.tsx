@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { AlertCircle, Clock, CheckCircle, XCircle } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
-import { parseJwt, type JwtPayload } from '@core/index'
+import { parseJwt, JwtPayload } from '@core/crypto'
 import { useAppStore } from '@/store/app'
 import { meta } from './meta'
 
