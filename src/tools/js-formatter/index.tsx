@@ -32,7 +32,7 @@ export default function JSFormatter() {
   const [trailingComma, setTrailingComma] = useState<'all' | 'es5' | 'none'>('all')
   const [error, setError] = useState('')
   const [processing, setProcessing] = useState(false)
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { copy, copied } = useClipboard()
 
   const handleProcess = useCallback(async () => {

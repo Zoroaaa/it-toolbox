@@ -19,7 +19,7 @@
     "icons:gen": "node scripts/generate-icon-map.mjs",
     "icons:check": "node scripts/generate-icon-map.mjs --check",
     "report:bundle": "node scripts/report-bundle.mjs",
-    "check": "pnpm typecheck && pnpm typecheck:api && pnpm lint && pnpm test && pnpm audit:meta --check && pnpm icons:check",
+    "check": "pnpm typecheck && pnpm typecheck:api && pnpm lint && pnpm test && pnpm audit:meta --check && pnpm icons:check && node scripts/check-store-selectors.mjs",
     "deploy": "pnpm check && vite build && wrangler pages deploy dist --project-name=it-toolbox"
   },
   "dependencies": {

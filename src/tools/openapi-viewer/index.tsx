@@ -162,7 +162,7 @@ export default function OpenAPIViewer() {
   const [input, setInput] = useState('')
   const [error, setError] = useState('')
   const [selectedTag, setSelectedTag] = useState<string | null>(null)
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
 
   const parseSpec = useCallback((text: string) => {
     setError('')

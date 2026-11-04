@@ -9,7 +9,8 @@ export default function JwtDecoder() {
   const [input, setInput] = useState('')
   const [result, setResult] = useState<JwtPayload | null>(null)
   const [error, setError] = useState('')
-  const { addHistory, addRecentTool } = useAppStore()
+  const addHistory = useAppStore((s) => s.addHistory)
+const addRecentTool = useAppStore((s) => s.addRecentTool)
 
   const runParse = useCallback(() => {
     if (!input.trim()) return

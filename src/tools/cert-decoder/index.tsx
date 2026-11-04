@@ -45,7 +45,7 @@ export default function CertDecoder() {
   const [certInfo, setCertInfo] = useState<CertInfo | null>(null)
   const [error, setError] = useState('')
   const { copy, copied } = useClipboard()
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
 
   const handleParse = useCallback(async () => {
     if (!input.trim()) return

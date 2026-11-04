@@ -8,7 +8,7 @@ import { meta } from './meta'
 
 export default function AsciiTable() {
   const [query, setQuery] = useState('')
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { copy, copied } = useClipboard()
 
   const table = useMemo(() => {

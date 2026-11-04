@@ -36,7 +36,7 @@ export default function WhoisLookup() {
   const [result, setResult] = useState<WhoisResult | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { t } = useTranslation()
 
   const lookup = useCallback(async () => {

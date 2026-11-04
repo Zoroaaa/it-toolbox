@@ -85,7 +85,7 @@ export default function ColorPicker() {
   const [alpha, setAlpha] = useState(1)
   const [formats, setFormats] = useState<ColorFormats>(DEFAULT_FORMATS)
   const [inputError, setInputError] = useState(false)
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { copy } = useClipboard()
   const [copiedKey, setCopiedKey] = useState<string | null>(null)
 

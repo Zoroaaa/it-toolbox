@@ -10,7 +10,7 @@ export default function UuidGenerator() {
   const [count, setCount] = useState(10)
   const [uppercase, setUppercase] = useState(false)
   const [noHyphens, setNoHyphens] = useState(false)
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
 
   const generate = useCallback(() => {
     addRecentTool(meta.id)

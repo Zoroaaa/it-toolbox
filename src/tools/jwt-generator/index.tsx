@@ -16,7 +16,8 @@ export default function JwtGenerator() {
   const [error, setError] = useState('')
   const [algorithm, setAlgorithm] = useState<Algorithm>('HS256')
   const [isProcessing, setIsProcessing] = useState(false)
-  const { addHistory, addRecentTool } = useAppStore()
+  const addHistory = useAppStore((s) => s.addHistory)
+const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { copy, copied } = useClipboard()
 
   const generateJwt = useCallback(async () => {

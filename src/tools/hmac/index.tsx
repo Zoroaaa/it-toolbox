@@ -15,7 +15,8 @@ export default function HmacTool() {
   const [error, setError] = useState('')
   const [algorithm, setAlgorithm] = useState<Algorithm>('SHA-256')
   const [isProcessing, setIsProcessing] = useState(false)
-  const { addHistory, addRecentTool } = useAppStore()
+  const addHistory = useAppStore((s) => s.addHistory)
+const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { copy, copied } = useClipboard()
 
   const runCalculate = useCallback(async () => {

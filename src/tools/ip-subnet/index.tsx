@@ -10,7 +10,7 @@ export default function IpSubnetTool() {
   const [cidr, setCidr] = useState(24)
   const [result, setResult] = useState<SubnetResult | null>(null)
   const [error, setError] = useState('')
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
 
   const handleCalculate = useCallback(() => {
     addRecentTool(meta.id)

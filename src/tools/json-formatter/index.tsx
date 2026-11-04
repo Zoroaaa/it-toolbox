@@ -13,7 +13,8 @@ export default function JsonFormatter() {
   const [error, setError] = useState('')
   const [indent, setIndent] = useState<IndentSize>(2)
   const [status, setStatus] = useState<'idle' | 'valid' | 'invalid'>('idle')
-  const { addHistory, addRecentTool } = useAppStore()
+  const addHistory = useAppStore((s) => s.addHistory)
+const addRecentTool = useAppStore((s) => s.addRecentTool)
 
   const runFormat = useCallback(() => {
     if (!input.trim()) return

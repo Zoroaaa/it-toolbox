@@ -17,7 +17,7 @@ export default function DateCalcTool() {
   const [addYears_, setAddYears] = useState(0)
   const [diffResult, setDiffResult] = useState<DateDiff | null>(null)
   const [addResult, setAddResult] = useState<Date | null>(null)
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
 
   const handleDiff = useCallback(() => {
     addRecentTool(meta.id)

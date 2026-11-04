@@ -37,7 +37,8 @@ function hello() {
 [访问 GitHub](https://github.com)
 `)
   const [html, setHtml] = useState('')
-  const { addHistory, addRecentTool } = useAppStore()
+  const addHistory = useAppStore((s) => s.addHistory)
+const addRecentTool = useAppStore((s) => s.addRecentTool)
 
   const renderMarkdown = useCallback(async (text: string) => {
     try {

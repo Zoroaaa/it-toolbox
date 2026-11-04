@@ -12,7 +12,7 @@ export default function CalendarGenTool() {
   const today = new Date()
   const [year, setYear] = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth())
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
 
   const calendar = useMemo(() => generateCalendar(year, month), [year, month])
 

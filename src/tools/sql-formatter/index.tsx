@@ -21,7 +21,8 @@ export default function SqlFormatter() {
   const [output, setOutput] = useState('')
   const [error, setError] = useState('')
   const [language, setLanguage] = useState<SqlLanguage>('sql')
-  const { addHistory, addRecentTool } = useAppStore()
+  const addHistory = useAppStore((s) => s.addHistory)
+const addRecentTool = useAppStore((s) => s.addRecentTool)
 
   const handleFormat = useCallback(() => {
     setError('')

@@ -149,7 +149,7 @@ function generateReadme(config: ReadmeConfig): string {
 export default function ReadmeGenerator() {
   const [config, setConfig] = useState<ReadmeConfig>(defaultConfig)
   const [preview, setPreview] = useState(false)
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { copy, copied } = useClipboard()
 
   const update = (key: keyof ReadmeConfig, value: unknown) => {

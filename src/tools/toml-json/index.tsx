@@ -41,7 +41,8 @@ export default function TomlJson() {
   const [error, setError] = useState('')
   const [mode, setMode] = useState<Mode>('toml-to-json')
   const [isProcessing, setIsProcessing] = useState(false)
-  const { addHistory, addRecentTool } = useAppStore()
+  const addHistory = useAppStore((s) => s.addHistory)
+const addRecentTool = useAppStore((s) => s.addRecentTool)
 
   const runTransform = useCallback(() => {
     if (!input.trim()) return

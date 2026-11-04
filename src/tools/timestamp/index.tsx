@@ -10,7 +10,8 @@ export default function TimestampConverter() {
   const [result, setResult] = useState<TimestampResult | null>(null)
   const [error, setError] = useState('')
   const [unit, setUnit] = useState<'s' | 'ms'>('s')
-  const { addHistory, addRecentTool } = useAppStore()
+  const addHistory = useAppStore((s) => s.addHistory)
+const addRecentTool = useAppStore((s) => s.addRecentTool)
 
   const convert = useCallback(() => {
     if (!input.trim()) return

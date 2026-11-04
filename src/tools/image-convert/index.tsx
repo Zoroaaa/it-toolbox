@@ -36,7 +36,7 @@ export default function ImageConvert() {
   const [quality, setQuality] = useState(90)
   const [bgColor, setBgColor] = useState('#ffffff')
   const [processing, setProcessing] = useState(false)
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
 
   const addFiles = useCallback((files: FileList | File[]) => {
     const newItems: ConvertItem[] = Array.from(files)

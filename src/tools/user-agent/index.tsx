@@ -35,7 +35,7 @@ const EXAMPLE_UAS = [
 export default function UserAgentTool() {
   const [input, setInput] = useState('')
   const [result, setResult] = useState<ReturnType<typeof parseUserAgent> | null>(null)
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
 
   const handleParse = () => {
     if (!input.trim()) {

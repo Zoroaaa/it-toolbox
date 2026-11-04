@@ -60,7 +60,7 @@ export default function FaviconGenerator() {
   const [generating, setGenerating] = useState(false)
   const [selectedSizes, setSelectedSizes] = useState<number[]>([16, 32, 48, 180, 192, 512])
   const [siteName, setSiteName] = useState('My App')
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
 
   const loadImage = useCallback((src: string): Promise<HTMLImageElement> => {
     return new Promise((resolve, reject) => {

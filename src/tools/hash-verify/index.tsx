@@ -128,7 +128,7 @@ export default function HashVerify() {
   const [files, setFiles] = useState<FileHashResult[]>([])
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { copy } = useClipboard()
   const [copiedId, setCopiedId] = useState<string | null>(null)
 

@@ -18,7 +18,8 @@ export default function NumberBaseConverter() {
   const [fromBase, setFromBase] = useState(10)
   const [results, setResults] = useState<{ base: number; value: string }[]>([])
   const [error, setError] = useState('')
-  const { addHistory, addRecentTool } = useAppStore()
+  const addHistory = useAppStore((s) => s.addHistory)
+const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { copy, copied } = useClipboard()
   const [copiedBase, setCopiedBase] = useState<number | null>(null)
 

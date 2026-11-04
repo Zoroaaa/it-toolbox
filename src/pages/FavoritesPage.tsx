@@ -4,7 +4,7 @@ import { useAppStore } from '@/store/app'
 import { getToolById } from '@/registry'
 
 export function FavoritesPage() {
-  const { favorites } = useAppStore()
+  const favorites = useAppStore((s) => s.favorites)
   const tools = favorites.map(id => getToolById(id)).filter(Boolean) as ReturnType<typeof getToolById>[]
 
   return (

@@ -16,7 +16,8 @@ interface ToolLayoutProps {
 
 export function ToolLayout({ meta, children, onReset, outputValue }: ToolLayoutProps) {
   const { t } = useTranslation()
-  const { toggleFavorite, isFavorited } = useAppStore()
+  const toggleFavorite = useAppStore((s) => s.toggleFavorite)
+const isFavorited = useAppStore((s) => s.isFavorited)
   const { copy, copied } = useClipboard()
   const favorited = isFavorited(meta.id)
   const IconComponent = getIconComponent(meta.icon)

@@ -36,7 +36,7 @@ export default function ColorExtractor() {
   const [error, setError] = useState('')
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null)
   const imgRef = useRef<HTMLImageElement>(null)
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { copy } = useClipboard()
 
   const extractColors = useCallback((img: HTMLImageElement, count: number) => {

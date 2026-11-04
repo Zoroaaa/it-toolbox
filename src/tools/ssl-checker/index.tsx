@@ -24,7 +24,7 @@ export default function SslChecker() {
   const [result, setResult] = useState<SslResult | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
 
   const check = useCallback(async () => {
     if (!domain.trim()) return

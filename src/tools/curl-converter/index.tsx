@@ -17,7 +17,8 @@ export default function CurlConverterTool() {
   const [output, setOutput] = useState<{ fetch: string; axios: string; python: string; go: string; php: string } | null>(null)
   const [error, setError] = useState('')
   const [activeTab, setActiveTab] = useState<Tab>('fetch')
-  const { addHistory, addRecentTool } = useAppStore()
+  const addHistory = useAppStore((s) => s.addHistory)
+const addRecentTool = useAppStore((s) => s.addRecentTool)
 
   const handleConvert = useCallback(() => {
     setError('')

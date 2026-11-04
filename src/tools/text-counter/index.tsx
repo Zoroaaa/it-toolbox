@@ -6,7 +6,7 @@ import { meta } from './meta'
 
 export default function TextCounter() {
   const [input, setInput] = useState('')
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
 
   const stats: TextStats = useMemo(() => countText(input), [input])
 

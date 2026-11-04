@@ -14,7 +14,7 @@ export default function LoremIpsum() {
   const [type, setType] = useState<GenType>('paragraphs')
   const [count, setCount] = useState(3)
   const [language, setLanguage] = useState<Language>('en')
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { copy, copied } = useClipboard()
 
   const generate = useCallback(() => {

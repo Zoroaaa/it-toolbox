@@ -12,7 +12,8 @@ interface ToolCardProps {
 
 export function ToolCard({ tool }: ToolCardProps) {
   const { t } = useTranslation()
-  const { isFavorited, toggleFavorite } = useAppStore()
+  const isFavorited = useAppStore((s) => s.isFavorited)
+const toggleFavorite = useAppStore((s) => s.toggleFavorite)
   const favorited = isFavorited(tool.id)
   const IconComp = getIconComponent(tool.icon)
   const preload = () => preloadTool(tool.id)

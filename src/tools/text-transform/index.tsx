@@ -25,7 +25,8 @@ export default function TextTransform() {
   const [input, setInput] = useState('')
   const [output, setOutput] = useState('')
   const [selectedOps, setSelectedOps] = useState<string[]>([])
-  const { addHistory, addRecentTool } = useAppStore()
+  const addHistory = useAppStore((s) => s.addHistory)
+const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { copy, copied } = useClipboard()
 
   const handleTransform = useCallback(() => {

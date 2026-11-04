@@ -15,7 +15,8 @@ export default function UrlEncodeTool() {
   const [error, setError] = useState('')
   const [mode, setMode] = useState<Mode>('encode')
   const [variant, setVariant] = useState<Variant>('component')
-  const { addHistory, addRecentTool } = useAppStore()
+  const addHistory = useAppStore((s) => s.addHistory)
+const addRecentTool = useAppStore((s) => s.addRecentTool)
 
   const runTransform = useCallback(() => {
     if (!input.trim()) return

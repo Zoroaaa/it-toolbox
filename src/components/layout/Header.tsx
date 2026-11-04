@@ -17,7 +17,7 @@ export function Header() {
   const [query, setQuery] = useState('')
   const navigate = useNavigate()
   const dialogRef = useRef<HTMLDivElement>(null)
-  const { toggleMobileMenu } = useAppStore()
+  const toggleMobileMenu = useAppStore((s) => s.toggleMobileMenu)
 
   useEffect(() => {
     const isEditable = (target: EventTarget | null) =>

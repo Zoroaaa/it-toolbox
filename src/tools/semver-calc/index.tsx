@@ -20,7 +20,7 @@ export default function SemverCalc() {
   const [rangeInput, setRangeInput] = useState('^1.2.3')
   const [rangeVer, setRangeVer] = useState('1.2.5')
   const [sortInput, setSortInput] = useState('1.0.0\n2.0.0-beta\n1.5.0\n2.0.0\n0.9.1')
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { copy, copied } = useClipboard()
 
   const comparison = useMemo(() => {

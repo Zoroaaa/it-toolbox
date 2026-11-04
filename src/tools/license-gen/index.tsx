@@ -223,7 +223,7 @@ export default function LicenseGenerator() {
   const [selectedLicense, setSelectedLicense] = useState('MIT')
   const [author, setAuthor] = useState('')
   const [year, setYear] = useState(new Date().getFullYear().toString())
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { copy, copied } = useClipboard()
 
   const license = LICENSES[selectedLicense]

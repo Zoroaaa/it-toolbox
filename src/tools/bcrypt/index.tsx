@@ -18,7 +18,8 @@ export default function BcryptTool() {
   const [rounds, setRounds] = useState(10)
   const [isProcessing, setIsProcessing] = useState(false)
   const [verifyResult, setVerifyResult] = useState<boolean | null>(null)
-  const { addHistory, addRecentTool } = useAppStore()
+  const addHistory = useAppStore((s) => s.addHistory)
+const addRecentTool = useAppStore((s) => s.addRecentTool)
 
   const runHash = useCallback(async () => {
     if (!password.trim()) return

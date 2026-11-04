@@ -15,7 +15,8 @@ export default function Base64Tool() {
   const [mode, setMode] = useState<Mode>('encode')
   const [variant, setVariant] = useState<Variant>('standard')
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { addHistory, addRecentTool } = useAppStore()
+  const addHistory = useAppStore((s) => s.addHistory)
+const addRecentTool = useAppStore((s) => s.addRecentTool)
 
   const runTransform = useCallback(() => {
     if (!input.trim()) return

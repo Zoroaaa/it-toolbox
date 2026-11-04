@@ -39,7 +39,7 @@ export default function PasswordGenerator() {
   })
   const [count, setCount] = useState(5)
   const [zxcvbnResult, setZxcvbnResult] = useState<ReturnType<typeof zxcvbn> | null>(null)
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { copy } = useClipboard()
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null)
 

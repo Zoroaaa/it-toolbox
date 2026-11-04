@@ -22,7 +22,7 @@ export default function CronParser() {
   const [expression, setExpression] = useState('0 9 * * 1-5')
   const [result, setResult] = useState<CronResult | null>(null)
   const [error, setError] = useState('')
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
 
   const handleParse = useCallback(() => {
     setError('')

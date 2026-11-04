@@ -357,7 +357,8 @@ export default function JsonToType() {
   const [rootName, setRootName] = useState('Root')
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState('')
-  const { addHistory, addRecentTool } = useAppStore()
+  const addHistory = useAppStore((s) => s.addHistory)
+const addRecentTool = useAppStore((s) => s.addRecentTool)
 
   const typeInfo = useMemo(() => {
     if (!input.trim()) return null

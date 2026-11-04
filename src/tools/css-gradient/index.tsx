@@ -15,7 +15,7 @@ export default function CssGradientTool() {
     { color: '#3b82f6', position: 0 },
     { color: '#8b5cf6', position: 100 },
   ])
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { copy, copied } = useClipboard()
 
   const addStop = useCallback(() => {

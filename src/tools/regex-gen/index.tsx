@@ -140,7 +140,7 @@ export default function RegexGenerator() {
   ])
   const [generatedPattern, setGeneratedPattern] = useState('')
   const [customPattern, setCustomPattern] = useState('')
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { copy, copied } = useClipboard()
 
   const addSample = useCallback(() => {

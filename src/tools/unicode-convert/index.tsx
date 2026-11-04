@@ -14,7 +14,8 @@ export default function UnicodeConvert() {
   const [error, setError] = useState('')
   const [mode, setMode] = useState<Mode>('encode')
   const [unicodeResult, setUnicodeResult] = useState<UnicodeResult | null>(null)
-  const { addHistory, addRecentTool } = useAppStore()
+  const addHistory = useAppStore((s) => s.addHistory)
+const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { copy, copied } = useClipboard()
 
   const runTransform = useCallback(() => {

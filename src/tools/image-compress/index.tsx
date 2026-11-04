@@ -29,7 +29,7 @@ export default function ImageCompress() {
   const [quality, setQuality] = useState(80)
   const [maxSizeMB, setMaxSizeMB] = useState(1)
   const [processing, setProcessing] = useState(false)
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
 
   const addFiles = useCallback((files: FileList | File[]) => {
     const newItems: ImageItem[] = Array.from(files)

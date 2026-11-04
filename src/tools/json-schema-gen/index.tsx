@@ -165,7 +165,7 @@ export default function JSONSchemaGenerator() {
   const [detectFormat, setDetectFormat] = useState(true)
   const [addDollarSchema, setAddDollarSchema] = useState(true)
   const [error, setError] = useState('')
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { copy, copied } = useClipboard()
 
   const generate = useCallback(() => {

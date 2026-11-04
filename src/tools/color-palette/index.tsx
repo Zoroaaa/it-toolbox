@@ -70,7 +70,7 @@ export default function ColorPaletteGenerator() {
   const { t } = useTranslation()
   const [baseColor, setBaseColor] = useState('#6366f1')
   const [scheme, setScheme] = useState<Scheme>('analogous')
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { copy } = useClipboard()
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null)
 

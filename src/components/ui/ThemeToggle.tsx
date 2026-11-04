@@ -6,7 +6,9 @@ import { useAppStore, type ThemeMode } from '@/store/app'
 export function ThemeToggle() {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const { themeMode, resolvedTheme, setThemeMode } = useAppStore()
+  const themeMode = useAppStore((s) => s.themeMode)
+const resolvedTheme = useAppStore((s) => s.resolvedTheme)
+const setThemeMode = useAppStore((s) => s.setThemeMode)
   const { t } = useTranslation()
 
   const themeOptions = [
@@ -112,7 +114,9 @@ export function ThemeToggle() {
 }
 
 export function ThemeToggleSimple() {
-  const { themeMode, resolvedTheme, setThemeMode } = useAppStore()
+  const themeMode = useAppStore((s) => s.themeMode)
+const resolvedTheme = useAppStore((s) => s.resolvedTheme)
+const setThemeMode = useAppStore((s) => s.setThemeMode)
   const { t } = useTranslation()
 
   const handleToggle = () => {

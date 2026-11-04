@@ -12,7 +12,8 @@ export default function XmlFormatter() {
   const [output, setOutput] = useState('')
   const [error, setError] = useState('')
   const [indent, setIndent] = useState<IndentSize>(2)
-  const { addHistory, addRecentTool } = useAppStore()
+  const addHistory = useAppStore((s) => s.addHistory)
+const addRecentTool = useAppStore((s) => s.addRecentTool)
 
   const handleFormat = useCallback(() => {
     setError('')

@@ -14,7 +14,7 @@ export default function SshKeygen() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState('')
   const [activeTab, setActiveTab] = useState<'public' | 'private'>('public')
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { copy, copied } = useClipboard()
 
   const generate = useCallback(async () => {

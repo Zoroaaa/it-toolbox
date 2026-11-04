@@ -147,7 +147,7 @@ export default function SqlGenerator() {
   const [count, setCount] = useState(10)
   const [batchMode, setBatchMode] = useState(true)
   const [results, setResults] = useState<string>('')
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { copy, copied } = useClipboard()
 
   const addColumn = useCallback(() => {

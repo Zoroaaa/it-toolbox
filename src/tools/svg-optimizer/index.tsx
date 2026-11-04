@@ -56,7 +56,7 @@ export default function SVGOptimizer() {
   const [stats, setStats] = useState<{ original: number; optimized: number } | null>(null)
   const [error, setError] = useState('')
   const [preset, setPreset] = useState('balanced')
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { copy, copied } = useClipboard()
 
   const handleOptimize = useCallback(() => {

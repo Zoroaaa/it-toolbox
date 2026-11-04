@@ -134,7 +134,7 @@ export default function JsonGenerator() {
   ])
   const [count, setCount] = useState(5)
   const [results, setResults] = useState<unknown[] | null>(null)
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { copy, copied } = useClipboard()
 
   const addField = useCallback(() => {

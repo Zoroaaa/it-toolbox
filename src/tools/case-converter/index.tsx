@@ -21,7 +21,8 @@ const caseTypes: { type: CaseType; label: string; example: string }[] = [
 export default function CaseConverter() {
   const [input, setInput] = useState('')
   const [results, setResults] = useState<Record<CaseType, string>>({} as Record<CaseType, string>)
-  const { addHistory, addRecentTool } = useAppStore()
+  const addHistory = useAppStore((s) => s.addHistory)
+const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { copy, copied } = useClipboard()
   const [copiedType, setCopiedType] = useState<CaseType | null>(null)
 

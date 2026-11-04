@@ -44,7 +44,7 @@ export default function ExifReader() {
   const [error, setError] = useState('')
   const [hideGps, setHideGps] = useState(false)
   const [hidePersonal, setHidePersonal] = useState(false)
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { copy, copied } = useClipboard()
 
   const handleFile = useCallback(async (file: File) => {

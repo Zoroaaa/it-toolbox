@@ -9,7 +9,7 @@ export default function CsvViewer() {
   const [input, setInput] = useState('')
   const [delimiter, setDelimiter] = useState(',')
   const [hasHeader, setHasHeader] = useState(true)
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
 
   const parsedData = useMemo(() => {
     if (!input.trim()) return null

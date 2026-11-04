@@ -84,7 +84,7 @@ export default function ImageResize() {
   const [bgColor, setBgColor] = useState('#ffffff')
   const [processing, setProcessing] = useState(false)
   const [aspectRatio, setAspectRatio] = useState(4 / 3)
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
 
   const handleFiles = useCallback((files: FileList | File[]) => {
     addRecentTool(meta.id)

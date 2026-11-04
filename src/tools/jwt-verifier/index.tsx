@@ -98,7 +98,7 @@ export default function JwtVerifier() {
   const [result, setResult] = useState<VerifyResult | null>(null)
   const [error, setError] = useState('')
   const [isVerifying, setIsVerifying] = useState(false)
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
 
   const verify = useCallback(async () => {
     if (!token.trim()) return

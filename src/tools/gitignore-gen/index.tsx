@@ -299,7 +299,7 @@ const CATEGORIES = ['语言', '框架', 'IDE', 'OS', '工具']
 export default function GitignoreGenerator() {
   const [selected, setSelected] = useState<string[]>(['node', 'vscode', 'macos'])
   const [search, setSearch] = useState('')
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { copy, copied } = useClipboard()
 
   const toggleTemplate = (key: string) => {

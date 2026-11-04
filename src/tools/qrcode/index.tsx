@@ -46,7 +46,8 @@ export default function QRCodeGenerator() {
   const [errorCorrection, setErrorCorrection] = useState<ErrorCorrectionLevel>('M')
   const [fgColor, setFgColor] = useState('#000000')
   const [bgColor, setBgColor] = useState('#ffffff')
-  const { addHistory, addRecentTool } = useAppStore()
+  const addHistory = useAppStore((s) => s.addHistory)
+const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { copied } = useClipboard()
 
   const generateWifiString = useCallback((config: WifiConfig): string => {

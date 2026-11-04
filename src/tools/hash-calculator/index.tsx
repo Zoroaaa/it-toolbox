@@ -20,7 +20,7 @@ export default function HashCalculator() {
   const [selectedAlgo, setSelectedAlgo] = useState<Algorithm[]>(['MD5', 'SHA-256'])
   const [isProcessing, setIsProcessing] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { addRecentTool } = useAppStore()
+  const addRecentTool = useAppStore((s) => s.addRecentTool)
   const { copy, copied } = useClipboard()
 
   const algorithms: Algorithm[] = ['MD5', 'SHA-1', 'SHA-256', 'SHA-384', 'SHA-512']
