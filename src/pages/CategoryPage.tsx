@@ -1,37 +1,16 @@
 import { useParams, Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { ChevronLeft } from 'lucide-react'
 import { getToolsByCategory } from '@/registry'
 import { CATEGORY_LABELS, CATEGORY_ICONS, CATEGORY_ORDER, type Category } from '@toolbox/types/tool'
 import { getIconComponent } from '@/utils/icons'
 import { ToolCard } from '@/components/ui/ToolCard'
-import { usePreloadCategory } from '@/hooks/usePreloadCategory'
-
-function CategorySkeleton() {
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-      {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="card p-4 animate-pulse">
-          <div className="flex items-start justify-between mb-3">
-            <div className="w-9 h-9 rounded-lg bg-bg-raised" />
-            <div className="w-8 h-4 bg-bg-raised rounded" />
-          </div>
-          <div className="space-y-2">
-            <div className="h-4 w-24 bg-bg-raised rounded" />
-            <div className="h-3 w-full bg-bg-raised rounded" />
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
+import { preloadTools } from '@/lib/tool-loader'
 
 export function CategoryPage() {
   const { t } = useTranslation()
   const { name } = useParams({ from: '/category/$name' })
-  const [isLoaded, setIsLoaded] = useState(false)
-  const { preloadCategory } = usePreloadCategory()
   
   const tools = useMemo(() => getToolsByCategory(name), [name])
   const label = CATEGORY_LABELS[name as Category] ?? name
@@ -42,14 +21,8 @@ export function CategoryPage() {
   const nextCategory = currentIndex < CATEGORY_ORDER.length - 1 ? CATEGORY_ORDER[currentIndex + 1] : null
 
   useEffect(() => {
-    setIsLoaded(false)
-    const timer = setTimeout(() => setIsLoaded(true), 50)
-    
-    if (prevCategory) preloadCategory(prevCategory)
-    if (nextCategory) preloadCategory(nextCategory)
-    
-    return () => clearTimeout(timer)
-  }, [name, prevCategory, nextCategory, preloadCategory])
+    preloadTools(tools.map((tool) => tool.id), 3)
+  }, [tools])
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -75,13 +48,9 @@ export function CategoryPage() {
         </div>
       </div>
 
-      {!isLoaded ? (
-        <CategorySkeleton />
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-          {tools.map(tool => <ToolCard key={tool.id} tool={tool} />)}
-        </div>
-      )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+        {tools.map(tool => <ToolCard key={tool.id} tool={tool} />)}
+      </div>
 
       {(prevCategory || nextCategory) && (
         <div className="mt-8 pt-6 border-t border-border-base flex items-center justify-between">

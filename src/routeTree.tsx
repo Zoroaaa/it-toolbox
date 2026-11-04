@@ -1,15 +1,18 @@
 import {
   createRootRoute,
   createRoute,
+  lazyRouteComponent,
   Outlet,
 } from '@tanstack/react-router'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
 import { HomePage } from '@/pages/HomePage'
-import { ToolPage } from '@/pages/ToolPage'
-import { FavoritesPage } from '@/pages/FavoritesPage'
-import { CategoryPage } from '@/pages/CategoryPage'
-import { HistoryPage } from '@/pages/HistoryPage'
+import { RouteError, RouteNotFound, RoutePending } from '@/components/system/RouteStates'
+
+const ToolPage = lazyRouteComponent(() => import('@/pages/ToolPage'), 'ToolPage')
+const FavoritesPage = lazyRouteComponent(() => import('@/pages/FavoritesPage'), 'FavoritesPage')
+const CategoryPage = lazyRouteComponent(() => import('@/pages/CategoryPage'), 'CategoryPage')
+const HistoryPage = lazyRouteComponent(() => import('@/pages/HistoryPage'), 'HistoryPage')
 
 const rootRoute = createRootRoute({
   component: () => (
@@ -23,6 +26,8 @@ const rootRoute = createRootRoute({
       </div>
     </div>
   ),
+  notFoundComponent: RouteNotFound,
+  errorComponent: RouteError,
 })
 
 const indexRoute = createRoute({
@@ -35,6 +40,7 @@ const toolRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/tool/$id',
   component: ToolPage,
+  pendingComponent: RoutePending,
 })
 
 const favoritesRoute = createRoute({

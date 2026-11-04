@@ -3,10 +3,15 @@ import ReactDOM from 'react-dom/client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { routeTree } from './routeTree'
 import { initTheme } from './store/app'
-import './i18n'
+import i18n, { ensureLanguage } from './i18n'
 import './index.css'
 
-const router = createRouter({ routeTree })
+const router = createRouter({
+  routeTree,
+  defaultPreload: 'intent',
+  defaultPendingMs: 200,
+  defaultPendingMinMs: 300,
+})
 
 declare module '@tanstack/react-router' {
   interface Register {
@@ -29,11 +34,19 @@ if (typeof window !== 'undefined') {
   })
 }
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <RouterProvider router={router} />
-  </React.StrictMode>,
-)
+async function bootstrap() {
+  // 英文词典按需加载，加载完成后再渲染，避免先中文后英文的闪烁
+  const language = await ensureLanguage(i18n.language)
+  document.documentElement.lang = language
+
+  ReactDOM.createRoot(document.getElementById('root')!).render(
+    <React.StrictMode>
+      <RouterProvider router={router} />
+    </React.StrictMode>,
+  )
+}
+
+void bootstrap()
 
 if (typeof window !== 'undefined') {
   window.addEventListener('beforeunload', () => {

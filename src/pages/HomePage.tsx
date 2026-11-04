@@ -5,37 +5,12 @@ import { toolRegistry, searchTools, getToolsByCategory } from '@/registry'
 import { CATEGORY_LABELS, CATEGORY_ORDER, CATEGORY_ICONS } from '@toolbox/types/tool'
 import { getIconComponent } from '@/utils/icons'
 import { ToolCard } from '@/components/ui/ToolCard'
-import { usePreloadCategory } from '@/hooks/usePreloadCategory'
-
-const SearchResultSkeleton = () => (
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-    {Array.from({ length: 8 }).map((_, i) => (
-      <div key={i} className="card p-4 animate-pulse">
-        <div className="flex items-start justify-between mb-3">
-          <div className="w-9 h-9 rounded-lg bg-bg-raised" />
-          <div className="w-8 h-4 bg-bg-raised rounded" />
-        </div>
-        <div className="space-y-2">
-          <div className="h-4 w-24 bg-bg-raised rounded" />
-          <div className="h-3 w-full bg-bg-raised rounded" />
-        </div>
-      </div>
-    ))}
-  </div>
-)
+import { preloadTools } from '@/lib/tool-loader'
 
 export function HomePage() {
   const [query, setQuery] = useState('')
-  const [isSearching, setIsSearching] = useState(false)
-  const { preloadCategory } = usePreloadCategory()
-  
-  const results = useMemo(() => {
-    if (!query.trim()) return null
-    setIsSearching(true)
-    const r = searchTools(query)
-    setIsSearching(false)
-    return r
-  }, [query])
+
+  const results = useMemo(() => (query.trim() ? searchTools(query) : null), [query])
 
   const categories = CATEGORY_ORDER
 
@@ -64,9 +39,7 @@ export function HomePage() {
       {results ? (
         <div>
           <p className="text-sm text-text-muted mb-4">找到 {results.length} 个工具</p>
-          {isSearching ? (
-            <SearchResultSkeleton />
-          ) : results.length > 0 ? (
+          {results.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               {results.map(tool => <ToolCard key={tool.id} tool={tool} />)}
             </div>
@@ -87,8 +60,8 @@ export function HomePage() {
                 key={cat}
                 to="/category/$name"
                 params={{ name: cat }}
-                onMouseEnter={() => preloadCategory(cat)}
-                onTouchStart={() => preloadCategory(cat)}
+                onMouseEnter={() => preloadTools(tools.map((tool) => tool.id), 3)}
+                onTouchStart={() => preloadTools(tools.map((tool) => tool.id), 3)}
                 className="card p-5 group hover:border-accent/30 transition-all duration-200"
               >
                 <div className="flex items-center justify-between mb-3">

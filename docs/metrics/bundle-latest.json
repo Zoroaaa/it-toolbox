@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-11-04T09:21:42.887Z",
+  "generatedAt": "2026-11-04T09:26:56.428Z",
   "totals": {
-    "jsFiles": 23,
-    "jsRawKB": 3366,
-    "jsGzipKB": 1090
+    "jsFiles": 50,
+    "jsRawKB": 2525,
+    "jsGzipKB": 953
   },
   "firstScreen": {
     "files": [
-      "assets/index-I2gZFFI1.js",
-      "assets/vendor-react-DkCqO0-x.js",
-      "assets/index-dkEw_VmX.css"
+      "assets/index-CSPkqBQn.js",
+      "assets/vendor-react-DykeQ9Ik.js",
+      "assets/index-CyUx0trd.css"
     ],
-    "rawKB": 1414,
-    "gzipKB": 321
+    "rawKB": 539,
+    "gzipKB": 166
   },
   "toolChunks": {
     "count": 0,
@@ -20,24 +20,24 @@
   },
   "top10": [
     {
-      "file": "main-CTh-frFL.js",
+      "file": "main-CVUxo9T0.js",
       "raw": 799.9,
       "gzip": 383.2
     },
     {
-      "file": "index-Cwt8g3nX.js",
+      "file": "index-Chugh_Z4.js",
       "raw": 946.5,
       "gzip": 304.6
     },
     {
-      "file": "index-I2gZFFI1.js",
-      "raw": 1089.3,
-      "gzip": 222.3
+      "file": "vendor-react-DykeQ9Ik.js",
+      "raw": 282.1,
+      "gzip": 90.5
     },
     {
-      "file": "vendor-react-DkCqO0-x.js",
-      "raw": 281.4,
-      "gzip": 90.2
+      "file": "index-CSPkqBQn.js",
+      "raw": 213.5,
+      "gzip": 67.6
     },
     {
       "file": "standalone-BgjtRwn_.js",
@@ -60,21 +60,21 @@
       "gzip": 11.7
     },
     {
+      "file": "en-US-DjaEWABD.js",
+      "raw": 18.6,
+      "gzip": 7.8
+    },
+    {
       "file": "network-B-i4sCBg.js",
       "raw": 14.7,
       "gzip": 5.2
-    },
-    {
-      "file": "crypto-sGKofrCU.js",
-      "raw": 8.4,
-      "gzip": 3.2
     }
   ],
   "vendors": [
     {
-      "file": "vendor-react-DkCqO0-x.js",
-      "raw": 281.4,
-      "gzip": 90.2
+      "file": "vendor-react-DykeQ9Ik.js",
+      "raw": 282.1,
+      "gzip": 90.5
     }
   ]
 }

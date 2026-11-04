@@ -4,7 +4,7 @@ import { Star } from 'lucide-react'
 import type { ToolMeta } from '@toolbox/types/tool'
 import { useAppStore } from '@/store/app'
 import { getIconComponent } from '@/utils/icons'
-import { usePreloadTool } from '@/hooks/usePreloadTool'
+import { preloadTool } from '@/lib/tool-loader'
 
 interface ToolCardProps {
   tool: ToolMeta
@@ -15,7 +15,7 @@ export function ToolCard({ tool }: ToolCardProps) {
   const { isFavorited, toggleFavorite } = useAppStore()
   const favorited = isFavorited(tool.id)
   const IconComp = getIconComponent(tool.icon)
-  const { preload } = usePreloadTool(tool.id)
+  const preload = () => preloadTool(tool.id)
 
   return (
     <Link

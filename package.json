@@ -16,8 +16,10 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "audit:meta": "node scripts/audit-meta.mjs",
+    "icons:gen": "node scripts/generate-icon-map.mjs",
+    "icons:check": "node scripts/generate-icon-map.mjs --check",
     "report:bundle": "node scripts/report-bundle.mjs",
-    "check": "pnpm typecheck && pnpm typecheck:api && pnpm lint && pnpm test && pnpm audit:meta --check",
+    "check": "pnpm typecheck && pnpm typecheck:api && pnpm lint && pnpm test && pnpm audit:meta --check && pnpm icons:check",
     "deploy": "pnpm check && vite build && wrangler pages deploy dist --project-name=it-toolbox"
   },
   "dependencies": {

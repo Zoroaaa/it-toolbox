@@ -1,13 +1,15 @@
 import { useTranslation } from 'react-i18next'
 import { Globe } from 'lucide-react'
-import { LANGUAGES, type LanguageCode } from '@/i18n'
+import { LANGUAGES, ensureLanguage, type LanguageCode } from '@/i18n'
 
 export function LanguageToggle() {
   const { i18n, t } = useTranslation()
 
-  const handleLanguageChange = (code: LanguageCode) => {
-    i18n.changeLanguage(code)
+  const handleLanguageChange = async (code: LanguageCode) => {
+    await ensureLanguage(code)
+    await i18n.changeLanguage(code)
     localStorage.setItem('it-toolbox-language', code)
+    document.documentElement.lang = code
   }
 
   return (
