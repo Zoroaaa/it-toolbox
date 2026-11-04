@@ -4,6 +4,7 @@ import { Star, Copy, Check, RotateCcw } from 'lucide-react'
 import type { ToolMeta } from '@toolbox/types/tool'
 import { useAppStore } from '@/store/app'
 import { useClipboard } from '@/hooks/useClipboard'
+import { toast } from '@/lib/toast'
 import { getIconComponent } from '@/utils/icons'
 
 interface ToolLayoutProps {
@@ -19,6 +20,13 @@ export function ToolLayout({ meta, children, onReset, outputValue }: ToolLayoutP
   const { copy, copied } = useClipboard()
   const favorited = isFavorited(meta.id)
   const IconComponent = getIconComponent(meta.icon)
+
+  const handleCopy = async () => {
+    if (!outputValue) return
+    const ok = await copy(outputValue)
+    if (ok) toast.success(t('common.copied'))
+    else toast.error('复制失败，请手动选择文本')
+  }
 
   return (
     <div className="flex flex-col h-full animate-fade-in">
@@ -46,7 +54,7 @@ export function ToolLayout({ meta, children, onReset, outputValue }: ToolLayoutP
         <div className="flex items-center gap-1 flex-shrink-0 sm:ml-4">
           {outputValue && (
             <button
-              onClick={() => copy(outputValue)}
+              onClick={handleCopy}
               className="btn-ghost"
               title={t('toolLayout.copyOutput')}
             >

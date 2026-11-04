@@ -4,6 +4,7 @@ import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { routeTree } from './routeTree'
 import { initTheme } from './store/app'
 import i18n, { ensureLanguage } from './i18n'
+import { ErrorBoundary } from './components/system/ErrorBoundary'
 import './index.css'
 
 const router = createRouter({
@@ -41,7 +42,9 @@ async function bootstrap() {
 
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
-      <RouterProvider router={router} />
+      <ErrorBoundary>
+        <RouterProvider router={router} />
+      </ErrorBoundary>
     </React.StrictMode>,
   )
 }

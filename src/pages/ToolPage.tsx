@@ -3,6 +3,7 @@ import { useParams } from '@tanstack/react-router'
 import { Loader2 } from 'lucide-react'
 import { useAppStore } from '@/store/app'
 import { availableToolIds, getToolComponent } from '@/lib/tool-loader'
+import { ErrorBoundary } from '@/components/system/ErrorBoundary'
 
 function ToolSkeleton() {
   return (
@@ -54,9 +55,11 @@ export function ToolPage() {
 
   return (
     <div className="p-6 h-full">
-      <Suspense fallback={<ToolSkeleton />}>
-        <Component />
-      </Suspense>
+      <ErrorBoundary resetKeys={[id]}>
+        <Suspense fallback={<ToolSkeleton />}>
+          <Component />
+        </Suspense>
+      </ErrorBoundary>
     </div>
   )
 }

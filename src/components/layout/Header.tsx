@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { Search, Command, Menu } from 'lucide-react'
@@ -9,19 +9,29 @@ import { getIconComponent } from '@/utils/icons'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { LanguageToggle } from '@/components/ui/LanguageToggle'
 import { useAppStore } from '@/store/app'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 
 export function Header() {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const navigate = useNavigate()
+  const dialogRef = useRef<HTMLDivElement>(null)
   const { toggleMobileMenu } = useAppStore()
 
   useEffect(() => {
+    const isEditable = (target: EventTarget | null) =>
+      target instanceof HTMLElement &&
+      (['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable)
+
     const down = (e: KeyboardEvent) => {
       if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
         setOpen(o => !o)
+      }
+      if (e.key === '/' && !isEditable(e.target)) {
+        e.preventDefault()
+        setOpen(true)
       }
       if (e.key === 'Escape') setOpen(false)
     }
@@ -39,6 +49,8 @@ export function Header() {
     navigate({ to: '/tool/$id', params: { id: tool.id } })
   }
 
+  useFocusTrap(open, dialogRef, () => handleOpenChange(false))
+
   return (
     <>
       <header className="h-14 border-b border-border-base bg-bg-surface/80 backdrop-blur-sm flex items-center px-4 gap-3 sticky top-0 z-10">
@@ -52,6 +64,9 @@ export function Header() {
 
         <button
           onClick={() => setOpen(true)}
+          aria-expanded={open}
+          aria-controls="command-palette"
+          aria-label={t('app.searchPlaceholder')}
           className="flex-1 max-w-md flex items-center gap-2 px-3 py-2 rounded-lg bg-bg-raised border border-border-base text-text-muted text-sm hover:border-border-strong transition-colors duration-150"
         >
           <Search className="w-4 h-4" />
@@ -82,8 +97,17 @@ export function Header() {
       {open && (
         <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4">
           <div className="fixed inset-0 bg-bg-base/60 backdrop-blur-sm" onClick={() => handleOpenChange(false)} />
-          <div className="relative w-full max-w-lg bg-bg-surface border border-border-strong rounded-xl shadow-theme-lg overflow-hidden animate-slide-up">
-            <Cmd className="[&_[cmdk-input-wrapper]]:border-b [&_[cmdk-input-wrapper]]:border-border-base" label="Search tools">
+          <div
+            ref={dialogRef}
+            id="command-palette"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="command-palette-title"
+            tabIndex={-1}
+            className="relative w-full max-w-lg bg-bg-surface border border-border-strong rounded-xl shadow-theme-lg overflow-hidden animate-slide-up"
+          >
+            <span id="command-palette-title" className="sr-only">{t('search.placeholder')}</span>
+            <Cmd shouldFilter={false} className="[&_[cmdk-input-wrapper]]:border-b [&_[cmdk-input-wrapper]]:border-border-base" label="Search tools">
               <div className="flex items-center gap-2 px-4 py-3">
                 <Search className="w-4 h-4 text-text-muted flex-shrink-0" />
                 <CommandInput
@@ -131,7 +155,7 @@ function SearchResults({ query, onSelect }: { query: string; onSelect: (t: ToolM
             return (
               <CommandItem
                 key={tool.id}
-                value={tool.id}
+                value={`${tool.name} ${tool.nameEn} ${tool.id}`}
                 onSelect={() => onSelect(tool)}
                 className="flex items-center gap-3 px-2 py-2 rounded-lg cursor-pointer
                            text-text-secondary hover:text-text-primary

@@ -33,7 +33,9 @@ export function ToolCard({ tool }: ToolCardProps) {
           {tool.isNew && <span className="badge text-xs">{t('toolCard.new')}</span>}
           <button
             onClick={e => { e.preventDefault(); toggleFavorite(tool.id) }}
-            className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 p-1 rounded hover:bg-bg-overlay"
+            aria-label={favorited ? '取消收藏' : '收藏'}
+            aria-pressed={favorited}
+            className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-150 p-1 rounded hover:bg-bg-overlay"
           >
             <Star className={`w-3.5 h-3.5 ${favorited ? 'fill-accent text-accent' : 'text-text-muted'}`} />
           </button>

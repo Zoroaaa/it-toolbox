@@ -8,6 +8,7 @@ import { Sidebar } from '@/components/layout/Sidebar'
 import { Header } from '@/components/layout/Header'
 import { HomePage } from '@/pages/HomePage'
 import { RouteError, RouteNotFound, RoutePending } from '@/components/system/RouteStates'
+import { Toaster } from '@/components/ui/Toaster'
 
 const ToolPage = lazyRouteComponent(() => import('@/pages/ToolPage'), 'ToolPage')
 const FavoritesPage = lazyRouteComponent(() => import('@/pages/FavoritesPage'), 'FavoritesPage')
@@ -24,6 +25,7 @@ const rootRoute = createRootRoute({
           <Outlet />
         </main>
       </div>
+      <Toaster />
     </div>
   ),
   notFoundComponent: RouteNotFound,
