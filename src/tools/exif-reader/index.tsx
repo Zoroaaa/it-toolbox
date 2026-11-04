@@ -98,7 +98,7 @@ export default function ExifReader() {
 
   const exportJson = useCallback(() => {
     if (!data) return
-    let exportData = { ...data }
+    const exportData = { ...data }
     if (hideGps) {
       TAG_GROUPS.find(g => g.key === 'gps')?.tags.forEach(t => delete exportData[t])
     }
@@ -128,7 +128,7 @@ export default function ExifReader() {
 
   const copyJson = () => {
     if (!data) return
-    let exportData = { ...data }
+    const exportData = { ...data }
     if (hideGps) TAG_GROUPS.find(g => g.key === 'gps')?.tags.forEach(t => delete exportData[t])
     if (hidePersonal) TAG_GROUPS.find(g => g.key === 'personal')?.tags.forEach(t => delete exportData[t])
     copy(JSON.stringify(exportData, null, 2))

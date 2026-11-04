@@ -36,7 +36,7 @@ whoisRoute.get('/', async (c) => {
     if (cached) {
       return c.json({ ...JSON.parse(cached), cached: true })
     }
-  } catch {}
+  } catch { /* 缓存不可用不影响查询 */ }
 
   try {
     // 使用 ip-api.com 进行域名查询（免费，无API密钥，45次/分钟限制）
@@ -65,7 +65,7 @@ whoisRoute.get('/', async (c) => {
 
       try {
         await c.env.CACHE.put(cacheKey, JSON.stringify(result), { expirationTtl: 3600 })
-      } catch {}
+      } catch { /* 缓存不可用不影响查询 */ }
 
       return c.json(result)
     }

@@ -34,7 +34,7 @@ exchangeRoute.get('/', async (c) => {
         },
       })
     }
-  } catch {}
+  } catch { /* 缓存不可用不影响查询 */ }
 
   try {
     const res = await fetch(`${EXCHANGE_API_URL}/${from}`)
@@ -54,7 +54,7 @@ exchangeRoute.get('/', async (c) => {
 
     try {
       await c.env.CACHE.put(cacheKey, JSON.stringify(cacheData), { expirationTtl: 3600 })
-    } catch {}
+    } catch { /* 缓存不可用不影响查询 */ }
 
     return c.json({
       success: true,
@@ -82,7 +82,7 @@ exchangeRoute.get('/rates', async (c) => {
     if (cached) {
       return c.json({ success: true, data: JSON.parse(cached), cached: true })
     }
-  } catch {}
+  } catch { /* 缓存不可用不影响查询 */ }
 
   try {
     const res = await fetch(`${EXCHANGE_API_URL}/${base}`)
@@ -99,7 +99,7 @@ exchangeRoute.get('/rates', async (c) => {
 
     try {
       await c.env.CACHE.put(cacheKey, JSON.stringify(data), { expirationTtl: 3600 })
-    } catch {}
+    } catch { /* 缓存不可用不影响查询 */ }
 
     return c.json({ success: true, data, cached: false })
   } catch (e) {

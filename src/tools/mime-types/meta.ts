@@ -8,5 +8,5 @@ export const meta: ToolMeta = {
   category: 'network',
   tags: ['mime', '类型', '文件'],
   keywords: ['mime', 'type', 'content-type', '文件类型'],
-  icon: 'file',
+  icon: 'FileType',
 }

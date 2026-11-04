@@ -8,5 +8,5 @@ export const meta: ToolMeta = {
   category: 'generator',
   tags: ['ulid', 'id', '生成器'],
   keywords: ['ulid', 'id', 'unique', '时间排序'],
-  icon: 'key',
+  icon: 'Fingerprint',
 }

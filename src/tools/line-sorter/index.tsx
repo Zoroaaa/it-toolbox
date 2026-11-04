@@ -29,7 +29,7 @@ export default function LineSorter() {
         case 'non-empty':
           lines = lines.filter((line) => line.trim() !== '')
           break
-        case 'duplicates':
+        case 'duplicates': {
           const seen = new Set<string>()
           const duplicates = new Set<string>()
           lines.forEach((line) => {
@@ -41,6 +41,7 @@ export default function LineSorter() {
           })
           lines = lines.filter((line) => duplicates.has(line))
           break
+        }
       }
     }
 

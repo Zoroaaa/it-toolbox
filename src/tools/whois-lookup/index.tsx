@@ -50,7 +50,7 @@ export default function WhoisLookup() {
       } else {
         setResult(data)
       }
-    } catch (e) {
+    } catch {
       setError(t('tools.whois-lookup.error'))
     }
     

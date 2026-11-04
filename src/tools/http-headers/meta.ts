@@ -8,5 +8,5 @@ export const meta: ToolMeta = {
   category: 'network',
   tags: ['http', '请求头', '响应头'],
   keywords: ['http', 'header', '请求头', '响应头'],
-  icon: 'globe',
+  icon: 'List',
 }

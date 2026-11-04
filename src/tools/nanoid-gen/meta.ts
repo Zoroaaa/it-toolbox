@@ -8,5 +8,5 @@ export const meta: ToolMeta = {
   category: 'generator',
   tags: ['nanoid', 'id', '生成器'],
   keywords: ['nanoid', 'id', 'unique', '唯一标识'],
-  icon: 'key',
+  icon: 'Fingerprint',
 }

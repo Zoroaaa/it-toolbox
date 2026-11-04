@@ -84,7 +84,7 @@ export function generatePassword(opts: PasswordOptions): Result<string> {
   let upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
   let lower = 'abcdefghijklmnopqrstuvwxyz'
   let numbers = '0123456789'
-  let symbols = '!@#$%^&*()_+-=[]{}|;:,.<>?'
+  const symbols = '!@#$%^&*()_+-=[]{}|;:,.<>?'
 
   if (opts.excludeSimilar) {
     upper = upper.replace(/[OI]/g, '')

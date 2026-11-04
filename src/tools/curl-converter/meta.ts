@@ -8,5 +8,5 @@ export const meta: ToolMeta = {
   category: 'network',
   tags: ['curl', '转换', '代码生成'],
   keywords: ['curl', 'convert', 'fetch', 'axios', 'python'],
-  icon: 'terminal',
+  icon: 'Terminal',
 }

@@ -2,7 +2,7 @@ import type { ToolMeta } from '@toolbox/types/tool'
 
 export const meta: ToolMeta = {
   id: 'ai-mock-data',
-  name: 'AI 生成 Mock 数据',
+  name: 'AI生成Mock数据',
   nameEn: 'AI Mock Data Generator',
   description: '自然语言描述数据结构，AI生成逼真JSON数据',
   category: 'ai',

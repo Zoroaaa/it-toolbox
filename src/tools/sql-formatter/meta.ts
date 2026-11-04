@@ -8,5 +8,5 @@ export const meta: ToolMeta = {
   category: 'format',
   tags: ['sql', '格式化', '数据库'],
   keywords: ['sql', 'format', 'database', '格式化'],
-  icon: 'database',
+  icon: 'Database',
 }

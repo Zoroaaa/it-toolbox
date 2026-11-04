@@ -8,5 +8,5 @@ export const meta: ToolMeta = {
   category: 'datetime',
   tags: ['日历', '日期', '月历'],
   keywords: ['calendar', 'date', '日历', '月历'],
-  icon: 'calendar',
+  icon: 'CalendarDays',
 }

@@ -45,7 +45,7 @@ sslCheckRoute.get('/', async (c) => {
     if (cached) {
       return c.json({ ...JSON.parse(cached), cached: true })
     }
-  } catch {}
+  } catch { /* 缓存不可用不影响查询 */ }
 
   try {
     const result: SslResult = {
@@ -138,7 +138,7 @@ sslCheckRoute.get('/', async (c) => {
 
     if (!result.validFrom) {
       try {
-        const res = await fetch(`https://${cleanDomain}`, {
+        await fetch(`https://${cleanDomain}`, {
           method: 'HEAD',
           redirect: 'follow',
         })
@@ -185,7 +185,7 @@ sslCheckRoute.get('/', async (c) => {
 
     try {
       await c.env.CACHE.put(cacheKey, JSON.stringify(result), { expirationTtl: 3600 })
-    } catch {}
+    } catch { /* 缓存不可用不影响查询 */ }
 
     return c.json(result)
   } catch (e) {

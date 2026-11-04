@@ -66,7 +66,7 @@ export default function CertDecoder() {
           const sanText = sanExt.toString()
           const matches = sanText.matchAll(/(?:DNS|IP|Email|URI):([^,\n]+)/g)
           for (const m of matches) sans.push(m[0].trim())
-        } catch {}
+        } catch { /* SAN 解析失败时保留空列表 */ }
       }
       // Also check publicKey size
       let keySize: number | null = null
@@ -79,7 +79,7 @@ export default function CertDecoder() {
             if (jwk.n) keySize = (atob(jwk.n.replace(/-/g, '+').replace(/_/g, '/')).length) * 8
           }
         }
-      } catch {}
+      } catch { /* 公钥解析失败则不显示密钥长度 */ }
 
       // Compute SHA-1 and SHA-256 fingerprints
       const derBuffer = cert.rawData

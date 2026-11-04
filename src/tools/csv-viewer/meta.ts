@@ -8,5 +8,5 @@ export const meta: ToolMeta = {
   category: 'format',
   tags: ['csv', '表格', '数据'],
   keywords: ['csv', 'table', 'viewer', '表格'],
-  icon: 'table',
+  icon: 'Table',
 }

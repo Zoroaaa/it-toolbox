@@ -2,7 +2,7 @@ import type { ToolMeta } from '@toolbox/types/tool'
 
 export const meta: ToolMeta = {
   id: 'ai-translate',
-  name: 'AI 翻译',
+  name: 'AI翻译',
   nameEn: 'AI Translator',
   description: '多语言翻译，技术文档翻译，术语保留',
   category: 'ai',

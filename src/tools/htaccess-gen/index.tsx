@@ -36,14 +36,14 @@ RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
     if (options.wwwRedirect === 'www') {
       content += `# Redirect to www
 RewriteEngine On
-RewriteCond %{HTTP_HOST} !^www\. [NC]
+RewriteCond %{HTTP_HOST} !^www\\. [NC]
 RewriteRule ^(.*)$ https://www.%{HTTP_HOST}/$1 [R=301,L]
 
 `
     } else if (options.wwwRedirect === 'non-www') {
       content += `# Redirect to non-www
 RewriteEngine On
-RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
+RewriteCond %{HTTP_HOST} ^www\\.(.*)$ [NC]
 RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
 
 `
@@ -90,8 +90,8 @@ Options -Indexes
       content += `# Prevent hotlinking
 RewriteEngine On
 RewriteCond %{HTTP_REFERER} !^$
-RewriteCond %{HTTP_REFERER} !^http(s)?://(www\.)?${domains.replace(/\s+/g, ' [NC,OR]\nRewriteCond %{HTTP_REFERER} !^http(s)?://(www\.)?')} [NC]
-RewriteRule \.(jpg|jpeg|png|gif|webp|svg)$ - [F]
+RewriteCond %{HTTP_REFERER} !^http(s)?://(www\\.)?${domains.replace(/\s+/g, ' [NC,OR]\nRewriteCond %{HTTP_REFERER} !^http(s)?://(www\\.)?')} [NC]
+RewriteRule \\.(jpg|jpeg|png|gif|webp|svg)$ - [F]
 
 `
     }

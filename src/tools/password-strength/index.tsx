@@ -55,8 +55,8 @@ function calculateEntropy(password: string): number {
   if (/[a-z]/.test(password)) poolSize += 26
   if (/[A-Z]/.test(password)) poolSize += 26
   if (/[0-9]/.test(password)) poolSize += 10
-  if (/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)) poolSize += 32
-  if (/[^a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(password)) poolSize += 100
+  if (/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]/.test(password)) poolSize += 32
+  if (/[^a-zA-Z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]/.test(password)) poolSize += 100
   
   if (poolSize === 0) poolSize = 26
   return Math.log2(Math.pow(poolSize, password.length))

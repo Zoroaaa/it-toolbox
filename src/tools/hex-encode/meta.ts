@@ -8,5 +8,5 @@ export const meta: ToolMeta = {
   category: 'encoding',
   tags: ['hex', 'encode', 'decode', 'hexadecimal'],
   keywords: ['十六进制', '字节'],
-  icon: 'Binary',
+  icon: 'Hash',
 }

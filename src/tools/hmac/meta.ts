@@ -8,5 +8,5 @@ export const meta: ToolMeta = {
   category: 'crypto',
   tags: ['hmac', 'sha256', 'sha512', 'signature', 'verify'],
   keywords: ['签名', '验证', '消息认证'],
-  icon: 'Shield',
+  icon: 'KeyRound',
 }

@@ -8,5 +8,5 @@ export const meta: ToolMeta = {
   category: 'datetime',
   tags: ['时长', '格式化', '时间'],
   keywords: ['duration', 'format', '时长', '格式化'],
-  icon: 'clock',
+  icon: 'Timer',
 }

@@ -62,40 +62,46 @@ function generateValue(column: ColumnDefinition): string | number | null {
       return Math.floor(Math.random() * (maxValue - minValue + 1)) + minValue
     case 'BIGINT':
       return Math.floor(Math.random() * 1000000000) + 1
-    case 'VARCHAR':
+    case 'VARCHAR': {
       const strLen = Math.min(Math.floor(Math.random() * 20) + 5, maxLength)
       return `'${Math.random().toString(36).substring(2, strLen + 2)}'`
+    }
     case 'TEXT':
       return `'这是一段测试文本内容，用于填充TEXT字段。编号：${Math.random().toString(36).substring(2, 8)}'`
     case 'BOOLEAN':
       return Math.random() > 0.5 ? 1 : 0
-    case 'DATE':
+    case 'DATE': {
       const dateStart = new Date(2020, 0, 1)
       const dateEnd = new Date()
       const randomDate = new Date(dateStart.getTime() + Math.random() * (dateEnd.getTime() - dateStart.getTime()))
       return `'${randomDate.toISOString().split('T')[0]}'`
+    }
     case 'DATETIME':
-    case 'TIMESTAMP':
+    case 'TIMESTAMP': {
       const dtStart = new Date(2020, 0, 1)
       const dtEnd = new Date()
       const randomDt = new Date(dtStart.getTime() + Math.random() * (dtEnd.getTime() - dtStart.getTime()))
       return `'${randomDt.toISOString().replace('T', ' ').substring(0, 19)}'`
+    }
     case 'DECIMAL':
     case 'FLOAT':
       return (Math.random() * (maxValue - minValue) + minValue).toFixed(2)
     case 'UUID':
       return `'${generateUuid()}'`
-    case 'EMAIL':
+    case 'EMAIL': {
       const domains = ['gmail.com', 'outlook.com', 'qq.com', '163.com']
       return `'${Math.random().toString(36).substring(2, 8)}@${domains[Math.floor(Math.random() * domains.length)]}'`
+    }
     case 'NAME':
       return `'${SAMPLE_NAMES[Math.floor(Math.random() * SAMPLE_NAMES.length)]}'`
-    case 'PHONE':
+    case 'PHONE': {
       const prefixes = ['138', '139', '150', '151', '186', '187']
       return `'${prefixes[Math.floor(Math.random() * prefixes.length)]}${Math.random().toString().substring(2, 10)}'`
-    case 'ADDRESS':
+    }
+    case 'ADDRESS': {
       const city = SAMPLE_CITIES[Math.floor(Math.random() * SAMPLE_CITIES.length)]
       return `'${city}市某某路${Math.floor(Math.random() * 999) + 1}号'`
+    }
     default:
       return null
   }

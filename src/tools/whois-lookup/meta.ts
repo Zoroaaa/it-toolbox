@@ -9,5 +9,6 @@ export const meta: ToolMeta = {
   tags: ['whois', 'domain', 'lookup', 'register', 'dns'],
   keywords: ['WHOIS', '域名', '查询', '注册', 'DNS'],
   icon: 'Search',
+  requiresApi: true,
   isNew: true,
 }

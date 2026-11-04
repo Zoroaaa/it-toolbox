@@ -19,6 +19,7 @@
     "paths": {
       "@/*": ["./src/*"],
       "@it-toolbox/core": ["./packages/core/index.ts"],
+      "@it-toolbox/core/*": ["./packages/core/*"],
       "@it-toolbox/types": ["./packages/types/tool.ts"],
       "@core/index": ["./packages/core/index.ts"],
       "@core/*": ["./packages/core/*"],

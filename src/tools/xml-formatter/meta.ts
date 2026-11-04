@@ -8,5 +8,5 @@ export const meta: ToolMeta = {
   category: 'format',
   tags: ['xml', '格式化', '压缩'],
   keywords: ['xml', 'format', 'minify', '格式化'],
-  icon: 'file-code',
+  icon: 'Code2',
 }

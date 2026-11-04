@@ -1541,7 +1541,7 @@ export const toolRegistry: ToolMeta[] = [
     category: 'devops',
     tags: ['sitemap', 'seo', 'xml', 'website', 'generator'],
     keywords: ['站点地图', 'SEO', 'XML', '网站'],
-    icon: 'Sitemap',
+    icon: 'Route',
     isNew: true,
   },
   {

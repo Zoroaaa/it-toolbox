@@ -2,7 +2,7 @@ import type { ToolMeta } from '@toolbox/types/tool'
 
 export const meta: ToolMeta = {
   id: 'ai-naming',
-  name: 'AI 命名助手',
+  name: 'AI命名助手',
   nameEn: 'AI Naming Assistant',
   description: '描述功能→推荐变量/函数/类名，支持命名规范选择',
   category: 'ai',

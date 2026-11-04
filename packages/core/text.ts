@@ -137,7 +137,7 @@ export function transformText(input: string, operations: string[]): Result<strin
         case 'remove-duplicate-lines':
           result = [...new Set(result.split('\n'))].join('\n')
           break
-        case 'shuffle-lines':
+        case 'shuffle-lines': {
           const lines = result.split('\n')
           for (let i = lines.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1))
@@ -145,6 +145,7 @@ export function transformText(input: string, operations: string[]): Result<strin
           }
           result = lines.join('\n')
           break
+        }
         case 'number-lines':
           result = result.split('\n').map((l, i) => `${i + 1}. ${l}`).join('\n')
           break

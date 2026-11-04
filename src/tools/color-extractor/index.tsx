@@ -72,7 +72,7 @@ export default function ColorExtractor() {
       }))
       result.sort((a, b) => b.pct - a.pct)
       setColors(result)
-    } catch (e) {
+    } catch {
       setError('颜色提取失败')
     }
   }, [])

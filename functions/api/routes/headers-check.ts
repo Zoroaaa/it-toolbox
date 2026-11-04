@@ -96,16 +96,13 @@ headersCheckRoute.get('/', async (c) => {
     return c.json({ error: 'Invalid URL' }, 400)
   }
 
-  const urlObj = new URL(cleanUrl)
-  const hostname = urlObj.hostname
-
   const cacheKey = `cache:headers:${cleanUrl}`
   try {
     const cached = await c.env.CACHE.get(cacheKey)
     if (cached) {
       return c.json({ ...JSON.parse(cached), cached: true })
     }
-  } catch {}
+  } catch { /* 缓存不可用不影响检测 */ }
 
   try {
     const warnings: string[] = []
@@ -158,7 +155,7 @@ headersCheckRoute.get('/', async (c) => {
 
       let pass = isPresent
       let result = isPresent ? 'present' : 'missing'
-      let recommendation = HEADER_RECOMMENDATIONS[headerName] || ''
+      const recommendation = HEADER_RECOMMENDATIONS[headerName] || ''
 
       if (headerName === 'strict-transport-security' && headerValue) {
         const maxAgeMatch = headerValue.match(/max-age=(\d+)/i)
@@ -247,7 +244,7 @@ headersCheckRoute.get('/', async (c) => {
 
     try {
       await c.env.CACHE.put(cacheKey, JSON.stringify(result), { expirationTtl: 3600 })
-    } catch {}
+    } catch { /* 缓存不可用不影响检测 */ }
 
     return c.json(result)
   } catch (e) {

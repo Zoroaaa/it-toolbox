@@ -53,36 +53,42 @@ function generateFieldValue(field: FieldDefinition): unknown {
   const { type, min, max, arrayLength = 3, children } = field
 
   switch (type) {
-    case 'string':
+    case 'string': {
       const strLen = Math.floor(Math.random() * 10) + 5
       return Math.random().toString(36).substring(2, strLen + 2)
-    case 'number':
+    }
+    case 'number': {
       const minVal = min ?? 0
       const maxVal = max ?? 100
       return Math.floor(Math.random() * (maxVal - minVal + 1)) + minVal
+    }
     case 'boolean':
       return Math.random() > 0.5
-    case 'date':
+    case 'date': {
       const start = new Date(2020, 0, 1)
       const end = new Date()
       return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime())).toISOString().split('T')[0]
-    case 'email':
+    }
+    case 'email': {
       const domains = ['gmail.com', 'outlook.com', 'qq.com', '163.com', 'yahoo.com']
       return `${Math.random().toString(36).substring(2, 8)}@${domains[Math.floor(Math.random() * domains.length)]}`
+    }
     case 'name':
       return SAMPLE_NAMES[Math.floor(Math.random() * SAMPLE_NAMES.length)]
-    case 'phone':
+    case 'phone': {
       const prefixes = ['138', '139', '150', '151', '186', '187', '188']
       return `${prefixes[Math.floor(Math.random() * prefixes.length)]}${Math.random().toString().substring(2, 10)}`
-    case 'address':
+    }
+    case 'address': {
       const city = SAMPLE_CITIES[Math.floor(Math.random() * SAMPLE_CITIES.length)]
       const street = SAMPLE_STREETS[Math.floor(Math.random() * SAMPLE_STREETS.length)]
       return `${city}市${street}${Math.floor(Math.random() * 999) + 1}号`
+    }
     case 'url':
       return `https://example.com/${Math.random().toString(36).substring(2, 8)}`
     case 'uuid':
       return generateUuid()
-    case 'array':
+    case 'array': {
       if (!children || children.length === 0) return []
       const arrLength = Math.max(1, arrayLength)
       const arr = []
@@ -94,6 +100,7 @@ function generateFieldValue(field: FieldDefinition): unknown {
         }
       }
       return arr
+    }
     case 'object':
       return generateObject(children || [])
     default:

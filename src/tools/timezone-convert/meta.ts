@@ -8,5 +8,5 @@ export const meta: ToolMeta = {
   category: 'datetime',
   tags: ['时区', '转换', '时间'],
   keywords: ['timezone', 'convert', '时区', '转换'],
-  icon: 'globe',
+  icon: 'Globe',
 }

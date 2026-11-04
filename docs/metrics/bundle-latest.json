@@ -1,0 +1,117 @@
+{
+  "generatedAt": "2026-11-04T08:54:47.985Z",
+  "totals": {
+    "jsFiles": 171,
+    "jsRawKB": 7844,
+    "jsGzipKB": 2497
+  },
+  "firstScreen": {
+    "files": [
+      "assets/index-CxmCz1BO.js",
+      "assets/react-vendor-DOtNnIzJ.js",
+      "assets/text-vendor-BOoqP6jN.js",
+      "assets/icons-vendor-BN6EH-A_.js",
+      "assets/index-ClA2sTiY.css"
+    ],
+    "rawKB": 1417,
+    "gzipKB": 321
+  },
+  "toolChunks": {
+    "count": 0,
+    "rawKB": 0
+  },
+  "top10": [
+    {
+      "file": "main-B2dMYYSh.js",
+      "raw": 799.9,
+      "gzip": 383.2
+    },
+    {
+      "file": "markdown-vendor-C7AzEeUO.js",
+      "raw": 986.5,
+      "gzip": 316.5
+    },
+    {
+      "file": "svg-vendor-ChDknZ2F.js",
+      "raw": 647.5,
+      "gzip": 203.9
+    },
+    {
+      "file": "math-vendor-COLI5X49.js",
+      "raw": 639.4,
+      "gzip": 186.4
+    },
+    {
+      "file": "faker-vendor-DGnR7yec.js",
+      "raw": 524.9,
+      "gzip": 182.4
+    },
+    {
+      "file": "icons-vendor-BN6EH-A_.js",
+      "raw": 864.5,
+      "gzip": 159.8
+    },
+    {
+      "file": "index-BWtyiGjC.js",
+      "raw": 515.8,
+      "gzip": 141.6
+    },
+    {
+      "file": "data-vendor-DZnmsvN0.js",
+      "raw": 343.1,
+      "gzip": 93.5
+    },
+    {
+      "file": "react-vendor-DOtNnIzJ.js",
+      "raw": 281.2,
+      "gzip": 90.2
+    },
+    {
+      "file": "qrcode-vendor-B4bQPXI5.js",
+      "raw": 152,
+      "gzip": 55.6
+    }
+  ],
+  "vendors": [
+    {
+      "file": "markdown-vendor-C7AzEeUO.js",
+      "raw": 986.5,
+      "gzip": 316.5
+    },
+    {
+      "file": "svg-vendor-ChDknZ2F.js",
+      "raw": 647.5,
+      "gzip": 203.9
+    },
+    {
+      "file": "math-vendor-COLI5X49.js",
+      "raw": 639.4,
+      "gzip": 186.4
+    },
+    {
+      "file": "faker-vendor-DGnR7yec.js",
+      "raw": 524.9,
+      "gzip": 182.4
+    },
+    {
+      "file": "icons-vendor-BN6EH-A_.js",
+      "raw": 864.5,
+      "gzip": 159.8
+    },
+    {
+      "file": "data-vendor-DZnmsvN0.js",
+      "raw": 343.1,
+      "gzip": 93.5
+    },
+    {
+      "file": "react-vendor-DOtNnIzJ.js",
+      "raw": 281.2,
+      "gzip": 90.2
+    },
+    {
+      "file": "qrcode-vendor-B4bQPXI5.js",
+      "raw": 152,
+      "gzip": 55.6
+    }
+  ]
+}

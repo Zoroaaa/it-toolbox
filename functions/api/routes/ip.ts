@@ -19,7 +19,7 @@ ipRoute.get('/', async (c) => {
     if (cached) {
       return c.json({ success: true, data: JSON.parse(cached), cached: true })
     }
-  } catch {}
+  } catch { /* 缓存不可用不影响查询 */ }
 
   // For the caller's own IP, use Cloudflare's request metadata directly
   if (!queryIp || ip === callerIp) {
@@ -34,7 +34,7 @@ ipRoute.get('/', async (c) => {
       latitude:       Number(cf?.latitude ?? 0),
       longitude:      Number(cf?.longitude ?? 0),
     }
-    try { await c.env.CACHE.put(cacheKey, JSON.stringify(data), { expirationTtl: 3600 }) } catch {}
+    try { await c.env.CACHE.put(cacheKey, JSON.stringify(data), { expirationTtl: 3600 }) } catch { /* 缓存写入失败不影响响应 */ }
     return c.json({ success: true, data })
   }
 
@@ -57,7 +57,7 @@ ipRoute.get('/', async (c) => {
       latitude: Number(json.lat ?? 0),
       longitude: Number(json.lon ?? 0),
     }
-    try { await c.env.CACHE.put(cacheKey, JSON.stringify(data), { expirationTtl: 3600 }) } catch {}
+    try { await c.env.CACHE.put(cacheKey, JSON.stringify(data), { expirationTtl: 3600 }) } catch { /* 缓存写入失败不影响响应 */ }
     return c.json({ success: true, data })
   } catch (e) {
     return c.json({ success: false, error: (e as Error).message }, 500)

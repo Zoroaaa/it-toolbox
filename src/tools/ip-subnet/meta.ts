@@ -8,5 +8,5 @@ export const meta: ToolMeta = {
   category: 'network',
   tags: ['ip', '子网', '网络'],
   keywords: ['ip', 'subnet', 'cidr', '子网'],
-  icon: 'network',
+  icon: 'Network',
 }

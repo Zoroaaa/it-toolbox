@@ -45,7 +45,7 @@ export default function JSFormatter() {
       if (mode === 'minify') {
         // For JS minify: remove comments and collapse whitespace (basic)
         // Real minification needs terser which is CF-incompatible; do safe collapse
-        let minified = input
+        const minified = input
           .replace(/\/\/[^\n]*/g, '')
           .replace(/\/\*[\s\S]*?\*\//g, '')
           .replace(/\s*\n\s*/g, ' ')
