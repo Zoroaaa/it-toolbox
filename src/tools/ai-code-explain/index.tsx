@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Sparkles, AlertCircle } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
+import { callAi } from '@/lib/ai'
 
 const LANGUAGES = ['auto', 'javascript', 'typescript', 'python', 'go', 'rust', 'java', 'c', 'cpp', 'sql', 'bash', 'css', 'html']
 const LANG_LABELS: Record<string, string> = {
@@ -22,17 +23,12 @@ export default function AiCodeExplain() {
     if (code.length > 4000) { setError('代码超过 4000 字符限制'); return }
     setLoading(true); setError(''); setExplanation('')
     try {
-      const res = await fetch('/api/ai/explain', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, language: language === 'auto' ? undefined : language }),
+      const ai = await callAi<{ explanation: string }>('explain', {
+        code,
+        language: language === 'auto' ? undefined : language,
       })
-      const json = await res.json() as { success: boolean; data?: { explanation: string }; error?: string }
-      if (json.success && json.data) {
-        setExplanation(json.data.explanation)
-      } else {
-        setError(json.error ?? 'AI 请求失败')
-      }
+      if (ai.ok) setExplanation(ai.data.explanation)
+      else setError(ai.error)
     } catch (e) {
       setError('网络错误：' + (e as Error).message)
     } finally {

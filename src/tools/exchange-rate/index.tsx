@@ -222,13 +222,7 @@ export default function ExchangeRate() {
                   <div
                     key={code}
                     className="bg-bg-raised border border-border-base rounded-lg p-3 cursor-pointer hover:border-accent transition-colors"
-                    onClick={() => {
-                      if (fromCurrency !== 'USD') {
-                        setToCurrency(code)
-                      } else {
-                        setToCurrency(code)
-                      }
-                    }}
+                    onClick={() => setToCurrency(code)}
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs text-text-muted">{code}</span>

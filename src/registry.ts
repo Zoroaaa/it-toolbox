@@ -1567,18 +1567,6 @@ export const toolRegistry: ToolMeta[] = [
     isNew: true,
   },
   {
-    id: 'webhook-test',
-    name: 'Webhook 测试',
-    nameEn: 'Webhook Tester',
-    description: '生成临时端点，接收并展示请求',
-    category: 'network',
-    tags: ['webhook', 'test', 'api', 'debug', 'http'],
-    keywords: ['Webhook', '测试', 'API', '调试'],
-    icon: 'Webhook',
-    requiresApi: true,
-    isNew: true,
-  },
-  {
     id: 'batch-process',
     name: '批量处理模式',
     nameEn: 'Batch Process Mode',

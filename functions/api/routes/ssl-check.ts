@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import type { Env } from '../../types'
+import { validatePublicUrl } from '../../lib/ssrf'
 
 export const sslCheckRoute = new Hono<{ Bindings: Env }>()
 
@@ -38,6 +39,11 @@ sslCheckRoute.get('/', async (c) => {
   }
 
   const cleanDomain = domain.trim().toLowerCase().replace(/^https?:\/\//, '').split('/')[0]
+
+  const target = validatePublicUrl(`https://${cleanDomain}`)
+  if (!target.ok) {
+    return c.json({ error: target.error }, 400)
+  }
 
   const cacheKey = `cache:ssl:${cleanDomain}`
   try {
@@ -129,7 +135,6 @@ sslCheckRoute.get('/', async (c) => {
           result.sans = [cleanDomain, ...Array.from(allSans).slice(0, 9)]
 
           result.source = 'crt.sh (Certificate Transparency)'
-          result.signatureAlgorithm = 'SHA-256 with RSA'
         }
       }
     } catch (crtShError) {
@@ -143,9 +148,9 @@ sslCheckRoute.get('/', async (c) => {
           redirect: 'follow',
         })
 
-        result.valid = true
-        result.source = '直接连接验证（证书详情不可用）'
-        result.error = '无法从证书透明度日志获取详细信息，但证书有效'
+        result.valid = false
+        result.source = '直接连接（未验证证书链）'
+        result.error = '仅确认域名可连接，未能获取证书详情，无法判定证书有效性'
 
         const cfTlsCipher = c.req.raw.cf?.tlsCipher as string | undefined
         if (cfTlsCipher) {

@@ -10,6 +10,9 @@ import {
   parseDuration,
   humanizeDuration,
   generateCalendar,
+  getTimeZoneOffset,
+  zonedWallTimeToUtc,
+  formatInTimeZone,
 } from '@core/datetime'
 
 const ok = <T,>(r: { ok: true; value: T } | { ok: false; error: string }): T => {
@@ -110,6 +113,31 @@ describe('时长格式化', () => {
     [31536000, '1 年'],
   ])('humanizeDuration(%i)', (seconds, expected) => {
     expect(humanizeDuration(seconds)).toBe(expected)
+  })
+})
+
+describe('时区换算', () => {
+  it('北京时间 08:00 对应 UTC 00:00', () => {
+    const instant = zonedWallTimeToUtc('2026-01-01T08:00', 'Asia/Shanghai')
+    expect(instant.toISOString()).toBe('2026-01-01T00:00:00.000Z')
+  })
+
+  it('纽约冬令时偏移 -5 小时，夏令时 -4 小时', () => {
+    const winter = getTimeZoneOffset(new Date('2026-01-15T12:00:00Z'), 'America/New_York')
+    const summer = getTimeZoneOffset(new Date('2026-07-15T12:00:00Z'), 'America/New_York')
+    expect(winter).toBe(-5 * 3600 * 1000)
+    expect(summer).toBe(-4 * 3600 * 1000)
+  })
+
+  it('夏令时切换当天仍能换算', () => {
+    const instant = zonedWallTimeToUtc('2026-03-08T12:00', 'America/New_York')
+    expect(formatInTimeZone(instant, 'America/New_York')).toContain('12:00')
+  })
+
+  it('目标时区格式化', () => {
+    const instant = new Date('2026-01-01T00:00:00Z')
+    expect(formatInTimeZone(instant, 'Asia/Shanghai')).toContain('08:00')
+    expect(formatInTimeZone(instant, 'UTC')).toContain('00:00')
   })
 })
 

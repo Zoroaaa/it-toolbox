@@ -3,6 +3,7 @@ import { Copy, Check, AlertCircle, Sparkles } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { useClipboard } from '@/hooks/useClipboard'
 import { meta } from './meta'
+import { callAi } from '@/lib/ai'
 
 interface ExtractResult {
   data: Record<string, unknown>
@@ -23,17 +24,9 @@ export default function AiTextExtract() {
     setError('')
     setResult(null)
     try {
-      const res = await fetch('/api/ai/extract', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, fields: fields || undefined }),
-      })
-      const json = await res.json() as { success: boolean; data?: ExtractResult; error?: string }
-      if (json.success && json.data) {
-        setResult(json.data)
-      } else {
-        setError(json.error ?? 'AI 请求失败')
-      }
+      const ai = await callAi<ExtractResult>('extract', { text, fields: fields || undefined })
+      if (ai.ok) setResult(ai.data)
+      else setError(ai.error)
     } catch (e) {
       setError('网络错误：' + (e as Error).message)
     } finally {

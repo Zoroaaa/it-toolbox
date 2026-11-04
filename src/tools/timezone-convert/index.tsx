@@ -1,28 +1,31 @@
 import { useState, useMemo } from 'react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
-import { TIMEZONES } from '@it-toolbox/core'
+import { TIMEZONES, formatInTimeZone, zonedWallTimeToUtc } from '@it-toolbox/core'
 
 export default function TimezoneConvertTool() {
   const [inputTime, setInputTime] = useState(new Date().toISOString().slice(0, 16))
   const [sourceTz, setSourceTz] = useState('Asia/Shanghai')
   const [targetTz, setTargetTz] = useState('America/New_York')
 
-  const convertedTimes = useMemo(() => {
-    const date = new Date(inputTime)
-    return TIMEZONES.map((tz) => ({
-      ...tz,
-      time: date.toLocaleString('zh-CN', { timeZone: tz.value, hour12: false }),
-    }))
-  }, [inputTime])
+  const instant = useMemo(() => zonedWallTimeToUtc(inputTime, sourceTz), [inputTime, sourceTz])
 
-  const selectedResult = useMemo(() => {
-    const date = new Date(inputTime)
-    return {
-      source: date.toLocaleString('zh-CN', { timeZone: sourceTz, hour12: false }),
-      target: date.toLocaleString('zh-CN', { timeZone: targetTz, hour12: false }),
-    }
-  }, [inputTime, sourceTz, targetTz])
+  const convertedTimes = useMemo(
+    () =>
+      TIMEZONES.map((tz) => ({
+        ...tz,
+        time: formatInTimeZone(instant, tz.value),
+      })),
+    [instant],
+  )
+
+  const selectedResult = useMemo(
+    () => ({
+      source: formatInTimeZone(instant, sourceTz),
+      target: formatInTimeZone(instant, targetTz),
+    }),
+    [instant, sourceTz, targetTz],
+  )
 
   const reset = () => {
     setInputTime(new Date().toISOString().slice(0, 16))

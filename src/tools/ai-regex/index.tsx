@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Sparkles, Copy, Check, AlertCircle, Play } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { useClipboard } from '@/hooks/useClipboard'
 import { meta } from './meta'
+import { callAi } from '@/lib/ai'
 
 interface RegexResult {
   pattern: string
@@ -22,17 +23,9 @@ export default function AiRegexGenerator() {
     if (!description.trim()) return
     setLoading(true); setError(''); setResult(null)
     try {
-      const res = await fetch('/api/ai/regex', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description }),
-      })
-      const json = await res.json() as { success: boolean; data?: RegexResult; error?: string }
-      if (json.success && json.data) {
-        setResult(json.data)
-      } else {
-        setError(json.error ?? 'AI 请求失败')
-      }
+      const ai = await callAi<RegexResult>('regex', { description })
+      if (ai.ok) setResult(ai.data)
+      else setError(ai.error)
     } catch (e) {
       setError('网络错误：' + (e as Error).message)
     } finally {
@@ -40,14 +33,43 @@ export default function AiRegexGenerator() {
     }
   }
 
-  const regex = result ? new RegExp(result.pattern, result.flags) : null
-  const matches = regex && testInput ? [...testInput.matchAll(new RegExp(result!.pattern, result!.flags + (result!.flags.includes('g') ? '' : 'g')))] : []
-  const fullPattern = result ? `/${result.pattern}/${result.flags}` : ''
+  const compiled = useMemo(() => {
+    if (!result) return { regex: null as RegExp | null, error: '' }
+    if (!result.pattern || result.pattern.length > 500) {
+      return { regex: null, error: 'AI 返回的正则为空或过长（上限 500 字符）' }
+    }
+    try {
+      const flags = result.flags.replace(/[^dgimsuvy]/g, '')
+      return { regex: new RegExp(result.pattern, flags.includes('g') ? flags : `${flags}g`), error: '' }
+    } catch {
+      return { regex: null, error: 'AI 返回的正则表达式无法解析' }
+    }
+  }, [result])
 
-  const highlighted = regex && testInput
-    ? testInput.replace(new RegExp(result!.pattern, result!.flags.includes('g') ? result!.flags : result!.flags + 'g'), match =>
-        `<mark class="bg-accent/30 text-text-primary rounded px-0.5">${match}</mark>`)
-    : testInput
+  const matches = useMemo(() => {
+    if (!compiled.regex || !testInput) return [] as RegExpMatchArray[]
+    try {
+      return [...testInput.matchAll(compiled.regex)]
+    } catch {
+      return []
+    }
+  }, [compiled, testInput])
+
+  const segments = useMemo(() => {
+    if (!matches.length) return [{ text: testInput, hit: false }]
+    const parts: Array<{ text: string; hit: boolean }> = []
+    let cursor = 0
+    for (const match of matches) {
+      const start = match.index ?? 0
+      if (start > cursor) parts.push({ text: testInput.slice(cursor, start), hit: false })
+      parts.push({ text: match[0], hit: true })
+      cursor = start + match[0].length
+    }
+    if (cursor < testInput.length) parts.push({ text: testInput.slice(cursor), hit: false })
+    return parts
+  }, [matches, testInput])
+
+  const fullPattern = result ? `/${result.pattern}/${result.flags}` : ''
 
   const examples = [
     '匹配中国大陆手机号',
@@ -92,6 +114,12 @@ export default function AiRegexGenerator() {
           </div>
         )}
 
+        {compiled.error && (
+          <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 flex gap-2 text-xs text-rose-400">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />{compiled.error}
+          </div>
+        )}
+
         {result && (
           <>
             <div className="bg-bg-surface rounded-lg border border-border-base p-4 flex flex-col gap-3">
@@ -127,8 +155,17 @@ export default function AiRegexGenerator() {
                 spellCheck={false}
               />
               {testInput && (
-                <div className="bg-bg-raised rounded-lg border border-border-base p-3 text-sm font-mono text-text-primary leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: highlighted }} />
+                <div className="bg-bg-raised rounded-lg border border-border-base p-3 text-sm font-mono text-text-primary leading-relaxed whitespace-pre-wrap break-all">
+                  {segments.map((segment, index) =>
+                    segment.hit ? (
+                      <mark key={index} className="bg-accent/30 text-text-primary rounded px-0.5">
+                        {segment.text}
+                      </mark>
+                    ) : (
+                      <span key={index}>{segment.text}</span>
+                    ),
+                  )}
+                </div>
               )}
             </div>
           </>

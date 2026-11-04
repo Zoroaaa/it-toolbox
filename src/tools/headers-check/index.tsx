@@ -43,10 +43,11 @@ export default function HeadersCheck() {
     setResult(null)
 
     try {
-      let cleanUrl = url.trim().toLowerCase()
-      if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
-        cleanUrl = 'https://' + cleanUrl
-      }
+      const raw = url.trim()
+      const parsed = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`)
+      parsed.protocol = parsed.protocol.toLowerCase()
+      parsed.hostname = parsed.hostname.toLowerCase()
+      const cleanUrl = parsed.toString()
 
       const response = await fetch(`/api/headers-check?url=${encodeURIComponent(cleanUrl)}`)
       const data = await response.json()

@@ -88,7 +88,7 @@ function floatToBinary(num: number, precision: Precision): FloatComponents | nul
         mantissaValue: 0,
         actualExponent: 0,
         isDenormalized: false,
-        isInfinity: false,
+        isInfinity: true,
         isNaN: false,
         decimalValue: num,
         hexValue: sign === 0 ? '0x7FF0000000000000' : '0xFFF0000000000000',

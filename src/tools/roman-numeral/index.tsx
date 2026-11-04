@@ -3,6 +3,7 @@ import { ArrowLeftRight, Copy, Check } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { useClipboard } from '@/hooks/useClipboard'
 import { meta } from './meta'
+import { toRoman as toRomanCore, fromRoman as fromRomanCore } from '@core/number'
 
 const ROMAN_NUMERALS: [string, number][] = [
   ['M', 1000],
@@ -21,39 +22,13 @@ const ROMAN_NUMERALS: [string, number][] = [
 ]
 
 function toRoman(num: number): string {
-  if (num < 1 || num > 3999999) return '超出范围'
-  
-  let result = ''
-  let remaining = num
-  
-  for (const [symbol, value] of ROMAN_NUMERALS) {
-    while (remaining >= value) {
-      result += symbol
-      remaining -= value
-    }
-  }
-  
-  return result || 'N'
+  const result = toRomanCore(num)
+  return result.ok ? result.value : '超出范围'
 }
 
 function fromRoman(roman: string): number | null {
-  const romanUpper = roman.toUpperCase()
-  let result = 0
-  
-  for (let i = 0; i < romanUpper.length; i++) {
-    const currentVal = ROMAN_NUMERALS.find(([s]) => s === romanUpper[i])?.[1]
-    if (!currentVal) return null
-    
-    const nextVal = ROMAN_NUMERALS.find(([s]) => i + 1 < romanUpper.length && s === romanUpper[i + 1])?.[1]
-    
-    if (nextVal && currentVal < nextVal) {
-      return null
-    }
-    
-    result += currentVal
-  }
-  
-  return result
+  const result = fromRomanCore(roman)
+  return result.ok ? result.value : null
 }
 
 export default function RomanNumeralConverter() {

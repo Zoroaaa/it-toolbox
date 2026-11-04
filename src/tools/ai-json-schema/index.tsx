@@ -3,6 +3,7 @@ import { Sparkles, Copy, Check, AlertCircle, FileJson } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { useClipboard } from '@/hooks/useClipboard'
 import { meta } from './meta'
+import { callAi } from '@/lib/ai'
 
 interface SchemaResult {
   schema: string
@@ -37,18 +38,10 @@ export default function AiJsonSchema() {
     }
     
     try {
-      const res = await fetch('/api/ai/json-schema', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ json: jsonInput }),
-      })
-      const json = await res.json() as { success: boolean; data?: SchemaResult; error?: string }
-      
-      if (json.success && json.data) {
-        setResult(json.data)
-      } else {
-        setError(json.error ?? 'AI请求失败')
-      }
+      const ai = await callAi<SchemaResult>('json-schema', { json: jsonInput })
+
+      if (ai.ok) setResult(ai.data)
+      else setError(ai.error)
     } catch (e) {
       setError('网络错误：' + (e as Error).message)
     } finally {

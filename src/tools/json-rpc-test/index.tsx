@@ -71,19 +71,16 @@ export default function JsonRpcTest() {
           body: JSON.stringify(request),
         }),
       })
-      const json = (await res.json()) as { success: boolean; data?: JsonRpcResponse; error?: string }
-      if (json.success && json.data) {
-        setResponse(json.data)
-        setHistory(prev => [{
-          id: Date.now().toString(),
-          timestamp: Date.now(),
-          url,
-          request,
-          response: json.data!,
-          error: null,
-        }, ...prev].slice(0, 20))
-      } else {
-        const errorMsg = json.error ?? '请求失败'
+      const json = (await res.json()) as {
+        success: boolean
+        status?: number
+        statusText?: string
+        body?: string
+        error?: string
+      }
+
+      if (!res.ok || !json.success) {
+        const errorMsg = json.error ?? `请求失败${json.status ? `（HTTP ${json.status}）` : ''}`
         setError(errorMsg)
         setHistory(prev => [{
           id: Date.now().toString(),
@@ -93,7 +90,29 @@ export default function JsonRpcTest() {
           response: null,
           error: errorMsg,
         }, ...prev].slice(0, 20))
+        return
       }
+
+      let rpcResponse: JsonRpcResponse
+      try {
+        rpcResponse = JSON.parse(json.body ?? '') as JsonRpcResponse
+      } catch {
+        const errorMsg = `响应不是合法 JSON（HTTP ${json.status}）`
+        setError(errorMsg)
+        return
+      }
+
+      setResponse(rpcResponse)
+      setHistory(prev => [{
+        id: Date.now().toString(),
+        timestamp: Date.now(),
+        url,
+        request,
+        response: rpcResponse,
+        error: rpcResponse.error ? rpcResponse.error.message : null,
+      }, ...prev].slice(0, 20))
+
+      if (rpcResponse.error) setError(`JSON-RPC 错误 ${rpcResponse.error.code}：${rpcResponse.error.message}`)
     } catch (e) {
       const errorMsg = '网络错误：' + (e as Error).message
       setError(errorMsg)

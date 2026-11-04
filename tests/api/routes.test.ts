@@ -172,6 +172,120 @@ describe('汇率接口', () => {
   })
 })
 
+describe('WHOIS / RDAP 接口', () => {
+  it('非法域名返回 400', async () => {
+    const res = await app.request('/api/whois?domain=not%20a%20domain!', {}, env)
+    expect(res.status).toBe(400)
+  })
+
+  it('RDAP 域名查询映射注册信息', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        new Response(
+          JSON.stringify({
+            ldhName: 'example.com',
+            status: ['client transfer prohibited'],
+            events: [
+              { eventAction: 'registration', eventDate: '1995-08-14T04:00:00Z' },
+              { eventAction: 'expiration', eventDate: '2026-08-13T04:00:00Z' },
+            ],
+            nameservers: [{ ldhName: 'a.iana-servers.net' }],
+            entities: [
+              {
+                roles: ['registrar'],
+                vcardArray: ['vcard', [['fn', {}, 'text', 'RESERVED-Internet Assigned Numbers Authority']]],
+              },
+              {
+                roles: ['registrant'],
+                vcardArray: ['vcard', [['org', {}, 'text', 'Example Org']]],
+              },
+            ],
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/rdap+json' } },
+        ),
+      ),
+    )
+
+    const body = await json(await app.request('/api/whois?domain=example.com', {}, env))
+    expect(body).toMatchObject({
+      mode: 'domain',
+      domain: 'example.com',
+      registrar: 'RESERVED-Internet Assigned Numbers Authority',
+      createdDate: '1995-08-14',
+      expiryDate: '2026-08-13',
+      source: 'RDAP',
+    })
+    expect((body.nameservers as string[])[0]).toBe('a.iana-servers.net')
+    expect((body.registrant as { organization: string }).organization).toBe('Example Org')
+  })
+
+  it('RDAP 404 返回未找到', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('not found', { status: 404 })))
+    const res = await app.request('/api/whois?domain=unregistered-example.com', {}, env)
+    expect(res.status).toBe(404)
+    expect(String((await json(res)).error)).toContain('未找到')
+  })
+
+  it('IP 输入走归属地模式', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        new Response(
+          JSON.stringify({
+            status: 'success',
+            query: '8.8.8.8',
+            country: 'United States',
+            regionName: 'California',
+            city: 'Mountain View',
+            isp: 'Google LLC',
+            as: 'AS15169 Google LLC',
+          }),
+          { status: 200 },
+        ),
+      ),
+    )
+    const body = await json(await app.request('/api/whois?domain=8.8.8.8', {}, env))
+    expect(body).toMatchObject({ mode: 'ip', ip: '8.8.8.8', country: 'United States', isp: 'Google LLC' })
+  })
+})
+
+describe('代理 SSRF 防护', () => {
+  it.each([
+    'http://127.0.0.1/admin',
+    'http://localhost:8080/',
+    'http://10.0.0.5/',
+    'http://192.168.1.1/',
+    'http://169.254.169.254/latest/meta-data/',
+    'http://[::1]/',
+  ])('拒绝内网地址 %s', async (url) => {
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+    const res = await app.request('/api/proxy', { method: 'POST', body: JSON.stringify({ url }) }, env)
+    expect(res.status).toBe(400)
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('最多跟随 2 次重定向', async () => {
+    let calls = 0
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        calls += 1
+        return new Response(null, { status: 302, headers: { location: 'https://example.com/next' } })
+      }),
+    )
+    const res = await app.request(
+      '/api/proxy',
+      { method: 'POST', body: JSON.stringify({ url: 'https://example.com/start' }) },
+      env,
+    )
+    expect(res.status).toBe(400)
+    expect(String((await json(res)).error)).toContain('Too many redirects')
+    expect(calls).toBe(3)
+  })
+})
+
 describe('AI 接口契约', () => {
   it('explain 缺少 code 返回 400', async () => {
     const res = await app.request('/api/ai/explain', { method: 'POST', body: '{}' }, env)

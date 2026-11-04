@@ -3,6 +3,8 @@ import { Copy } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { useClipboard } from '@/hooks/useClipboard'
 import { meta } from './meta'
+import { md5 } from '@core/crypto'
+import { encodeBase64 } from '@core/encoding'
 
 type TransformFn = (input: string) => string
 
@@ -11,16 +13,16 @@ const transforms: Array<{ id: string; name: string; fn: TransformFn }> = [
   { id: 'upper', name: '大写', fn: s => s.toUpperCase() },
   { id: 'capitalize', name: '首字母大写', fn: s => s.replace(/\b\w/g, c => c.toUpperCase()) },
   { id: 'reverse', name: '反转', fn: s => s.split('').reverse().join('') },
-  { id: 'base64-encode', name: 'Base64 编码', fn: s => btoa(unescape(encodeURIComponent(s))) },
+  { id: 'base64-encode', name: 'Base64 编码', fn: s => {
+    const result = encodeBase64(s)
+    return result.ok ? result.value : ''
+  }},
   { id: 'url-encode', name: 'URL 编码', fn: s => encodeURIComponent(s) },
   { id: 'html-encode', name: 'HTML 实体', fn: s => s.replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`) },
   { id: 'json-stringify', name: 'JSON 字符串化', fn: s => JSON.stringify(s) },
   { id: 'md5', name: 'MD5 哈希', fn: s => {
-    let h = 0
-    for (let i = 0; i < s.length; i++) {
-      h = ((h << 5) - h + s.charCodeAt(i)) | 0
-    }
-    return Math.abs(h).toString(16).padStart(8, '0')
+    const result = md5(s)
+    return result.ok ? result.value : ''
   }},
   { id: 'length', name: '字符数', fn: s => String(s.length) },
   { id: 'words', name: '单词数', fn: s => String(s.trim().split(/\s+/).filter(Boolean).length) },

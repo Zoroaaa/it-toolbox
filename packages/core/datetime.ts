@@ -164,8 +164,7 @@ export interface CalendarDay {
   isWeekend: boolean
 }
 
-export function generateCalendar(year: number, month: number): CalendarDay[][] {
-  const firstDay = new Date(year, month, 1)
+export function generateCalendar(year: number, month: number): CalendarDay[][] {  const firstDay = new Date(year, month, 1)
   const lastDay = new Date(year, month + 1, 0)
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -214,4 +213,55 @@ export function generateCalendar(year: number, month: number): CalendarDay[][] {
   }
   
   return weeks
+}
+
+/** 取指定时区在某一时刻相对 UTC 的偏移（毫秒） */
+export function getTimeZoneOffset(date: Date, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hour12: false,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).formatToParts(date)
+
+  const map: Record<string, string> = {}
+  for (const part of parts) {
+    if (part.type !== 'literal') map[part.type] = part.value
+  }
+
+  const hour = map.hour === '24' ? '00' : map.hour
+  const asUtc = Date.UTC(
+    Number(map.year),
+    Number(map.month) - 1,
+    Number(map.day),
+    Number(hour),
+    Number(map.minute),
+    Number(map.second),
+  )
+  return asUtc - date.getTime()
+}
+
+/**
+ * 把「某时区的墙上时间」转成真实时刻。
+ * 输入格式：YYYY-MM-DDTHH:mm；两轮偏移计算以覆盖夏令时切换。
+ */
+export function zonedWallTimeToUtc(local: string, timeZone: string): Date {
+  const [datePart, timePart = '00:00'] = local.split('T')
+  const [year, month, day] = datePart.split('-').map(Number)
+  const [hour, minute] = timePart.split(':').map(Number)
+  const wallAsUtc = Date.UTC(year, month - 1, day, hour, minute)
+
+  const firstOffset = getTimeZoneOffset(new Date(wallAsUtc), timeZone)
+  const firstGuess = wallAsUtc - firstOffset
+  const secondOffset = getTimeZoneOffset(new Date(firstGuess), timeZone)
+  return new Date(wallAsUtc - secondOffset)
+}
+
+/** 按目标时区格式化某一时刻 */
+export function formatInTimeZone(date: Date, timeZone: string, locale = 'zh-CN'): string {
+  return date.toLocaleString(locale, { timeZone, hour12: false })
 }

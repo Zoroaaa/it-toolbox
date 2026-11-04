@@ -104,11 +104,37 @@ describe('Markdown 净化', () => {
   })
 
   it('移除内联事件', () => {
-    expect(sanitizeMarkdownHtml('<img src=x onerror="alert(1)">')).toBe('<img src=x >')
-    expect(sanitizeMarkdownHtml("<img src=x onerror='alert(1)'>")).toBe('<img src=x >')
+    expect(sanitizeMarkdownHtml('<img src="x" onerror="alert(1)">')).not.toContain('onerror')
+    expect(sanitizeMarkdownHtml('<div onclick="alert(1)">x</div>')).not.toContain('onclick')
   })
 
-  it('保留正常内容', () => {
-    expect(sanitizeMarkdownHtml('<h1>标题</h1><p>正文</p>')).toBe('<h1>标题</h1><p>正文</p>')
+  it.each([
+    '<iframe src="https://evil.com"></iframe>',
+    '<object data="x"></object>',
+    '<embed src="x">',
+    '<style>body{display:none}</style>',
+  ])('移除危险标签：%s', (payload) => {
+    const result = sanitizeMarkdownHtml(`<p>safe</p>${payload}`)
+    expect(result).toBe('<p>safe</p>')
+  })
+
+  it('拦截 javascript: 协议', () => {
+    expect(sanitizeMarkdownHtml('<a href="javascript:alert(1)">x</a>')).not.toContain('javascript:')
+    expect(sanitizeMarkdownHtml('<img src="javascript:alert(1)">')).not.toContain('javascript:')
+  })
+
+  it('保留安全链接并补 rel', () => {
+    const result = sanitizeMarkdownHtml('<a href="https://example.com" title="t">link</a>')
+    expect(result).toContain('href="https://example.com"')
+    expect(result).toContain('rel="noopener noreferrer"')
+  })
+
+  it('保留正常内容与表格结构', () => {
+    const html = '<h1>标题</h1><table><thead><tr><th>a</th></tr></thead><tbody><tr><td>1</td></tr></tbody></table>'
+    expect(sanitizeMarkdownHtml(html)).toBe(html)
+  })
+
+  it('未知标签保留文字', () => {
+    expect(sanitizeMarkdownHtml('<p>a<custom>b</custom>c</p>')).toBe('<p>abc</p>')
   })
 })

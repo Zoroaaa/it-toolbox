@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import type { Env } from '../../types'
+import { validatePublicUrl } from '../../lib/ssrf'
 
 export const headersCheckRoute = new Hono<{ Bindings: Env }>()
 
@@ -85,15 +86,20 @@ headersCheckRoute.get('/', async (c) => {
     return c.json({ error: 'url is required' }, 400)
   }
 
-  let cleanUrl = url.trim().toLowerCase()
-  if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
-    cleanUrl = 'https://' + cleanUrl
-  }
-
+  let cleanUrl: string
   try {
-    new URL(cleanUrl)
+    const raw = url.trim()
+    const parsed = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`)
+    parsed.protocol = parsed.protocol.toLowerCase()
+    parsed.hostname = parsed.hostname.toLowerCase()
+    cleanUrl = parsed.toString()
   } catch {
     return c.json({ error: 'Invalid URL' }, 400)
+  }
+
+  const target = validatePublicUrl(cleanUrl)
+  if (!target.ok) {
+    return c.json({ error: target.error }, 400)
   }
 
   const cacheKey = `cache:headers:${cleanUrl}`

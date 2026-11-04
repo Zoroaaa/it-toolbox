@@ -155,7 +155,16 @@
       "nameservers": "Nameservers",
       "status": "Domain Status",
       "rawData": "Raw Data",
-      "placeholderText": "Enter domain to lookup WHOIS information"
+      "placeholderText": "Enter a domain or IP to look up registration info",
+      "source": "Source",
+      "ip": "IP Address",
+      "country": "Country",
+      "region": "Region",
+      "city": "City",
+      "isp": "ISP",
+      "asn": "ASN",
+      "modeDomain": "Domain registration (RDAP)",
+      "modeIp": "IP geolocation"
     },
     "ssl-checker": {
       "name": "SSL Certificate Checker",

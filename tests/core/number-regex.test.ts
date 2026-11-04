@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { convertNumberBase, convertBase } from '@core/number'
+import { convertNumberBase, convertBase, toRoman, fromRoman } from '@core/number'
 import { testRegex } from '@core/regex'
 
 const ok = <T,>(r: { ok: true; value: T } | { ok: false; error: string }): T => {
@@ -32,6 +32,50 @@ describe('进制转换', () => {
 
   it('convertBase 非法输入', () => {
     expect(convertBase('zz', 16, 2).ok).toBe(false)
+  })
+})
+
+describe('罗马数字', () => {
+  it.each([
+    [1, 'I'],
+    [4, 'IV'],
+    [9, 'IX'],
+    [14, 'XIV'],
+    [40, 'XL'],
+    [90, 'XC'],
+    [400, 'CD'],
+    [900, 'CM'],
+    [1994, 'MCMXCIV'],
+    [3999, 'MMMCMXCIX'],
+  ])('toRoman(%i) = %s', (num, expected) => {
+    expect(ok(toRoman(num))).toBe(expected)
+  })
+
+  it.each([
+    ['I', 1],
+    ['IV', 4],
+    ['IX', 9],
+    ['XL', 40],
+    ['XC', 90],
+    ['CD', 400],
+    ['CM', 900],
+    ['MCMXCIV', 1994],
+  ])('fromRoman(%s) = %i', (roman, expected) => {
+    expect(ok(fromRoman(roman))).toBe(expected)
+  })
+
+  it('大小写与空白不敏感', () => {
+    expect(ok(fromRoman('  mcmxciv '))).toBe(1994)
+  })
+
+  it.each(['IIII', 'IC', 'VX', 'ABC', ''])('非法写法 %s 返回错误', (roman) => {
+    expect(fromRoman(roman).ok).toBe(false)
+  })
+
+  it('toRoman 越界返回错误', () => {
+    expect(toRoman(0).ok).toBe(false)
+    expect(toRoman(4000000).ok).toBe(false)
+    expect(toRoman(1.5).ok).toBe(false)
   })
 })
 

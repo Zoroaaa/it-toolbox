@@ -3,6 +3,7 @@ import { Copy, Check, AlertCircle, Sparkles, Plus, Minus } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { useClipboard } from '@/hooks/useClipboard'
 import { meta } from './meta'
+import { callAi } from '@/lib/ai'
 
 interface MockResult {
   data: unknown
@@ -23,17 +24,9 @@ export default function AiMockData() {
     setError('')
     setResult(null)
     try {
-      const res = await fetch('/api/ai/mock-data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description, count }),
-      })
-      const json = await res.json() as { success: boolean; data?: MockResult; error?: string }
-      if (json.success && json.data) {
-        setResult(json.data)
-      } else {
-        setError(json.error ?? 'AI 请求失败')
-      }
+      const ai = await callAi<MockResult>('mock-data', { description, count })
+      if (ai.ok) setResult(ai.data)
+      else setError(ai.error)
     } catch (e) {
       setError('网络错误：' + (e as Error).message)
     } finally {

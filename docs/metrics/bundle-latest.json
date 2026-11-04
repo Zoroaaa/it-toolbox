@@ -1,19 +1,19 @@
 {
-  "generatedAt": "2026-11-04T08:54:47.985Z",
+  "generatedAt": "2026-11-04T09:12:39.040Z",
   "totals": {
-    "jsFiles": 171,
-    "jsRawKB": 7844,
-    "jsGzipKB": 2497
+    "jsFiles": 173,
+    "jsRawKB": 7847,
+    "jsGzipKB": 2498
   },
   "firstScreen": {
     "files": [
-      "assets/index-CxmCz1BO.js",
+      "assets/index-DJxpny5c.js",
       "assets/react-vendor-DOtNnIzJ.js",
       "assets/text-vendor-BOoqP6jN.js",
       "assets/icons-vendor-BN6EH-A_.js",
-      "assets/index-ClA2sTiY.css"
+      "assets/index-dkEw_VmX.css"
     ],
-    "rawKB": 1417,
+    "rawKB": 1418,
     "gzipKB": 321
   },
   "toolChunks": {
@@ -52,7 +52,7 @@
       "gzip": 159.8
     },
     {
-      "file": "index-BWtyiGjC.js",
+      "file": "index-LX3LZupV.js",
       "raw": 515.8,
       "gzip": 141.6
     },

@@ -3,6 +3,7 @@ import { Bug, Copy, Check, AlertCircle, Sparkles, Lightbulb, Wrench } from 'luci
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { useClipboard } from '@/hooks/useClipboard'
 import { meta } from './meta'
+import { callAi } from '@/lib/ai'
 
 interface ErrorResult {
   cause: string
@@ -25,17 +26,9 @@ export default function AiErrorExplain() {
     setError('')
     setResult(null)
     try {
-      const res = await fetch('/api/ai/error-explain', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ error: errorText, context }),
-      })
-      const json = await res.json() as { success: boolean; data?: ErrorResult; error?: string }
-      if (json.success && json.data) {
-        setResult(json.data)
-      } else {
-        setError(json.error ?? 'AI 请求失败')
-      }
+      const ai = await callAi<ErrorResult>('error-explain', { errorText, context })
+      if (ai.ok) setResult(ai.data)
+      else setError(ai.error)
     } catch (e) {
       setError('网络错误：' + (e as Error).message)
     } finally {

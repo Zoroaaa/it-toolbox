@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import type { Env } from '../../types'
+import { safeFetch, validatePublicUrl } from '../../lib/ssrf'
 
 export const proxyRoute = new Hono<{ Bindings: Env }>()
 
@@ -15,13 +16,9 @@ proxyRoute.post('/', async (c) => {
     return c.json({ success: false, error: 'URL is required' }, 400)
   }
 
-  try {
-    const urlObj = new URL(url)
-    if (!['http:', 'https:'].includes(urlObj.protocol)) {
-      return c.json({ success: false, error: 'Only HTTP/HTTPS URLs are allowed' }, 400)
-    }
-  } catch {
-    return c.json({ success: false, error: 'Invalid URL' }, 400)
+  const check = validatePublicUrl(url)
+  if (!check.ok) {
+    return c.json({ success: false, error: check.error }, 400)
   }
 
   try {
@@ -33,18 +30,21 @@ proxyRoute.post('/', async (c) => {
       }
     })
 
-    const res = await fetch(url, {
+    const safe = await safeFetch(url, {
       method: method || 'GET',
       headers: fetchHeaders,
       body: body && !['GET', 'HEAD'].includes(method?.toUpperCase() || '') ? body : undefined,
     })
 
+    if (!safe.ok) {
+      return c.json({ success: false, error: safe.error }, 400)
+    }
+
+    const { response: res, body: responseBody, truncated } = safe.result
     const responseHeaders: Record<string, string> = {}
     res.headers.forEach((value, key) => {
       responseHeaders[key] = value
     })
-
-    const responseBody = await res.text()
 
     return c.json({
       success: true,
@@ -52,6 +52,7 @@ proxyRoute.post('/', async (c) => {
       statusText: res.statusText,
       headers: responseHeaders,
       body: responseBody,
+      truncated,
     })
   } catch (e) {
     return c.json({ success: false, error: (e as Error).message }, 500)

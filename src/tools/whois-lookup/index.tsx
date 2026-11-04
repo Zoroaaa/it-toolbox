@@ -6,6 +6,7 @@ import { useAppStore } from '@/store/app'
 import { meta } from './meta'
 
 interface WhoisResult {
+  mode: 'domain' | 'ip'
   domain: string
   registrar?: string
   createdDate?: string
@@ -19,7 +20,14 @@ interface WhoisResult {
     country?: string
     email?: string
   }
+  ip?: string
+  country?: string
+  region?: string
+  city?: string
+  isp?: string
+  asn?: string
   raw?: string
+  source?: string
   error?: string
 }
 
@@ -44,9 +52,9 @@ export default function WhoisLookup() {
       
       const response = await fetch(`/api/whois?domain=${encodeURIComponent(cleanDomain)}`)
       const data = await response.json()
-      
-      if (data.error) {
-        setError(data.error)
+
+      if (!response.ok || data.error) {
+        setError(data.error ?? t('tools.whois-lookup.error'))
       } else {
         setResult(data)
       }
@@ -100,8 +108,32 @@ export default function WhoisLookup() {
             <div className="flex items-center gap-2">
               <Globe className="w-5 h-5 text-accent" />
               <span className="text-lg font-bold text-accent">{result.domain}</span>
+              <span className="ml-auto text-xs text-text-muted">
+                {result.mode === 'ip' ? t('tools.whois-lookup.modeIp') : t('tools.whois-lookup.modeDomain')}
+                {result.source ? ` · ${result.source}` : ''}
+              </span>
             </div>
           </div>
+
+          {result.mode === 'ip' && (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {[
+                { label: t('tools.whois-lookup.ip'), value: result.ip },
+                { label: t('tools.whois-lookup.country'), value: result.country },
+                { label: t('tools.whois-lookup.region'), value: result.region },
+                { label: t('tools.whois-lookup.city'), value: result.city },
+                { label: t('tools.whois-lookup.isp'), value: result.isp },
+                { label: t('tools.whois-lookup.asn'), value: result.asn },
+              ]
+                .filter((item) => item.value)
+                .map((item) => (
+                  <div key={item.label} className="p-3 rounded-lg bg-bg-surface border border-border-base">
+                    <div className="text-xs text-text-muted mb-1">{item.label}</div>
+                    <div className="text-sm font-mono text-text-primary break-all">{item.value}</div>
+                  </div>
+                ))}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {result.registrar && (

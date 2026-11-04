@@ -155,7 +155,16 @@
       "nameservers": "名称服务器",
       "status": "域名状态",
       "rawData": "原始数据",
-      "placeholderText": "输入域名查询WHOIS信息"
+      "placeholderText": "输入域名或 IP 查询注册信息",
+      "source": "数据源",
+      "ip": "IP 地址",
+      "country": "国家/地区",
+      "region": "省/州",
+      "city": "城市",
+      "isp": "运营商",
+      "asn": "ASN",
+      "modeDomain": "域名注册信息（RDAP）",
+      "modeIp": "IP 归属地"
     },
     "ssl-checker": {
       "name": "SSL证书检测",

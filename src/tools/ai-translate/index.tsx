@@ -3,6 +3,7 @@ import { Copy, Check, AlertCircle, Sparkles, ArrowRightLeft } from 'lucide-react
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { useClipboard } from '@/hooks/useClipboard'
 import { meta } from './meta'
+import { callAi } from '@/lib/ai'
 
 interface TranslateResult {
   translation: string
@@ -40,17 +41,9 @@ export default function AiTranslate() {
     setError('')
     setResult(null)
     try {
-      const res = await fetch('/api/ai/translate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, sourceLang, targetLang }),
-      })
-      const json = await res.json() as { success: boolean; data?: TranslateResult; error?: string }
-      if (json.success && json.data) {
-        setResult(json.data)
-      } else {
-        setError(json.error ?? 'AI 请求失败')
-      }
+      const ai = await callAi<TranslateResult>('translate', { text, sourceLang, targetLang })
+      if (ai.ok) setResult(ai.data)
+      else setError(ai.error)
     } catch (e) {
       setError('网络错误：' + (e as Error).message)
     } finally {

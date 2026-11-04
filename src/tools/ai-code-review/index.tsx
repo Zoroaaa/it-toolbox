@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Sparkles, AlertCircle, Shield, Zap, BookOpen, CheckCircle, XCircle, AlertTriangle } from 'lucide-react'
 import { ToolLayout } from '@/components/tool/ToolLayout'
 import { meta } from './meta'
+import { callAi } from '@/lib/ai'
 
 const LANGUAGES = ['auto', 'javascript', 'typescript', 'python', 'go', 'rust', 'java', 'c', 'cpp', 'sql', 'bash', 'css', 'html']
 const LANG_LABELS: Record<string, string> = {
@@ -44,16 +45,24 @@ export default function AiCodeReview() {
     setReview(null)
 
     try {
-      const res = await fetch('/api/ai/review', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, language: language === 'auto' ? undefined : language }),
+      const ai = await callAi<Partial<ReviewResult>>('review', {
+        code,
+        language: language === 'auto' ? undefined : language,
       })
-      const json = await res.json() as { success: boolean; data?: ReviewResult; error?: string }
-      if (json.success && json.data) {
-        setReview(json.data)
+      if (ai.ok) {
+        const section = (value: Partial<ReviewResult>['security']) => ({
+          score: Number(value?.score ?? 0),
+          issues: Array.isArray(value?.issues) ? value.issues : [],
+          suggestions: Array.isArray(value?.suggestions) ? value.suggestions : [],
+        })
+        setReview({
+          security: section(ai.data.security),
+          performance: section(ai.data.performance),
+          readability: section(ai.data.readability),
+          overall: typeof ai.data.overall === 'string' ? ai.data.overall : '',
+        })
       } else {
-        setError(json.error ?? 'AI 请求失败')
+        setError(ai.error)
       }
     } catch (e) {
       setError('网络错误：' + (e as Error).message)

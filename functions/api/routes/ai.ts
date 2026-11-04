@@ -4,6 +4,36 @@ import type { Env } from '../../types'
 export const aiRoute = new Hono<{ Bindings: Env }>()
 
 const MODEL = '@cf/meta/llama-3.1-8b-instruct' as const
+const AI_TIMEOUT_MS = 15000
+
+type AiMessage = { role: string; content: string }
+
+/** 统一 AI 调用：15s 超时、空响应兜底、异常转结构化错误 */
+async function runAiModel(env: Env, messages: AiMessage[]) {
+  let timer: ReturnType<typeof setTimeout> | undefined
+  try {
+    const timeout = new Promise<never>((_, reject) => {
+      timer = setTimeout(
+        () => reject(new Error(`AI 请求超时（${AI_TIMEOUT_MS / 1000}s）`)),
+        AI_TIMEOUT_MS,
+      )
+    })
+    const output = (await Promise.race([
+      env.AI.run(MODEL as keyof AiModels, { messages }),
+      timeout,
+    ])) as { response?: unknown }
+
+    if (typeof output?.response !== 'string' || !output.response.trim()) {
+      return { ok: false as const, error: 'AI 返回内容为空，请稍后重试' }
+    }
+    return { ok: true as const, value: output.response }
+  } catch (e) {
+    const message = (e as Error).message || 'AI 调用失败'
+    return { ok: false as const, error: message.includes('超时') ? message : `AI 调用失败：${message}` }
+  } finally {
+    if (timer) clearTimeout(timer)
+  }
+}
 
 aiRoute.post('/explain', async (c) => {
   const { code, language = 'unknown' } = await c.req.json<{ code: string; language?: string }>()
@@ -15,7 +45,9 @@ aiRoute.post('/explain', async (c) => {
     { role: 'user', content: `请解释以下 ${language} 代码：\n\n\`\`\`${language}\n${code}\n\`\`\`` }
   ]
 
-  const result = await c.env.AI.run(MODEL as keyof AiModels, { messages }) as { response: string }
+  const aiResult = await runAiModel(c.env, messages)
+  if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
+  const result = { response: aiResult.value }
   return c.json({ success: true, data: { explanation: result.response } })
 })
 
@@ -28,7 +60,9 @@ aiRoute.post('/regex', async (c) => {
     { role: 'user', content: description }
   ]
 
-  const result = await c.env.AI.run(MODEL as keyof AiModels, { messages }) as { response: string }
+  const aiResult = await runAiModel(c.env, messages)
+  if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
+  const result = { response: aiResult.value }
   try {
     const parsed = JSON.parse(result.response.replace(/```json?|```/g, '').trim())
     return c.json({ success: true, data: parsed })
@@ -47,7 +81,9 @@ aiRoute.post('/sql', async (c) => {
     { role: 'user', content: `${description}${schemaContext}` }
   ]
 
-  const result = await c.env.AI.run(MODEL as keyof AiModels, { messages }) as { response: string }
+  const aiResult = await runAiModel(c.env, messages)
+  if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
+  const result = { response: aiResult.value }
   try {
     const parsed = JSON.parse(result.response.replace(/```json?|```/g, '').trim())
     return c.json({ success: true, data: parsed })
@@ -77,7 +113,9 @@ All text must be in Chinese. Be specific and actionable.`
     { role: 'user', content: `请审查以下 ${language} 代码：\n\n\`\`\`${language}\n${code}\n\`\`\`` }
   ]
 
-  const result = await c.env.AI.run(MODEL as keyof AiModels, { messages }) as { response: string }
+  const aiResult = await runAiModel(c.env, messages)
+  if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
+  const result = { response: aiResult.value }
   try {
     const parsed = JSON.parse(result.response.replace(/```json?|```/g, '').trim())
     return c.json({ success: true, data: parsed })
@@ -110,7 +148,9 @@ The schema should include:
     { role: 'user', content: `请为以下JSON生成JSON Schema：\n\n${json}` }
   ]
 
-  const result = await c.env.AI.run(MODEL as keyof AiModels, { messages }) as { response: string }
+  const aiResult = await runAiModel(c.env, messages)
+  if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
+  const result = { response: aiResult.value }
   try {
     const parsed = JSON.parse(result.response.replace(/```json?|```/g, '').trim())
     return c.json({ success: true, data: parsed })
@@ -145,7 +185,9 @@ Rules:
     { role: 'user', content: `请分析以下Git diff并生成提交信息：\n\n${diff}` }
   ]
 
-  const result = await c.env.AI.run(MODEL as keyof AiModels, { messages }) as { response: string }
+  const aiResult = await runAiModel(c.env, messages)
+  if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
+  const result = { response: aiResult.value }
   try {
     const parsed = JSON.parse(result.response.replace(/```json?|```/g, '').trim())
     return c.json({ success: true, data: parsed })
@@ -179,7 +221,9 @@ Rules:
     { role: 'user', content: `请从以下文本中提取结构化信息：${fieldsHint}\n\n文本内容：\n${text}` }
   ]
 
-  const result = await c.env.AI.run(MODEL as keyof AiModels, { messages }) as { response: string }
+  const aiResult = await runAiModel(c.env, messages)
+  if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
+  const result = { response: aiResult.value }
   try {
     const parsed = JSON.parse(result.response.replace(/```json?|```/g, '').trim())
     return c.json({ success: true, data: parsed })
@@ -212,7 +256,9 @@ Rules:
     { role: 'user', content: `${sourceHint}\n目标语言：${targetLang}\n\n需要翻译的文本：\n${text}` }
   ]
 
-  const result = await c.env.AI.run(MODEL as keyof AiModels, { messages }) as { response: string }
+  const aiResult = await runAiModel(c.env, messages)
+  if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
+  const result = { response: aiResult.value }
   try {
     const parsed = JSON.parse(result.response.replace(/```json?|```/g, '').trim())
     return c.json({ success: true, data: parsed })
@@ -246,7 +292,9 @@ Rules:
     { role: 'user', content: `请分析以下错误信息并提供解决方案：${contextHint}\n\n错误信息：\n${errorText}` }
   ]
 
-  const result = await c.env.AI.run(MODEL as keyof AiModels, { messages }) as { response: string }
+  const aiResult = await runAiModel(c.env, messages)
+  if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
+  const result = { response: aiResult.value }
   try {
     const parsed = JSON.parse(result.response.replace(/```json?|```/g, '').trim())
     return c.json({ success: true, data: parsed })
@@ -278,7 +326,9 @@ Rules:
     { role: 'user', content: `功能描述：${description}\n命名风格：${style}\n类型：${type}` }
   ]
 
-  const result = await c.env.AI.run(MODEL as keyof AiModels, { messages }) as { response: string }
+  const aiResult = await runAiModel(c.env, messages)
+  if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
+  const result = { response: aiResult.value }
   try {
     const parsed = JSON.parse(result.response.replace(/```json?|```/g, '').trim())
     return c.json({ success: true, data: parsed })
@@ -308,7 +358,9 @@ Rules:
     { role: 'user', content: `数据描述：${description}\n生成数量：${count}` }
   ]
 
-  const result = await c.env.AI.run(MODEL as keyof AiModels, { messages }) as { response: string }
+  const aiResult = await runAiModel(c.env, messages)
+  if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
+  const result = { response: aiResult.value }
   try {
     const parsed = JSON.parse(result.response.replace(/```json?|```/g, '').trim())
     return c.json({ success: true, data: parsed })
@@ -342,7 +394,9 @@ Rules:
     { role: 'user', content: `描述：${description}` }
   ]
 
-  const result = await c.env.AI.run(MODEL as keyof AiModels, { messages }) as { response: string }
+  const aiResult = await runAiModel(c.env, messages)
+  if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
+  const result = { response: aiResult.value }
   try {
     const parsed = JSON.parse(result.response.replace(/```json?|```/g, '').trim())
     return c.json({ success: true, data: parsed })
