@@ -6,7 +6,7 @@ import { meta } from './meta'
 import { callAi } from '@/lib/ai'
 
 interface SchemaResult {
-  schema: string
+  schema: string | Record<string, unknown>
   explanation: string
 }
 
@@ -55,7 +55,13 @@ export default function AiJsonSchema() {
     setError('')
   }
 
-  const outputValue = result ? result.schema : ''
+  const schemaText = result
+    ? typeof result.schema === 'string'
+      ? result.schema
+      : JSON.stringify(result.schema, null, 2)
+    : ''
+
+  const outputValue = schemaText
 
   return (
     <ToolLayout meta={meta} onReset={reset} outputValue={outputValue}>
@@ -109,7 +115,7 @@ export default function AiJsonSchema() {
                   生成的JSON Schema
                 </span>
                 <button
-                  onClick={() => copy(result.schema)}
+                  onClick={() => copy(schemaText)}
                   className="btn-ghost text-xs"
                 >
                   {copied ? <Check className="w-3.5 h-3.5 text-accent" /> : <Copy className="w-3.5 h-3.5" />}
@@ -117,7 +123,7 @@ export default function AiJsonSchema() {
                 </button>
               </div>
               <pre className="bg-bg-raised rounded-lg p-4 text-sm font-mono text-text-primary overflow-x-auto whitespace-pre-wrap">
-                {result.schema}
+                {schemaText}
               </pre>
             </div>
 

@@ -38,7 +38,7 @@ const aiFixtures: Record<string, unknown> = {
     readability: { score: 90, issues: [], suggestions: [] },
     overall: '整体良好',
   },
-  'json-schema': { schema: '{"type":"object"}', explanation: '对象结构' },
+  'json-schema': { schema: { type: 'object' }, explanation: '对象结构' },
   'commit-msg': {
     message: 'feat: 添加常量',
     type: 'feat',

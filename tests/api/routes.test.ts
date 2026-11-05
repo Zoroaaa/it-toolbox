@@ -361,15 +361,53 @@ describe('AI 接口契约', () => {
     expect((body.data as { pattern: string }).pattern).toBe('\\d+')
   })
 
-  it('regex 遇到非 JSON 输出返回 500', async () => {
-    ai.run.mockResolvedValueOnce({ response: '抱歉我无法完成' })
+  it('regex 首次非 JSON、重试成功返回 200', async () => {
+    ai.run
+      .mockResolvedValueOnce({ response: '抱歉我无法完成' })
+      .mockResolvedValueOnce({ response: '{"pattern":"\\\\d+","flags":"g","explanation":"数字"}' })
+
+    const body = await json(
+      await app.request('/api/ai/regex', { method: 'POST', body: JSON.stringify({ description: '数字' }) }, env),
+    )
+    expect(body.success).toBe(true)
+    expect((body.data as { pattern: string }).pattern).toBe('\\d+')
+    expect(ai.run).toHaveBeenCalledTimes(2)
+  })
+
+  it('regex 连续两次非 JSON 输出返回 502', async () => {
+    ai.run
+      .mockResolvedValueOnce({ response: '抱歉我无法完成' })
+      .mockResolvedValueOnce({ response: '仍然不是 JSON' })
+
     const res = await app.request(
       '/api/ai/regex',
       { method: 'POST', body: JSON.stringify({ description: '数字' }) },
       env,
     )
-    expect(res.status).toBe(500)
-    expect(await json(res)).toMatchObject({ success: false })
+    expect(res.status).toBe(502)
+    const body = await json(res)
+    expect(body.success).toBe(false)
+    expect(String(body.error)).toContain('无法解析')
+    expect(ai.run).toHaveBeenCalledTimes(2)
+  })
+
+  it('json-schema 将对象 schema 归一化为字符串', async () => {
+    ai.run.mockResolvedValueOnce({
+      response: '{"schema":{"type":"object","properties":{}},"explanation":"对象"}',
+    })
+
+    const body = await json(
+      await app.request(
+        '/api/ai/json-schema',
+        { method: 'POST', body: JSON.stringify({ json: '{"a":1}' }) },
+        env,
+      ),
+    )
+    expect(body.success).toBe(true)
+    const data = body.data as { schema: string; explanation: string }
+    expect(typeof data.schema).toBe('string')
+    expect(data.schema).toContain('"type": "object"')
+    expect(data.explanation).toBe('对象')
   })
 
   it('主模型退役报错时自动降级到下一个模型', async () => {
@@ -429,6 +467,18 @@ describe('AI JSON 输出解析', () => {
 
   it('字符串中的括号不会破坏配对', () => {
     expect(parseAiJson('{"s":"a}b{c"}')).toEqual({ s: 'a}b{c' })
+  })
+
+  it('提取数组', () => {
+    expect(parseAiJson('结果：[{"a":1}]')).toEqual([{ a: 1 }])
+  })
+
+  it('解包双重编码的 JSON 字符串', () => {
+    expect(parseAiJson('"{\\"a\\":1}"')).toEqual({ a: 1 })
+  })
+
+  it('容忍尾逗号', () => {
+    expect(parseAiJson('{"a":1,}')).toEqual({ a: 1 })
   })
 
   it('无法解析时返回 null', () => {

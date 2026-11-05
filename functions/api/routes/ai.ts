@@ -67,26 +67,29 @@ async function runAiModel(env: Env, messages: AiMessage[]): Promise<AiOutcome> {
 }
 
 /**
- * 解析模型返回的 JSON：兼容代码围栏、前后夹带说明文字、以及被截断的片段。
+ * 解析模型返回的 JSON：兼容代码围栏、前后夹带说明文字、数组、双重编码与尾逗号。
  * 解析失败返回 null，由调用方转成可读的业务错误。
  */
-export function parseAiJson(raw: string): unknown | null {
-  const cleaned = raw.replace(/```json/gi, '```').replace(/```/g, '').trim()
+function parseJsonLoose(candidate: string): unknown | null {
   try {
-    return JSON.parse(cleaned) as unknown
+    return JSON.parse(candidate) as unknown
   } catch {
-    /* 继续尝试提取第一个平衡的 JSON 对象 */
+    /* 继续尝试去掉尾逗号 */
   }
+  try {
+    return JSON.parse(candidate.replace(/,\s*([}\]])/g, '$1')) as unknown
+  } catch {
+    return null
+  }
+}
 
-  const start = cleaned.indexOf('{')
-  if (start === -1) return null
-
-  let depth = 0
+function extractBalancedJson(text: string, start: number): string | null {
+  const stack: string[] = []
   let inString = false
   let escaped = false
 
-  for (let i = start; i < cleaned.length; i++) {
-    const ch = cleaned[i]
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i]
     if (inString) {
       if (escaped) escaped = false
       else if (ch === '\\') escaped = true
@@ -97,20 +100,200 @@ export function parseAiJson(raw: string): unknown | null {
       inString = true
       continue
     }
-    if (ch === '{') depth++
-    else if (ch === '}') {
-      depth--
-      if (depth === 0) {
-        try {
-          return JSON.parse(cleaned.slice(start, i + 1)) as unknown
-        } catch {
-          return null
-        }
-      }
+    if (ch === '{') stack.push('}')
+    else if (ch === '[') stack.push(']')
+    else if (ch === '}' || ch === ']') {
+      if (stack.pop() !== ch) return null
+      if (stack.length === 0) return text.slice(start, i + 1)
     }
+  }
+  return null
+}
+
+export function parseAiJson(raw: string): unknown | null {
+  const cleaned = raw.replace(/```json/gi, '```').replace(/```/g, '').trim()
+  const direct = parseJsonLoose(cleaned)
+  if (direct !== null) {
+    if (typeof direct === 'string') {
+      return parseJsonLoose(direct) ?? direct
+    }
+    return direct
+  }
+
+  for (let i = 0; i < cleaned.length; i++) {
+    const ch = cleaned[i]
+    if (ch !== '{' && ch !== '[') continue
+    const candidate = extractBalancedJson(cleaned, i)
+    if (!candidate) continue
+    const parsed = parseJsonLoose(candidate)
+    if (parsed !== null) return parsed
   }
 
   return null
+}
+
+type JsonObject = Record<string, unknown>
+
+const asObject = (value: unknown): JsonObject =>
+  value && typeof value === 'object' && !Array.isArray(value) ? (value as JsonObject) : {}
+const asArray = (value: unknown): unknown[] => (Array.isArray(value) ? value : [])
+const asText = (value: unknown, fallback = ''): string => {
+  if (typeof value === 'string') return value
+  if (value === null || value === undefined) return fallback
+  return JSON.stringify(value)
+}
+const asTextArray = (value: unknown): string[] => asArray(value).map((item) => asText(item)).filter(Boolean)
+const asNumber = (value: unknown, fallback = 0): number => {
+  const num = Number(value)
+  return Number.isFinite(num) ? num : fallback
+}
+const asBool = (value: unknown): boolean => value === true || value === 'true'
+
+function normalizeRegex(data: unknown) {
+  const d = asObject(data)
+  return {
+    pattern: asText(d.pattern),
+    flags: asText(d.flags, 'g'),
+    explanation: asText(d.explanation),
+  }
+}
+
+function normalizeSql(data: unknown) {
+  const d = asObject(data)
+  return { sql: asText(d.sql), explanation: asText(d.explanation) }
+}
+
+function normalizeReview(data: unknown) {
+  const section = (value: unknown) => {
+    const s = asObject(value)
+    return {
+      score: asNumber(s.score),
+      issues: asTextArray(s.issues),
+      suggestions: asTextArray(s.suggestions),
+    }
+  }
+  const d = asObject(data)
+  return {
+    security: section(d.security),
+    performance: section(d.performance),
+    readability: section(d.readability),
+    overall: asText(d.overall),
+  }
+}
+
+function normalizeJsonSchema(data: unknown) {
+  const d = asObject(data)
+  const raw = 'schema' in d ? d.schema : d
+  const schema =
+    typeof raw === 'string' ? raw : raw === undefined ? '' : JSON.stringify(raw, null, 2)
+  return { schema, explanation: asText(d.explanation) }
+}
+
+function normalizeCommitMsg(data: unknown) {
+  const d = asObject(data)
+  return {
+    message: asText(d.message),
+    type: asText(d.type),
+    scope: asText(d.scope),
+    description: asText(d.description),
+    body: asText(d.body),
+  }
+}
+
+function normalizeExtract(data: unknown) {
+  const d = asObject(data)
+  const rawData = 'data' in d ? d.data : d
+  return { data: asObject(rawData), explanation: asText(d.explanation) }
+}
+
+function normalizeTranslate(data: unknown) {
+  const d = asObject(data)
+  return {
+    translation: asText(d.translation),
+    detectedLanguage: asText(d.detectedLanguage),
+    notes: asText(d.notes),
+  }
+}
+
+function normalizeErrorExplain(data: unknown) {
+  const d = asObject(data)
+  return {
+    cause: asText(d.cause),
+    explanation: asText(d.explanation),
+    solutions: asTextArray(d.solutions),
+    relatedDocs: asText(d.relatedDocs),
+  }
+}
+
+function normalizeNaming(data: unknown) {
+  const raw = Array.isArray(data) ? data : asObject(data).suggestions
+  const suggestions = asArray(raw)
+    .map((item) => {
+      const s = asObject(item)
+      return {
+        name: asText(s.name),
+        type: asText(s.type),
+        style: asText(s.style),
+        explanation: asText(s.explanation),
+      }
+    })
+    .filter((item) => item.name)
+  return { suggestions }
+}
+
+function normalizeMockData(data: unknown) {
+  const d = asObject(data)
+  const raw = Array.isArray(data) ? data : d.data
+  return { data: asArray(raw), explanation: asText(d.explanation) }
+}
+
+function normalizeShellCmd(data: unknown) {
+  const d = asObject(data)
+  return {
+    bash: asText(d.bash),
+    powershell: asText(d.powershell),
+    explanation: asText(d.explanation),
+    warnings: asTextArray(d.warnings),
+    isDangerous: asBool(d.isDangerous),
+  }
+}
+
+type AiJsonOutcome = { ok: true; data: unknown; model: string } | { ok: false; error: string }
+
+/**
+ * 结构化 AI 调用：解析失败时追加纠正指令重试一次，再交给各接口的归一化函数，
+ * 保证前端拿到的字段类型稳定（尤其是 schema 必须是字符串）。
+ */
+async function runAiJson(
+  env: Env,
+  messages: AiMessage[],
+  normalize: (data: unknown) => unknown,
+): Promise<AiJsonOutcome> {
+  const first = await runAiModel(env, messages)
+  if (!first.ok) return first
+
+  const firstParsed = parseAiJson(first.value)
+  if (firstParsed !== null && typeof firstParsed === 'object') {
+    return { ok: true, data: normalize(firstParsed), model: first.model }
+  }
+
+  const retryMessages: AiMessage[] = [
+    ...messages,
+    {
+      role: 'system',
+      content:
+        '你上一次的输出不是合法 JSON。请只输出一个 JSON 对象：从 { 开始、到 } 结束；不要 Markdown、不要解释、不要前后缀。',
+    },
+  ]
+  const second = await runAiModel(env, retryMessages)
+  if (!second.ok) return second
+
+  const secondParsed = parseAiJson(second.value)
+  if (secondParsed !== null && typeof secondParsed === 'object') {
+    return { ok: true, data: normalize(secondParsed), model: second.model }
+  }
+
+  return { ok: false, error: `AI 返回内容无法解析为 JSON：${second.value.slice(0, 80)}` }
 }
 
 aiRoute.post('/explain', async (c) => {
@@ -139,13 +322,10 @@ aiRoute.post('/regex', async (c) => {
     { role: 'user', content: description }
   ]
 
-  const aiResult = await runAiModel(c.env, messages)
+  const aiResult = await runAiJson(c.env, messages, normalizeRegex)
   if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
   c.header('X-AI-Model', aiResult.model)
-  const result = { response: aiResult.value }
-  const parsed = parseAiJson(result.response)
-  if (!parsed) return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
-  return c.json({ success: true, data: parsed })
+  return c.json({ success: true, data: aiResult.data })
 })
 
 aiRoute.post('/sql', async (c) => {
@@ -158,13 +338,10 @@ aiRoute.post('/sql', async (c) => {
     { role: 'user', content: `${description}${schemaContext}` }
   ]
 
-  const aiResult = await runAiModel(c.env, messages)
+  const aiResult = await runAiJson(c.env, messages, normalizeSql)
   if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
   c.header('X-AI-Model', aiResult.model)
-  const result = { response: aiResult.value }
-  const parsed = parseAiJson(result.response)
-  if (!parsed) return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
-  return c.json({ success: true, data: parsed })
+  return c.json({ success: true, data: aiResult.data })
 })
 
 aiRoute.post('/review', async (c) => {
@@ -188,13 +365,10 @@ All text must be in Chinese. Be specific and actionable.`
     { role: 'user', content: `请审查以下 ${language} 代码：\n\n\`\`\`${language}\n${code}\n\`\`\`` }
   ]
 
-  const aiResult = await runAiModel(c.env, messages)
+  const aiResult = await runAiJson(c.env, messages, normalizeReview)
   if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
   c.header('X-AI-Model', aiResult.model)
-  const result = { response: aiResult.value }
-  const parsed = parseAiJson(result.response)
-  if (!parsed) return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
-  return c.json({ success: true, data: parsed })
+  return c.json({ success: true, data: aiResult.data })
 })
 
 aiRoute.post('/json-schema', async (c) => {
@@ -221,13 +395,10 @@ The schema should include:
     { role: 'user', content: `请为以下JSON生成JSON Schema：\n\n${json}` }
   ]
 
-  const aiResult = await runAiModel(c.env, messages)
+  const aiResult = await runAiJson(c.env, messages, normalizeJsonSchema)
   if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
   c.header('X-AI-Model', aiResult.model)
-  const result = { response: aiResult.value }
-  const parsed = parseAiJson(result.response)
-  if (!parsed) return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
-  return c.json({ success: true, data: parsed })
+  return c.json({ success: true, data: aiResult.data })
 })
 
 aiRoute.post('/commit-msg', async (c) => {
@@ -256,13 +427,10 @@ Rules:
     { role: 'user', content: `请分析以下Git diff并生成提交信息：\n\n${diff}` }
   ]
 
-  const aiResult = await runAiModel(c.env, messages)
+  const aiResult = await runAiJson(c.env, messages, normalizeCommitMsg)
   if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
   c.header('X-AI-Model', aiResult.model)
-  const result = { response: aiResult.value }
-  const parsed = parseAiJson(result.response)
-  if (!parsed) return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
-  return c.json({ success: true, data: parsed })
+  return c.json({ success: true, data: aiResult.data })
 })
 
 aiRoute.post('/extract', async (c) => {
@@ -290,13 +458,10 @@ Rules:
     { role: 'user', content: `请从以下文本中提取结构化信息：${fieldsHint}\n\n文本内容：\n${text}` }
   ]
 
-  const aiResult = await runAiModel(c.env, messages)
+  const aiResult = await runAiJson(c.env, messages, normalizeExtract)
   if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
   c.header('X-AI-Model', aiResult.model)
-  const result = { response: aiResult.value }
-  const parsed = parseAiJson(result.response)
-  if (!parsed) return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
-  return c.json({ success: true, data: parsed })
+  return c.json({ success: true, data: aiResult.data })
 })
 
 aiRoute.post('/translate', async (c) => {
@@ -323,13 +488,10 @@ Rules:
     { role: 'user', content: `${sourceHint}\n目标语言：${targetLang}\n\n需要翻译的文本：\n${text}` }
   ]
 
-  const aiResult = await runAiModel(c.env, messages)
+  const aiResult = await runAiJson(c.env, messages, normalizeTranslate)
   if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
   c.header('X-AI-Model', aiResult.model)
-  const result = { response: aiResult.value }
-  const parsed = parseAiJson(result.response)
-  if (!parsed) return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
-  return c.json({ success: true, data: parsed })
+  return c.json({ success: true, data: aiResult.data })
 })
 
 aiRoute.post('/error-explain', async (c) => {
@@ -357,13 +519,10 @@ Rules:
     { role: 'user', content: `请分析以下错误信息并提供解决方案：${contextHint}\n\n错误信息：\n${errorText}` }
   ]
 
-  const aiResult = await runAiModel(c.env, messages)
+  const aiResult = await runAiJson(c.env, messages, normalizeErrorExplain)
   if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
   c.header('X-AI-Model', aiResult.model)
-  const result = { response: aiResult.value }
-  const parsed = parseAiJson(result.response)
-  if (!parsed) return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
-  return c.json({ success: true, data: parsed })
+  return c.json({ success: true, data: aiResult.data })
 })
 
 aiRoute.post('/naming', async (c) => {
@@ -389,13 +548,10 @@ Rules:
     { role: 'user', content: `功能描述：${description}\n命名风格：${style}\n类型：${type}` }
   ]
 
-  const aiResult = await runAiModel(c.env, messages)
+  const aiResult = await runAiJson(c.env, messages, normalizeNaming)
   if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
   c.header('X-AI-Model', aiResult.model)
-  const result = { response: aiResult.value }
-  const parsed = parseAiJson(result.response)
-  if (!parsed) return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
-  return c.json({ success: true, data: parsed })
+  return c.json({ success: true, data: aiResult.data })
 })
 
 aiRoute.post('/mock-data', async (c) => {
@@ -419,13 +575,10 @@ Rules:
     { role: 'user', content: `数据描述：${description}\n生成数量：${count}` }
   ]
 
-  const aiResult = await runAiModel(c.env, messages)
+  const aiResult = await runAiJson(c.env, messages, normalizeMockData)
   if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
   c.header('X-AI-Model', aiResult.model)
-  const result = { response: aiResult.value }
-  const parsed = parseAiJson(result.response)
-  if (!parsed) return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
-  return c.json({ success: true, data: parsed })
+  return c.json({ success: true, data: aiResult.data })
 })
 
 aiRoute.post('/shell-cmd', async (c) => {
@@ -453,11 +606,8 @@ Rules:
     { role: 'user', content: `描述：${description}` }
   ]
 
-  const aiResult = await runAiModel(c.env, messages)
+  const aiResult = await runAiJson(c.env, messages, normalizeShellCmd)
   if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
   c.header('X-AI-Model', aiResult.model)
-  const result = { response: aiResult.value }
-  const parsed = parseAiJson(result.response)
-  if (!parsed) return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
-  return c.json({ success: true, data: parsed })
+  return c.json({ success: true, data: aiResult.data })
 })
