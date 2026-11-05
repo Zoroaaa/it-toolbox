@@ -17,7 +17,7 @@ dnsRoute.get('/', async (c) => {
 
   const res = await fetch(
     `https://1.1.1.1/dns-query?name=${encodeURIComponent(domain)}&type=${type}`,
-    { headers: { Accept: 'application/dns-json' } }
+    { headers: { Accept: 'application/dns-json' }, signal: AbortSignal.timeout(8000) }
   )
 
   if (!res.ok) return c.json({ success: false, error: 'DNS query failed' }, 502)

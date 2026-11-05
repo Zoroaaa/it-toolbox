@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['color', 'extract', 'palette', 'dominant', 'image', 'picker'],
   keywords: ['取色', '配色', '主色调', '颜色提取'],
   icon: 'Pipette',
-  isNew: true,
 }

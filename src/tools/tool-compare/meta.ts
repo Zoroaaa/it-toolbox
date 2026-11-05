@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['compare', 'multiple', 'tools', 'parallel', 'diff'],
   keywords: ['对比', '多工具', '并行', '比较'],
   icon: 'GitCompare',
-  isNew: true,
 }

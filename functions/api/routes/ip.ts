@@ -40,7 +40,9 @@ ipRoute.get('/', async (c) => {
 
   // For arbitrary IPs, use ip-api.com (free, no key needed, 45 req/min)
   try {
-    const res = await fetch(`http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,message,country,regionName,city,timezone,as,org,lat,lon,query`)
+    const res = await fetch(`http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,message,country,regionName,city,timezone,as,org,lat,lon,query`, {
+      signal: AbortSignal.timeout(8000),
+    })
     if (!res.ok) return c.json({ success: false, error: 'IP lookup failed' }, 502)
     const json = await res.json() as Record<string, unknown>
     if (json.status !== 'success') {

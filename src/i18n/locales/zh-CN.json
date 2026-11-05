@@ -702,9 +702,6 @@
     "recent": "最近使用",
     "allTools": "全部工具"
   },
-  "toolCard": {
-    "new": "NEW"
-  },
   "toolLayout": {
     "copyOutput": "复制输出",
     "addToFavorites": "收藏",

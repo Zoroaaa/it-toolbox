@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['json', 'merge', 'deep', 'combine'],
   keywords: ['JSON', '合并', '深度合并', '对象合并'],
   icon: 'GitMerge',
-  isNew: true,
 }

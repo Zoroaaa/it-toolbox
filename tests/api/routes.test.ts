@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { createApp } from '../../functions/app'
+import { parseAiJson } from '../../functions/api/routes/ai'
 import type { Env } from '../../functions/types'
 
 const kv = {
@@ -392,5 +393,46 @@ describe('AI 接口契约', () => {
     )
     expect(res.status).toBe(502)
     expect(String((await json(res)).error)).toContain('AI 绑定未配置')
+  })
+
+  it('全部候选模型不可用时返回 502 JSON 并携带模型原因', async () => {
+    ai.run
+      .mockRejectedValueOnce(new Error('No such model: fast'))
+      .mockRejectedValueOnce(new Error('No such model: glm'))
+      .mockRejectedValueOnce(new Error('No such model: 70b'))
+
+    const res = await app.request(
+      '/api/ai/explain',
+      { method: 'POST', body: JSON.stringify({ code: 'const a=1' }) },
+      env,
+    )
+    expect(res.status).toBe(502)
+    const body = await json(res)
+    expect(body.success).toBe(false)
+    expect(String(body.error)).toContain('@cf/meta/llama-3.1-8b-instruct-fast')
+    expect(ai.run).toHaveBeenCalledTimes(3)
+  })
+})
+
+describe('AI JSON 输出解析', () => {
+  it('解析纯 JSON', () => {
+    expect(parseAiJson('{"pattern":"\\\\d+","flags":"g"}')).toEqual({ pattern: '\\d+', flags: 'g' })
+  })
+
+  it('去掉代码围栏', () => {
+    expect(parseAiJson('```json\n{"ok":true}\n```')).toEqual({ ok: true })
+  })
+
+  it('提取前后夹带说明文字中的 JSON 对象', () => {
+    expect(parseAiJson('这是结果：{"a":{"b":1}} 仅供参考')).toEqual({ a: { b: 1 } })
+  })
+
+  it('字符串中的括号不会破坏配对', () => {
+    expect(parseAiJson('{"s":"a}b{c"}')).toEqual({ s: 'a}b{c' })
+  })
+
+  it('无法解析时返回 null', () => {
+    expect(parseAiJson('抱歉，我无法完成这个请求')).toBeNull()
+    expect(parseAiJson('{"a":')).toBeNull()
   })
 })

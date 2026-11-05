@@ -10,5 +10,4 @@ export const meta: ToolMeta = {
   keywords: ['错误', '报错', '调试', '修复', '异常'],
   icon: 'Bug',
   requiresApi: true,
-  isNew: true,
 }

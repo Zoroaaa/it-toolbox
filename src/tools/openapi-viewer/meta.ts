@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['openapi', 'swagger', 'api', 'docs', 'rest', 'yaml', 'json'],
   keywords: ['API文档', 'swagger', '接口文档'],
   icon: 'BookOpen',
-  isNew: true,
 }

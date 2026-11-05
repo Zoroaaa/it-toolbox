@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['float', 'ieee754', 'binary', 'visualize', 'number'],
   keywords: ['浮点数', 'IEEE754', '二进制', '可视化', '精度'],
   icon: 'Binary',
-  isNew: true,
 }

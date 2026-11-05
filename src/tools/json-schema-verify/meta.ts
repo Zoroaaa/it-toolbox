@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['json', 'schema', 'validate', 'ajv', 'verify'],
   keywords: ['JSON', 'Schema', '验证', '校验', 'ajv'],
   icon: 'FileCheck',
-  isNew: true,
 }

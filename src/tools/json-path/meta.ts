@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['json', 'jsonpath', 'query', 'filter', 'extract'],
   keywords: ['JSONPath', '查询', '过滤', '提取', 'JSON'],
   icon: 'Search',
-  isNew: true,
 }

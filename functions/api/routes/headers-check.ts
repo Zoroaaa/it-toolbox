@@ -117,6 +117,7 @@ headersCheckRoute.get('/', async (c) => {
     const res = await fetch(cleanUrl, {
       method: 'GET',
       redirect: 'follow',
+      signal: AbortSignal.timeout(10000),
       headers: {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
  

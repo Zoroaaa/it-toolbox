@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['data', 'storage', 'byte', 'bit', 'kb', 'mb', 'gb', 'tb', 'pb'],
   keywords: ['存储', '字节', '数据', '容量'],
   icon: 'HardDrive',
-  isNew: true,
 }

@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['sql', 'generate', 'insert', 'test', 'data', 'mock'],
   keywords: ['SQL', '生成', 'INSERT', '测试数据', '数据库'],
   icon: 'Database',
-  isNew: true,
 }

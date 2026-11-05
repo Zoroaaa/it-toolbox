@@ -5,8 +5,10 @@ export const aiRoute = new Hono<{ Bindings: Env }>()
 
 /**
  * Workers AI 的模型 ID 是有生命周期的配置项，不是稳定的常量：
- * @cf/meta/llama-3.1-8b-instruct 已于 2026-05-30 退役，继续调用会直接抛错，
- * 导致整个 /api/ai/* 在边缘返回 502。这里收敛成有序候选，主模型不可用时自动降级。
+ * @cf/meta/llama-3.1-8b-instruct 已于 2026-05-30 退役，继续调用会直接抛错。
+ *
+ * 这里不再用 JS 超时提前返回：实测超时后返回会让边缘取消上游子请求，
+ * 业务 JSON 被 Cloudflare HTML 502 覆盖。直接 await 模型自然完成。
  */
 const AI_MODELS = [
   '@cf/meta/llama-3.1-8b-instruct-fast',
@@ -14,41 +16,36 @@ const AI_MODELS = [
   '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
 ] as const
 
-const AI_ATTEMPT_TIMEOUT_MS = 12000
-const AI_TOTAL_BUDGET_MS = 25000
-
 type AiMessage = { role: string; content: string }
-type AiOutcome = { ok: true; value: string } | { ok: false; error: string }
+type AiRawOutput = {
+  response?: unknown
+  result?: { response?: unknown }
+  choices?: Array<{ message?: { content?: unknown } }>
+}
+type AiOutcome = { ok: true; value: string; model: string } | { ok: false; error: string }
 
-/** 单模型调用：限时、空响应兜底、异常转结构化错误 */
+/** 兼容 Workers AI 不同模型的输出形态：{response} / OpenAI choices / 旧版 result.response */
+function extractAiText(output: AiRawOutput): string {
+  if (typeof output.response === 'string') return output.response
+  if (typeof output.result?.response === 'string') return output.result.response
+  const content = output.choices?.[0]?.message?.content
+  return typeof content === 'string' ? content : ''
+}
+
+/** 单模型调用：空响应兜底、异常转结构化错误 */
 async function runSingleModel(
   env: Env,
   model: string,
   messages: AiMessage[],
-  timeoutMs: number,
 ): Promise<AiOutcome> {
-  let timer: ReturnType<typeof setTimeout> | undefined
   try {
-    const timeout = new Promise<never>((_, reject) => {
-      timer = setTimeout(
-        () => reject(new Error(`请求超时（${Math.round(timeoutMs / 1000)}s）`)),
-        timeoutMs,
-      )
-    })
-    const output = (await Promise.race([
-      env.AI.run(model as keyof AiModels, { messages }),
-      timeout,
-    ])) as { response?: unknown }
-
-    if (typeof output?.response !== 'string' || !output.response.trim()) {
-      return { ok: false, error: '返回内容为空' }
-    }
-    return { ok: true, value: output.response }
+    const output = (await env.AI.run(model as keyof AiModels, { messages } as never)) as AiRawOutput
+    const text = extractAiText(output)
+    if (!text.trim()) return { ok: false, error: '返回内容为空' }
+    return { ok: true, value: text, model }
   } catch (e) {
     const message = (e as Error).message || '调用失败'
     return { ok: false, error: message.slice(0, 160) }
-  } finally {
-    if (timer) clearTimeout(timer)
   }
 }
 
@@ -58,19 +55,62 @@ async function runAiModel(env: Env, messages: AiMessage[]): Promise<AiOutcome> {
     return { ok: false, error: 'AI 绑定未配置，请在 Pages 项目中绑定 Workers AI' }
   }
 
-  const deadline = Date.now() + AI_TOTAL_BUDGET_MS
   const failures: string[] = []
 
   for (const model of AI_MODELS) {
-    const remaining = deadline - Date.now()
-    if (remaining < 3000) break
-
-    const outcome = await runSingleModel(env, model, messages, Math.min(AI_ATTEMPT_TIMEOUT_MS, remaining))
+    const outcome = await runSingleModel(env, model, messages)
     if (outcome.ok) return outcome
     failures.push(`${model} → ${outcome.error}`)
   }
 
   return { ok: false, error: `AI 调用失败（${failures.join('；')}）` }
+}
+
+/**
+ * 解析模型返回的 JSON：兼容代码围栏、前后夹带说明文字、以及被截断的片段。
+ * 解析失败返回 null，由调用方转成可读的业务错误。
+ */
+export function parseAiJson(raw: string): unknown | null {
+  const cleaned = raw.replace(/```json/gi, '```').replace(/```/g, '').trim()
+  try {
+    return JSON.parse(cleaned) as unknown
+  } catch {
+    /* 继续尝试提取第一个平衡的 JSON 对象 */
+  }
+
+  const start = cleaned.indexOf('{')
+  if (start === -1) return null
+
+  let depth = 0
+  let inString = false
+  let escaped = false
+
+  for (let i = start; i < cleaned.length; i++) {
+    const ch = cleaned[i]
+    if (inString) {
+      if (escaped) escaped = false
+      else if (ch === '\\') escaped = true
+      else if (ch === '"') inString = false
+      continue
+    }
+    if (ch === '"') {
+      inString = true
+      continue
+    }
+    if (ch === '{') depth++
+    else if (ch === '}') {
+      depth--
+      if (depth === 0) {
+        try {
+          return JSON.parse(cleaned.slice(start, i + 1)) as unknown
+        } catch {
+          return null
+        }
+      }
+    }
+  }
+
+  return null
 }
 
 aiRoute.post('/explain', async (c) => {
@@ -85,6 +125,7 @@ aiRoute.post('/explain', async (c) => {
 
   const aiResult = await runAiModel(c.env, messages)
   if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
+  c.header('X-AI-Model', aiResult.model)
   const result = { response: aiResult.value }
   return c.json({ success: true, data: { explanation: result.response } })
 })
@@ -100,13 +141,11 @@ aiRoute.post('/regex', async (c) => {
 
   const aiResult = await runAiModel(c.env, messages)
   if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
+  c.header('X-AI-Model', aiResult.model)
   const result = { response: aiResult.value }
-  try {
-    const parsed = JSON.parse(result.response.replace(/```json?|```/g, '').trim())
-    return c.json({ success: true, data: parsed })
-  } catch {
-    return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
-  }
+  const parsed = parseAiJson(result.response)
+  if (!parsed) return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
+  return c.json({ success: true, data: parsed })
 })
 
 aiRoute.post('/sql', async (c) => {
@@ -121,13 +160,11 @@ aiRoute.post('/sql', async (c) => {
 
   const aiResult = await runAiModel(c.env, messages)
   if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
+  c.header('X-AI-Model', aiResult.model)
   const result = { response: aiResult.value }
-  try {
-    const parsed = JSON.parse(result.response.replace(/```json?|```/g, '').trim())
-    return c.json({ success: true, data: parsed })
-  } catch {
-    return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
-  }
+  const parsed = parseAiJson(result.response)
+  if (!parsed) return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
+  return c.json({ success: true, data: parsed })
 })
 
 aiRoute.post('/review', async (c) => {
@@ -153,13 +190,11 @@ All text must be in Chinese. Be specific and actionable.`
 
   const aiResult = await runAiModel(c.env, messages)
   if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
+  c.header('X-AI-Model', aiResult.model)
   const result = { response: aiResult.value }
-  try {
-    const parsed = JSON.parse(result.response.replace(/```json?|```/g, '').trim())
-    return c.json({ success: true, data: parsed })
-  } catch {
-    return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
-  }
+  const parsed = parseAiJson(result.response)
+  if (!parsed) return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
+  return c.json({ success: true, data: parsed })
 })
 
 aiRoute.post('/json-schema', async (c) => {
@@ -188,13 +223,11 @@ The schema should include:
 
   const aiResult = await runAiModel(c.env, messages)
   if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
+  c.header('X-AI-Model', aiResult.model)
   const result = { response: aiResult.value }
-  try {
-    const parsed = JSON.parse(result.response.replace(/```json?|```/g, '').trim())
-    return c.json({ success: true, data: parsed })
-  } catch {
-    return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
-  }
+  const parsed = parseAiJson(result.response)
+  if (!parsed) return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
+  return c.json({ success: true, data: parsed })
 })
 
 aiRoute.post('/commit-msg', async (c) => {
@@ -225,13 +258,11 @@ Rules:
 
   const aiResult = await runAiModel(c.env, messages)
   if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
+  c.header('X-AI-Model', aiResult.model)
   const result = { response: aiResult.value }
-  try {
-    const parsed = JSON.parse(result.response.replace(/```json?|```/g, '').trim())
-    return c.json({ success: true, data: parsed })
-  } catch {
-    return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
-  }
+  const parsed = parseAiJson(result.response)
+  if (!parsed) return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
+  return c.json({ success: true, data: parsed })
 })
 
 aiRoute.post('/extract', async (c) => {
@@ -261,13 +292,11 @@ Rules:
 
   const aiResult = await runAiModel(c.env, messages)
   if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
+  c.header('X-AI-Model', aiResult.model)
   const result = { response: aiResult.value }
-  try {
-    const parsed = JSON.parse(result.response.replace(/```json?|```/g, '').trim())
-    return c.json({ success: true, data: parsed })
-  } catch {
-    return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
-  }
+  const parsed = parseAiJson(result.response)
+  if (!parsed) return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
+  return c.json({ success: true, data: parsed })
 })
 
 aiRoute.post('/translate', async (c) => {
@@ -296,13 +325,11 @@ Rules:
 
   const aiResult = await runAiModel(c.env, messages)
   if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
+  c.header('X-AI-Model', aiResult.model)
   const result = { response: aiResult.value }
-  try {
-    const parsed = JSON.parse(result.response.replace(/```json?|```/g, '').trim())
-    return c.json({ success: true, data: parsed })
-  } catch {
-    return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
-  }
+  const parsed = parseAiJson(result.response)
+  if (!parsed) return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
+  return c.json({ success: true, data: parsed })
 })
 
 aiRoute.post('/error-explain', async (c) => {
@@ -332,13 +359,11 @@ Rules:
 
   const aiResult = await runAiModel(c.env, messages)
   if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
+  c.header('X-AI-Model', aiResult.model)
   const result = { response: aiResult.value }
-  try {
-    const parsed = JSON.parse(result.response.replace(/```json?|```/g, '').trim())
-    return c.json({ success: true, data: parsed })
-  } catch {
-    return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
-  }
+  const parsed = parseAiJson(result.response)
+  if (!parsed) return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
+  return c.json({ success: true, data: parsed })
 })
 
 aiRoute.post('/naming', async (c) => {
@@ -366,13 +391,11 @@ Rules:
 
   const aiResult = await runAiModel(c.env, messages)
   if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
+  c.header('X-AI-Model', aiResult.model)
   const result = { response: aiResult.value }
-  try {
-    const parsed = JSON.parse(result.response.replace(/```json?|```/g, '').trim())
-    return c.json({ success: true, data: parsed })
-  } catch {
-    return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
-  }
+  const parsed = parseAiJson(result.response)
+  if (!parsed) return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
+  return c.json({ success: true, data: parsed })
 })
 
 aiRoute.post('/mock-data', async (c) => {
@@ -398,13 +421,11 @@ Rules:
 
   const aiResult = await runAiModel(c.env, messages)
   if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
+  c.header('X-AI-Model', aiResult.model)
   const result = { response: aiResult.value }
-  try {
-    const parsed = JSON.parse(result.response.replace(/```json?|```/g, '').trim())
-    return c.json({ success: true, data: parsed })
-  } catch {
-    return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
-  }
+  const parsed = parseAiJson(result.response)
+  if (!parsed) return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
+  return c.json({ success: true, data: parsed })
 })
 
 aiRoute.post('/shell-cmd', async (c) => {
@@ -434,11 +455,9 @@ Rules:
 
   const aiResult = await runAiModel(c.env, messages)
   if (!aiResult.ok) return c.json({ success: false, error: aiResult.error }, 502)
+  c.header('X-AI-Model', aiResult.model)
   const result = { response: aiResult.value }
-  try {
-    const parsed = JSON.parse(result.response.replace(/```json?|```/g, '').trim())
-    return c.json({ success: true, data: parsed })
-  } catch {
-    return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
-  }
+  const parsed = parseAiJson(result.response)
+  if (!parsed) return c.json({ success: false, error: 'Failed to parse AI response' }, 500)
+  return c.json({ success: true, data: parsed })
 })

@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['semver', 'version', 'semantic', 'npm', 'range'],
   keywords: ['语义版本', '版本号', 'npm版本'],
   icon: 'Tag',
-  isNew: true,
 }

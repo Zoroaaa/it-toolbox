@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['roman', 'numeral', 'convert', 'arabic'],
   keywords: ['罗马数字', '转换', '阿拉伯数字'],
   icon: 'Hash',
-  isNew: true,
 }

@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['image', 'resize', 'crop', 'scale', 'batch'],
   keywords: ['缩放', '裁剪', '调整尺寸'],
   icon: 'Crop',
-  isNew: true,
 }

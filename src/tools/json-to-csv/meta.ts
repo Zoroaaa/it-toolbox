@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['json', 'csv', 'convert', 'transform', 'export'],
   keywords: ['JSON', 'CSV', '转换', '导出', '表格'],
   icon: 'Table',
-  isNew: true,
 }

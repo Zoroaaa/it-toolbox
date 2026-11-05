@@ -37,7 +37,7 @@ exchangeRoute.get('/', async (c) => {
   } catch { /* 缓存不可用不影响查询 */ }
 
   try {
-    const res = await fetch(`${EXCHANGE_API_URL}/${from}`)
+    const res = await fetch(`${EXCHANGE_API_URL}/${from}`, { signal: AbortSignal.timeout(8000) })
     if (!res.ok) {
       return c.json({ success: false, error: 'Exchange API request failed' }, 502)
     }
@@ -85,7 +85,7 @@ exchangeRoute.get('/rates', async (c) => {
   } catch { /* 缓存不可用不影响查询 */ }
 
   try {
-    const res = await fetch(`${EXCHANGE_API_URL}/${base}`)
+    const res = await fetch(`${EXCHANGE_API_URL}/${base}`, { signal: AbortSignal.timeout(8000) })
     if (!res.ok) {
       return c.json({ success: false, error: 'Exchange API request failed' }, 502)
     }

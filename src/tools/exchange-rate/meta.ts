@@ -10,5 +10,4 @@ export const meta: ToolMeta = {
   keywords: ['汇率', '货币', '换算', '美元', '人民币'],
   icon: 'Coins',
   requiresApi: true,
-  isNew: true,
 }

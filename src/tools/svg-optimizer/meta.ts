@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['svg', 'optimize', 'compress', 'minify', 'vector'],
   keywords: ['矢量', '优化', '压缩', 'svgo'],
   icon: 'Minimize2',
-  isNew: true,
 }

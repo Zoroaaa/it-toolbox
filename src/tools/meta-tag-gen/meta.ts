@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['meta', 'seo', 'html', 'og', 'twitter'],
   keywords: ['Meta', 'SEO', '标签', 'Open Graph', 'Twitter Card'],
   icon: 'Tags',
-  isNew: true,
 }

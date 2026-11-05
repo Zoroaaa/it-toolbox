@@ -53,9 +53,8 @@ async function calculateMd5(file: File): Promise<string> {
     6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21, 6, 10, 15, 21,
   ])
 
-  const padLen = bytes.length + 9
-  const padBytes = ((padLen + 63) & ~63) - padLen + 8
-  const totalLen = bytes.length + 1 + padBytes + 8
+  // MD5 填充后总长度必须是 64 的整数倍：原文 + 1 字节 0x80 + 补零 + 8 字节长度
+  const totalLen = Math.ceil((bytes.length + 9) / 64) * 64
   const data = new Uint8Array(totalLen)
   data.set(bytes)
   data[bytes.length] = 0x80

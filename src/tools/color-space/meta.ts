@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['color', 'rgb', 'hsl', 'hsv', 'hex', 'cmyk', 'convert'],
   keywords: ['颜色', '色彩', 'RGB', 'HSL', 'HEX', '转换'],
   icon: 'Palette',
-  isNew: true,
 }

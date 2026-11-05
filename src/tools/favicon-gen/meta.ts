@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['favicon', 'icon', 'generate', 'png', 'ico', 'apple-touch'],
   keywords: ['图标', '网站图标', '浏览器图标'],
   icon: 'Globe',
-  isNew: true,
 }

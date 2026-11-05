@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['image', 'convert', 'png', 'jpeg', 'webp', 'format'],
   keywords: ['格式转换', '图片', '批量'],
   icon: 'RefreshCw',
-  isNew: true,
 }

@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['git', 'commit', 'conventional', 'message', 'changelog'],
   keywords: ['提交', 'commit message', 'git提交'],
   icon: 'GitCommit',
-  isNew: true,
 }

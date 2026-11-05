@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['css', 'grid', 'layout', 'generator', 'visual'],
   keywords: ['网格', '布局', 'CSS Grid', '可视化'],
   icon: 'LayoutGrid',
-  isNew: true,
 }

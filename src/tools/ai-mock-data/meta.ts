@@ -10,5 +10,4 @@ export const meta: ToolMeta = {
   keywords: ['Mock', '测试数据', '假数据', 'JSON', '生成'],
   icon: 'Database',
   requiresApi: true,
-  isNew: true,
 }

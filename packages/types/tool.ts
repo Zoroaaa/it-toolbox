@@ -22,7 +22,6 @@ export interface ToolMeta {
   keywords?: string[]
   icon: string
   requiresApi?: boolean
-  isNew?: boolean
 }
 
 export const CATEGORY_LABELS: Record<Category, string> = {

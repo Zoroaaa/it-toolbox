@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['css', 'clip-path', 'shape', 'polygon', 'circle', 'ellipse'],
   keywords: ['CSS', 'clip-path', '裁剪', '多边形', '圆形'],
   icon: 'Scissors',
-  isNew: true,
 }

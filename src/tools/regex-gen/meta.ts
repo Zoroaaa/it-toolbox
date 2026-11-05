@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['regex', 'generate', 'pattern', 'infer', 'sample'],
   keywords: ['正则', '生成', '推断', '模式', '匹配'],
   icon: 'Regex',
-  isNew: true,
 }

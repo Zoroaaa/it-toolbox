@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['json', 'table', 'view', 'sort', 'filter'],
   keywords: ['JSON', '表格', '视图', '排序', '过滤'],
   icon: 'Table',
-  isNew: true,
 }

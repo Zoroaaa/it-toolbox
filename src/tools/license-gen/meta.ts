@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['license', 'mit', 'apache', 'gpl', 'bsd', 'open source'],
   keywords: ['开源协议', '许可证', '版权'],
   icon: 'Scale',
-  isNew: true,
 }

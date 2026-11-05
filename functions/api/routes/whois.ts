@@ -41,6 +41,7 @@ const DOMAIN_RE = /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z
  * rdap.org 会对 Cloudflare 出口 IP 直接返回 403，因此不能作为唯一数据源。
  */
 const RDAP_TIMEOUT_MS = 8000
+const RDAP_TOTAL_BUDGET_MS = 12000
 const RDAP_BOOTSTRAP_URL = 'https://data.iana.org/rdap/dns.json'
 const RDAP_BOOTSTRAP_CACHE_KEY = 'cache:rdap:bootstrap'
 const RDAP_BOOTSTRAP_TTL = 86400
@@ -105,11 +106,11 @@ function eventDate(events: RdapResponse['events'], action: string): string | und
 }
 
 /** 单次 RDAP 请求：任何异常都收敛成结构化结果，绝不向上抛 */
-async function requestRdap(url: string): Promise<RdapOutcome> {
+async function requestRdap(url: string, timeoutMs: number = RDAP_TIMEOUT_MS): Promise<RdapOutcome> {
   try {
     const res = await fetch(url, {
       headers: RDAP_HEADERS,
-      signal: AbortSignal.timeout(RDAP_TIMEOUT_MS),
+      signal: AbortSignal.timeout(timeoutMs),
     })
 
     if (res.status === 404) return { kind: 'notFound' }
@@ -207,6 +208,7 @@ async function lookupDomain(
   domain: string,
   env: Env,
 ): Promise<WhoisResult | { error: string; status: number }> {
+  const deadline = Date.now() + RDAP_TOTAL_BUDGET_MS
   const base = pickRdapBase(await loadBootstrap(env), domain)
   const candidates = [
     ...(base ? [`${base}domain/${encodeURIComponent(domain)}`] : []),
@@ -215,7 +217,9 @@ async function lookupDomain(
 
   const reasons: string[] = []
   for (const url of candidates) {
-    const outcome = await requestRdap(url)
+    const remaining = deadline - Date.now()
+    if (remaining < 1500) break
+    const outcome = await requestRdap(url, Math.min(RDAP_TIMEOUT_MS, remaining))
     if (outcome.kind === 'notFound') {
       return {
         error: `未找到 ${domain} 的 RDAP 记录（域名可能未注册或不支持 RDAP）`,
@@ -232,7 +236,7 @@ async function lookupDomain(
 async function lookupIp(ip: string): Promise<WhoisResult | { error: string; status: number }> {
   const res = await fetch(
     `http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,message,country,regionName,city,timezone,as,org,isp,lat,lon,query`,
-    { signal: AbortSignal.timeout(10000) },
+    { signal: AbortSignal.timeout(8000) },
   )
   if (!res.ok) return { error: `IP 归属地查询失败（HTTP ${res.status}）`, status: 502 }
 

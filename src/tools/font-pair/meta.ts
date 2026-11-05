@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['font', 'google-fonts', 'typography', 'pairing', 'design'],
   keywords: ['字体', 'Google Fonts', '排版', '搭配'],
   icon: 'Type',
-  isNew: true,
 }

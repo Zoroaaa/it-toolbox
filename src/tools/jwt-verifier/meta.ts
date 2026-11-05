@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['jwt', 'verify', 'signature', 'hmac', 'rsa', 'token'],
   keywords: ['验证', '签名', '令牌', '认证'],
   icon: 'ShieldCheck',
-  isNew: true,
 }

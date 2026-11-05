@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['json', 'schema', 'generate', 'validation', 'typescript'],
   keywords: ['模式推断', 'json验证', 'schema生成'],
   icon: 'FileJson',
-  isNew: true,
 }

@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['hash', 'verify', 'checksum', 'md5', 'sha256', 'integrity'],
   keywords: ['校验', '完整性', '文件', '哈希'],
   icon: 'FileCheck',
-  isNew: true,
 }

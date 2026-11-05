@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['port', 'network', 'protocol', 'service', 'reference'],
   keywords: ['端口', '网络', '协议', '服务', 'TCP', 'UDP'],
   icon: 'Network',
-  isNew: true,
 }

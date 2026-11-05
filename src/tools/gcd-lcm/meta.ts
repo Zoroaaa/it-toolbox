@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['gcd', 'lcm', 'math', 'number', 'divisor', 'multiple'],
   keywords: ['最大公约数', '最小公倍数', '数学', '约分'],
   icon: 'Calculator',
-  isNew: true,
 }

@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['html', 'preview', 'live', 'editor', 'sandbox'],
   keywords: ['HTML', '预览', '实时', '编辑器', '沙盒'],
   icon: 'Code',
-  isNew: true,
 }

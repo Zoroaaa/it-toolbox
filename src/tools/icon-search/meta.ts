@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['icon', 'search', 'lucide', 'heroicons', 'svg'],
   keywords: ['图标', '搜索', 'SVG', 'Icon'],
   icon: 'Search',
-  isNew: true,
 }

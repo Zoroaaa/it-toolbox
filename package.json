@@ -15,6 +15,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:install": "playwright install chromium",
     "audit:meta": "node scripts/audit-meta.mjs",
     "smoke": "node scripts/smoke.mjs",
     "icons:gen": "node scripts/generate-icon-map.mjs",
@@ -75,6 +77,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.0.0",
     "@eslint/js": "^9.0.0",
+    "@playwright/test": "^1.64.1",
     "@types/bcryptjs": "^2.4.0",
     "@types/chroma-js": "^2.4.0",
     "@types/colorthief": "^2.3.0",

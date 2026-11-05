@@ -702,9 +702,6 @@
     "recent": "Recent",
     "allTools": "All Tools"
   },
-  "toolCard": {
-    "new": "NEW"
-  },
   "toolLayout": {
     "copyOutput": "Copy Output",
     "addToFavorites": "Add to Favorites",

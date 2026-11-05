@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['css', 'animation', 'keyframes', 'transition', 'generator'],
   keywords: ['动画', 'CSS', '关键帧', '过渡'],
   icon: 'Sparkles',
-  isNew: true,
 }

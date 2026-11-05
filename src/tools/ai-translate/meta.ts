@@ -10,5 +10,4 @@ export const meta: ToolMeta = {
   keywords: ['翻译', '多语言', '国际化', '文档翻译'],
   icon: 'Languages',
   requiresApi: true,
-  isNew: true,
 }

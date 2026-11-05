@@ -10,5 +10,4 @@ export const meta: ToolMeta = {
   keywords: ['命名', '变量名', '函数名', '类名', '代码命名'],
   icon: 'CaseSensitive',
   requiresApi: true,
-  isNew: true,
 }

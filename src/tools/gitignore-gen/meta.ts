@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['gitignore', 'git', 'generate', 'template', 'node', 'python'],
   keywords: ['忽略文件', 'git', '模板'],
   icon: 'GitBranch',
-  isNew: true,
 }

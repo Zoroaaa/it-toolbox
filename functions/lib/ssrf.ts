@@ -81,12 +81,18 @@ export async function safeFetch(
   init: RequestInit = {},
 ): Promise<{ ok: true; result: SafeFetchResult } | { ok: false; error: string }> {
   let current = input
+  // 整个转发（含重定向）共用一个总预算，避免多次跳转累加超时拖到边缘 502
+  const totalTimeout = AbortSignal.timeout(12000)
 
   for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
     const check = validatePublicUrl(current)
     if (!check.ok) return { ok: false, error: check.error }
 
-    const response = await fetch(check.url.toString(), { ...init, redirect: 'manual' })
+    const response = await fetch(check.url.toString(), {
+      ...init,
+      redirect: 'manual',
+      signal: init.signal ?? totalTimeout,
+    })
 
     if (response.status >= 300 && response.status < 400) {
       const location = response.headers.get('location')

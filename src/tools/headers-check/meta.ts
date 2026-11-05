@@ -10,5 +10,4 @@ export const meta: ToolMeta = {
   keywords: ['HTTP', '安全头', 'Header', '安全', '检测'],
   icon: 'ShieldCheck',
   requiresApi: true,
-  isNew: true,
 }

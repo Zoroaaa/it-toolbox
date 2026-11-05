@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['image', 'compress', 'jpeg', 'png', 'webp', 'optimize'],
   keywords: ['压缩', '图片优化', '减小体积'],
   icon: 'Minimize',
-  isNew: true,
 }

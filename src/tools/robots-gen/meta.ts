@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['robots', 'seo', 'txt', 'website', 'generator'],
   keywords: ['robots.txt', 'SEO', '爬虫', '网站'],
   icon: 'Bot',
-  isNew: true,
 }

@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['email', 'validate', 'verify', 'format', 'rfc5322'],
   keywords: ['邮箱', '验证', '格式', '电子邮件'],
   icon: 'Mail',
-  isNew: true,
 }

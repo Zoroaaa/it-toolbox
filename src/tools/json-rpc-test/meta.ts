@@ -10,5 +10,4 @@ export const meta: ToolMeta = {
   keywords: ['JSON-RPC', 'API', '测试', 'RPC', '请求'],
   icon: 'Send',
   requiresApi: true,
-  isNew: true,
 }

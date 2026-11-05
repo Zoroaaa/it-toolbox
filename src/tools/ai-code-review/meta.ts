@@ -10,5 +10,4 @@ export const meta: ToolMeta = {
   keywords: ['代码审查', '安全', '性能', '可读性'],
   icon: 'GitPullRequest',
   requiresApi: true,
-  isNew: true,
 }

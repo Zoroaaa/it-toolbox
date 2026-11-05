@@ -10,5 +10,4 @@ export const meta: ToolMeta = {
   keywords: ['提取', '结构化', 'JSON', '信息提取', '文本分析'],
   icon: 'FileSearch',
   requiresApi: true,
-  isNew: true,
 }

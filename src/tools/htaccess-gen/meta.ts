@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['htaccess', 'apache', 'redirect', 'cache', 'security'],
   keywords: ['htaccess', 'Apache', '重定向', '缓存', '安全'],
   icon: 'FileCode',
-  isNew: true,
 }

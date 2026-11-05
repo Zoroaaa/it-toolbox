@@ -10,5 +10,4 @@ export const meta: ToolMeta = {
   keywords: ['API', 'HTTP', '请求', '测试', '接口'],
   icon: 'Send',
   requiresApi: true,
-  isNew: true,
 }

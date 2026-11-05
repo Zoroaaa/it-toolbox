@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['json', 'generate', 'mock', 'random', 'schema', 'fake'],
   keywords: ['JSON', '生成', 'Mock', '测试数据', '随机'],
   icon: 'FileJson',
-  isNew: true,
 }

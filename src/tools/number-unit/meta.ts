@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['unit', 'convert', 'length', 'weight', 'temperature', 'speed', 'storage'],
   keywords: ['单位', '换算', '长度', '重量', '温度', '速度'],
   icon: 'Ruler',
-  isNew: true,
 }

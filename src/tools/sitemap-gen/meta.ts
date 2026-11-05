@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['sitemap', 'seo', 'xml', 'website', 'generator'],
   keywords: ['站点地图', 'SEO', 'XML', '网站'],
   icon: 'Route',
-  isNew: true,
 }

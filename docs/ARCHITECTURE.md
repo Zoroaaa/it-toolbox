@@ -240,7 +240,6 @@ export const toolRegistry: ToolMeta[] = [
     keywords: ['大括号', '对象'], // 中文关键词
     icon: 'Braces',              // 图标名称
     requiresApi: false,          // 是否需要后端 API
-    isNew: false,                // 是否新工具
   },
   // ... 更多工具 (共144个)
 ]

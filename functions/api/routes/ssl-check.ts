@@ -75,6 +75,7 @@ sslCheckRoute.get('/', async (c) => {
           'Accept': 'application/json',
           'User-Agent': 'IT-Toolbox-SSL-Checker/1.0',
         },
+        signal: AbortSignal.timeout(8000),
       })
 
       if (crtShRes.ok) {
@@ -146,6 +147,7 @@ sslCheckRoute.get('/', async (c) => {
         await fetch(`https://${cleanDomain}`, {
           method: 'HEAD',
           redirect: 'follow',
+          signal: AbortSignal.timeout(5000),
         })
 
         result.valid = false

@@ -167,7 +167,6 @@ function SearchResults({ query, onSelect }: { query: string; onSelect: (t: ToolM
                   <span className="text-sm font-medium">{tool.name}</span>
                   <p className="text-xs text-text-muted truncate">{tool.description}</p>
                 </div>
-                {tool.isNew && <span className="badge text-xs">{t('toolCard.new')}</span>}
               </CommandItem>
             )
           })}

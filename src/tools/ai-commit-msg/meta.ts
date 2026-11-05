@@ -10,5 +10,4 @@ export const meta: ToolMeta = {
   keywords: ['AI', 'Git', '提交', 'Commit', 'Conventional'],
   icon: 'GitCommit',
   requiresApi: true,
-  isNew: true,
 }

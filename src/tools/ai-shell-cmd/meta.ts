@@ -10,5 +10,4 @@ export const meta: ToolMeta = {
   keywords: ['Shell', '命令', 'Bash', 'PowerShell', 'CLI'],
   icon: 'Terminal',
   requiresApi: true,
-  isNew: true,
 }

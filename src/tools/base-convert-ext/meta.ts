@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['base', 'convert', 'radix', 'binary', 'hex', 'decimal'],
   keywords: ['进制', '转换', '二进制', '十六进制', '小数'],
   icon: 'Binary',
-  isNew: true,
 }

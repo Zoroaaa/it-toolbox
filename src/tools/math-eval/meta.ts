@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['math', 'calculator', 'expression', 'evaluate', 'formula'],
   keywords: ['数学', '计算', '表达式', '公式', '科学计算'],
   icon: 'Calculator',
-  isNew: true,
 }

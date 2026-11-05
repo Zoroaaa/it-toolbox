@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['css', 'unit', 'px', 'rem', 'em', 'vw', 'vh', 'convert'],
   keywords: ['CSS', '单位', '像素', '换算', 'rem', 'em'],
   icon: 'Ruler',
-  isNew: true,
 }

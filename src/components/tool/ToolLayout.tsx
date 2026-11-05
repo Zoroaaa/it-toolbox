@@ -30,7 +30,7 @@ const isFavorited = useAppStore((s) => s.isFavorited)
   }
 
   return (
-    <div className="flex flex-col h-full animate-fade-in">
+    <div className="flex flex-col h-full animate-fade-in" data-testid="tool-page" data-tool-id={meta.id}>
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center flex-shrink-0">
@@ -39,9 +39,6 @@ const isFavorited = useAppStore((s) => s.isFavorited)
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-lg font-semibold text-text-primary">{meta.name}</h1>
-              {meta.isNew && (
-                <span className="badge">{t('toolCard.new')}</span>
-              )}
               {meta.requiresApi && (
                 <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-bg-raised text-text-muted border border-border-base">
                   API

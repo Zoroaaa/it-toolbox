@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['aspect', 'ratio', 'resolution', 'pixel', 'screen'],
   keywords: ['宽高比', '分辨率', '像素', '比例', '屏幕'],
   icon: 'RectangleHorizontal',
-  isNew: true,
 }

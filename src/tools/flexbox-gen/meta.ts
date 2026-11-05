@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['css', 'flexbox', 'flex', 'layout', 'generator'],
   keywords: ['CSS', 'Flexbox', '布局', '弹性盒子', '生成器'],
   icon: 'LayoutGrid',
-  isNew: true,
 }

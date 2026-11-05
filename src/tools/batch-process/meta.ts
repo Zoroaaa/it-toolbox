@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['batch', 'process', 'multiple', 'transform', 'workflow'],
   keywords: ['批量', '处理', '多工具', '工作流'],
   icon: 'Workflow',
-  isNew: true,
 }

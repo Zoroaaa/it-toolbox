@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['qrcode', 'qr', 'reader', 'scanner', 'decode'],
   keywords: ['二维码', '识别', '扫码', '解析'],
   icon: 'Scan',
-  isNew: true,
 }

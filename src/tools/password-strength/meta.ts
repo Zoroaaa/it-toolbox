@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['password', 'strength', 'security', 'analyze', 'zxcvbn'],
   keywords: ['密码', '强度', '安全', '破解'],
   icon: 'Shield',
-  isNew: true,
 }

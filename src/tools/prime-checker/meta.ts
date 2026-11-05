@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['prime', 'number', 'factor', 'math', 'isPrime'],
   keywords: ['质数', '素数', '因数', '数学'],
   icon: 'Hash',
-  isNew: true,
 }

@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['changelog', 'git', 'release', 'version', 'history'],
   keywords: ['变更日志', '版本历史', 'Git', '发布'],
   icon: 'FileText',
-  isNew: true,
 }

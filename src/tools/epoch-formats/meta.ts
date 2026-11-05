@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['time', 'date', 'format', 'iso', 'rfc', 'timestamp', 'convert'],
   keywords: ['时间', '日期', '格式', '转换', 'ISO'],
   icon: 'Clock',
-  isNew: true,
 }

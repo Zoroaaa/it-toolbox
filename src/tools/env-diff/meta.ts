@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['env', 'diff', 'compare', 'environment', 'variables'],
   keywords: ['环境变量', '对比', '差异', '配置'],
   icon: 'GitCompare',
-  isNew: true,
 }

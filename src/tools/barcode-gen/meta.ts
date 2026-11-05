@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['barcode', 'ean', 'code128', 'code39', 'generate', 'svg'],
   keywords: ['条形码', 'EAN', 'Code128', 'Code39', '生成'],
   icon: 'Barcode',
-  isNew: true,
 }

@@ -1,5 +1,4 @@
 import { Link } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
 import { Star } from 'lucide-react'
 import type { ToolMeta } from '@toolbox/types/tool'
 import { useAppStore } from '@/store/app'
@@ -11,7 +10,6 @@ interface ToolCardProps {
 }
 
 export function ToolCard({ tool }: ToolCardProps) {
-  const { t } = useTranslation()
   const isFavorited = useAppStore((s) => s.isFavorited)
 const toggleFavorite = useAppStore((s) => s.toggleFavorite)
   const favorited = isFavorited(tool.id)
@@ -31,7 +29,6 @@ const toggleFavorite = useAppStore((s) => s.toggleFavorite)
           {IconComp && <IconComp className="w-4 h-4 text-accent" />}
         </div>
         <div className="flex items-center gap-1.5">
-          {tool.isNew && <span className="badge text-xs">{t('toolCard.new')}</span>}
           <button
             onClick={e => { e.preventDefault(); toggleFavorite(tool.id) }}
             aria-label={favorited ? '取消收藏' : '收藏'}

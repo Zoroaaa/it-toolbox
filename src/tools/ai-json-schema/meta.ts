@@ -10,5 +10,4 @@ export const meta: ToolMeta = {
   keywords: ['AI', 'JSON', 'Schema', '生成', '验证'],
   icon: 'Sparkles',
   requiresApi: true,
-  isNew: true,
 }

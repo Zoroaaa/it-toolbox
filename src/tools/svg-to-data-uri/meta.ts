@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['svg', 'data-uri', 'base64', 'inline', 'css', 'html'],
   keywords: ['内联', '转换', '嵌入'],
   icon: 'FileCode',
-  isNew: true,
 }

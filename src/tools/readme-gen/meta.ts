@@ -9,5 +9,4 @@ export const meta: ToolMeta = {
   tags: ['readme', 'markdown', 'template', 'badge', 'documentation'],
   keywords: ['说明文档', '项目文档', '徽章'],
   icon: 'FileText',
-  isNew: true,
 }
