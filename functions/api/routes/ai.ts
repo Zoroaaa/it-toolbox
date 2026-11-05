@@ -5,13 +5,16 @@ export const aiRoute = new Hono<{ Bindings: Env }>()
 
 /**
  * Workers AI 的模型 ID 是有生命周期的配置项，不是稳定的常量：
- * @cf/meta/llama-3.1-8b-instruct 已于 2026-05-30 退役，继续调用会直接抛错。
+ * @cf/meta/llama-3.1-8b-instruct 已于 2026-05-30 退役；
+ * @cf/meta/llama-3.1-8b-instruct-fast 已不在当前模型目录，文档页提示
+ * “Model not available”，运行时虽仍可调用，但随时可能下线。
+ * 主模型改用目录中可查到的 FP8 版本，其余候选保持不变。
  *
  * 这里不再用 JS 超时提前返回：实测超时后返回会让边缘取消上游子请求，
  * 业务 JSON 被 Cloudflare HTML 502 覆盖。直接 await 模型自然完成。
  */
 const AI_MODELS = [
-  '@cf/meta/llama-3.1-8b-instruct-fast',
+  '@cf/meta/llama-3.1-8b-instruct-fp8',
   '@cf/zai-org/glm-4.7-flash',
   '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
 ] as const
@@ -37,9 +40,12 @@ async function runSingleModel(
   env: Env,
   model: string,
   messages: AiMessage[],
+  jsonMode = false,
 ): Promise<AiOutcome> {
   try {
-    const output = (await env.AI.run(model as keyof AiModels, { messages } as never)) as AiRawOutput
+    const payload: Record<string, unknown> = { messages }
+    if (jsonMode) payload.response_format = { type: 'json_object' }
+    const output = (await env.AI.run(model as keyof AiModels, payload as never)) as AiRawOutput
     const text = extractAiText(output)
     if (!text.trim()) return { ok: false, error: '返回内容为空' }
     return { ok: true, value: text, model }
@@ -50,7 +56,11 @@ async function runSingleModel(
 }
 
 /** 统一 AI 调用：按候选模型逐个降级，任何失败都不抛异常 */
-async function runAiModel(env: Env, messages: AiMessage[]): Promise<AiOutcome> {
+async function runAiModel(
+  env: Env,
+  messages: AiMessage[],
+  options: { jsonMode?: boolean } = {},
+): Promise<AiOutcome> {
   if (!env.AI || typeof env.AI.run !== 'function') {
     return { ok: false, error: 'AI 绑定未配置，请在 Pages 项目中绑定 Workers AI' }
   }
@@ -58,7 +68,7 @@ async function runAiModel(env: Env, messages: AiMessage[]): Promise<AiOutcome> {
   const failures: string[] = []
 
   for (const model of AI_MODELS) {
-    const outcome = await runSingleModel(env, model, messages)
+    const outcome = await runSingleModel(env, model, messages, options.jsonMode)
     if (outcome.ok) return outcome
     failures.push(`${model} → ${outcome.error}`)
   }
@@ -285,7 +295,7 @@ async function runAiJson(
         '你上一次的输出不是合法 JSON。请只输出一个 JSON 对象：从 { 开始、到 } 结束；不要 Markdown、不要解释、不要前后缀。',
     },
   ]
-  const second = await runAiModel(env, retryMessages)
+  const second = await runAiModel(env, retryMessages, { jsonMode: true })
   if (!second.ok) return second
 
   const secondParsed = parseAiJson(second.value)

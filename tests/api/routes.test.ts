@@ -435,7 +435,7 @@ describe('AI 接口契约', () => {
 
   it('全部候选模型不可用时返回 502 JSON 并携带模型原因', async () => {
     ai.run
-      .mockRejectedValueOnce(new Error('No such model: fast'))
+      .mockRejectedValueOnce(new Error('No such model: fp8'))
       .mockRejectedValueOnce(new Error('No such model: glm'))
       .mockRejectedValueOnce(new Error('No such model: 70b'))
 
@@ -447,7 +447,7 @@ describe('AI 接口契约', () => {
     expect(res.status).toBe(502)
     const body = await json(res)
     expect(body.success).toBe(false)
-    expect(String(body.error)).toContain('@cf/meta/llama-3.1-8b-instruct-fast')
+    expect(String(body.error)).toContain('@cf/meta/llama-3.1-8b-instruct-fp8')
     expect(ai.run).toHaveBeenCalledTimes(3)
   })
 })
