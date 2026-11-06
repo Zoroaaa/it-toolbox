@@ -1,22 +1,24 @@
 {
-  "generatedAt": "2026-11-04T09:48:23.135Z",
+  "generatedAt": "2026-11-06T04:07:17.560Z",
   "totals": {
-    "jsFiles": 49,
-    "jsRawKB": 2533,
-    "jsGzipKB": 955
+    "jsFiles": 199,
+    "jsRawKB": 7019,
+    "jsGzipKB": 2354
   },
   "firstScreen": {
     "files": [
-      "assets/index-C88aRxHQ.js",
+      "assets/index-C5vFcg6W.js",
       "assets/vendor-react-DykeQ9Ik.js",
-      "assets/index-D6BewQ5m.css"
+      "assets/index-BqTQKP8c.css"
     ],
-    "rawKB": 546,
+    "rawKB": 561,
     "gzipKB": 169
   },
   "toolChunks": {
-    "count": 0,
-    "rawKB": 0
+    "count": 148,
+    "rawKB": 4480,
+    "gzipKB": 1402,
+    "inFirstScreen": []
   },
   "top10": [
     {
@@ -30,51 +32,86 @@
       "gzip": 304.6
     },
     {
+      "file": "tools/svg-optimizer-w0tnnRuT.js",
+      "raw": 653.6,
+      "gzip": 206.1
+    },
+    {
+      "file": "tools/math-eval-DBCSf6Qb.js",
+      "raw": 644.4,
+      "gzip": 188.3
+    },
+    {
+      "file": "tools/faker-data-BG2iNJl4.js",
+      "raw": 529.2,
+      "gzip": 184
+    },
+    {
+      "file": "tools/js-formatter-Bg8CgvQc.js",
+      "raw": 515.6,
+      "gzip": 141.5
+    },
+    {
       "file": "vendor-react-DykeQ9Ik.js",
       "raw": 282.1,
       "gzip": 90.5
     },
     {
-      "file": "index-C88aRxHQ.js",
-      "raw": 219.5,
-      "gzip": 69.7
+      "file": "tools/sql-formatter-ctb6mRyi.js",
+      "raw": 288.7,
+      "gzip": 75.2
     },
     {
-      "file": "standalone-BgjtRwn_.js",
-      "raw": 85.1,
-      "gzip": 28.8
+      "file": "index-C5vFcg6W.js",
+      "raw": 234.6,
+      "gzip": 70.1
     },
     {
-      "file": "index-T8xJO8QF.js",
-      "raw": 34.3,
-      "gzip": 13.9
-    },
-    {
-      "file": "js-yaml-l1bQ09Yt.js",
-      "raw": 38.1,
-      "gzip": 12.8
-    },
-    {
-      "file": "marked.esm-BGwOOx1V.js",
-      "raw": 38.1,
-      "gzip": 11.7
-    },
-    {
-      "file": "en-US-BzpZVIL_.js",
-      "raw": 18.6,
-      "gzip": 7.8
-    },
-    {
-      "file": "network-B-i4sCBg.js",
-      "raw": 14.7,
-      "gzip": 5.2
+      "file": "tools/cert-decoder-LokN9aWo.js",
+      "raw": 196.7,
+      "gzip": 51.1
     }
   ],
   "vendors": [
     {
+      "file": "tools/svg-optimizer-w0tnnRuT.js",
+      "raw": 653.6,
+      "gzip": 206.1
+    },
+    {
+      "file": "tools/math-eval-DBCSf6Qb.js",
+      "raw": 644.4,
+      "gzip": 188.3
+    },
+    {
+      "file": "tools/faker-data-BG2iNJl4.js",
+      "raw": 529.2,
+      "gzip": 184
+    },
+    {
       "file": "vendor-react-DykeQ9Ik.js",
       "raw": 282.1,
       "gzip": 90.5
+    },
+    {
+      "file": "tools/markdown-preview-B2MTdWuC.js",
+      "raw": 5.2,
+      "gzip": 2.3
+    },
+    {
+      "file": "tools/data-storage-N6WCTBs-.js",
+      "raw": 6.2,
+      "gzip": 2
+    },
+    {
+      "file": "tools/svg-to-data-uri-B6N8vIg3.js",
+      "raw": 4.2,
+      "gzip": 1.8
+    },
+    {
+      "file": "tools/ai-mock-data-CJgqYX0O.js",
+      "raw": 3.8,
+      "gzip": 1.6
     }
   ]
 }

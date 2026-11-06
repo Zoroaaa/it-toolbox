@@ -33,6 +33,15 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Audit tool metadata
+        run: pnpm audit:meta --check
+
+      - name: Check icon map
+        run: pnpm icons:check
+
+      - name: Check store selectors
+        run: node scripts/check-store-selectors.mjs
+
       - name: Test
         run: pnpm test
 

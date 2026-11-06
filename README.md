@@ -2,7 +2,7 @@
 
 <div align="center">
 
-**开发者工具箱** — 144 款实用工具，基于 Cloudflare Pages Functions 全栈部署
+**开发者工具箱** — 140+ 款实用工具，基于 Cloudflare Pages Functions 全栈部署
 
 [![Version](https://img.shields.io/badge/version-1.6.0-blue.svg)](https://github.com/Zoroaaa/it-toolbox/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -28,7 +28,7 @@
 
 ## 项目简介
 
-IT Toolbox 是一款面向开发者的在线工具箱，集成 144 款高频开发工具，覆盖格式化、编码解码、加密安全、网络查询、文本处理、颜色设计、AI增强等多个类别。
+IT Toolbox 是一款面向开发者的在线工具箱，集成 140+ 款高频开发工具，覆盖格式化、编码解码、加密安全、网络查询、文本处理、颜色设计、AI增强等多个类别。
 
 > **版本说明**：项目版本已统一为 `v1.0.0` → `v1.6.0` 连续序列，旧的 `v2.x` / `v3.0.0` 标签已归档。对应关系见 [版本映射表](./docs/releases/VERSION-MAP.md)。
 
@@ -67,16 +67,16 @@ IT Toolbox 是一款面向开发者的在线工具箱，集成 144 款高频开�
 | 加密安全 | 11 | Hash/AES/RSA/HMAC/Bcrypt/SSH/JWT生成/证书解析/文件校验/JWT验证/密码强度 |
 | 文本处理 | 16 | 命名转换/占位文本/正则测试/文本统计/Diff/变换/转义/Cron/相似度/行处理/JSON转类型/数学计算/正则生成/JSON Schema 验证 |
 | 颜色设计 | 14 | 颜色选择器/渐变生成/配色方案/对比度/色盲模拟/Tailwind色板/Box Shadow/色彩空间/clip-path/Flexbox/Grid/动画/字体搭配 |
-| 网络 HTTP | 16 | IP查询/DNS/URL解析/HTTP状态码/请求头/MIME类型/子网计算/UA解析/cURL转换/API测试/RDAP/SSL检测/安全头/端口参考/邮箱验证 |
+| 网络 HTTP | 18 | IP查询/DNS/URL解析/HTTP状态码/请求头/MIME类型/子网计算/UA解析/cURL转换/API测试/RDAP/SSL检测/安全头/端口参考/邮箱验证/Cookie解析/HAR分析 |
 | 时间日期 | 6 | 时间戳转换/日期计算/时区转换/时长格式化/日历生成/多格式时间 |
 | 生成器 | 12 | UUID/密码/NanoID/ULID/ObjectID/假数据/二维码生成/二维码识别/占位图/条形码/JSON生成/SQL生成 |
-| 图片媒体 | 8 | 图片压缩/格式转换/尺寸调整/SVG优化/SVG转DataURI/Favicon/EXIF/取色 |
+| 图片媒体 | 9 | 图片压缩/格式转换（含SVG导出）/尺寸调整/SVG优化/SVG转DataURI/Favicon/EXIF/取色/图片对比 |
 | 开发规范 | 12 | gitignore/许可证/README/Commit规范/SemVer/OpenAPI/JSON Schema/Meta标签/Sitemap/robots.txt/.htaccess/Changelog |
-| 单位换算 | 11 | 进制转换/汇率换算/数字单位/数据存储/色彩空间/CSS单位/宽高比/罗马数字/扩展进制/质数/GCD-LCM |
+| 单位换算 | 12 | 进制转换/汇率换算/数字单位/数据存储/色彩空间/CSS单位/宽高比/罗马数字/扩展进制/质数/GCD-LCM/人民币大写 |
 | AI 增强 | 12 | AI代码解释/AI正则生成/AI SQL生成/AI代码Review/AI生成Schema/AI生成提交信息/AI结构化提取/AI翻译/AI报错解释/AI命名助手/AI生成Mock数据/AI Shell命令生成 |
-| **总计** | **144** | |
+| **总计** | **148** | |
 
-### 工具清单（v1.6.0）
+### 工具清单（节选）
 
 #### 格式化
 
@@ -322,11 +322,11 @@ it-toolbox/
 │   ├── lib/                      # ai / toast / tool-loader
 │   ├── pages/                    # Home / Category / Tool / Favorites / History
 │   ├── store/app.ts              # Zustand（字段级订阅 + 版本化持久化）
-│   ├── tools/                    # 144 个工具目录（meta.ts + index.tsx）
+│   ├── tools/                    # 工具目录（meta.ts + index.tsx）
 │   ├── utils/                    # icons.ts + 自动生成的 icon-map.ts
 │   ├── i18n/                     # 中文内置，英文按需加载
 │   ├── main.tsx                  # 应用入口（分包错误兜底）
-│   ├── registry.ts               # 工具注册表（唯一事实源）
+│   ├── registry.ts               # 工具清单聚合（由各 meta.ts 生成，仅维护展示顺序）
 │   └── routeTree.tsx             # 路由（页面级懒加载）
 │
 ├── functions/                    # Cloudflare Pages Functions
@@ -356,15 +356,14 @@ it-toolbox/
 
 ## 新增工具
 
-添加新工具只需 5 步：
+添加新工具只需 4 步：
 
 1. 在 `src/tools/` 下创建新文件夹
 2. 创建 `meta.ts`（工具元信息，`id` 必须与目录名一致）
 3. 创建 `index.tsx`（默认导出工具 UI 组件）
-4. 在 `src/registry.ts` 中添加注册记录
-5. 运行 `pnpm icons:gen && pnpm audit:meta --check && pnpm test`
+4. 运行 `pnpm icons:gen && pnpm check`
 
-工具页由 `src/lib/tool-loader.ts` 自动按目录懒加载，无需手工维护映射。详细说明见 [CONTRIBUTING.md](./docs/CONTRIBUTING.md)。
+无需修改注册表：`src/registry.ts` 在构建期聚合各 `meta.ts`，`src/lib/tool-loader.ts` 按目录自动懒加载。详细说明见 [CONTRIBUTING.md](./docs/CONTRIBUTING.md)。
 
 ---
 

@@ -1,7 +1,11 @@
 #!/usr/bin/env node
 /**
  * 工具元数据一致性审计
- * 校验：目录 / meta.ts / registry.ts 三方一致；icon 合法；requiresApi 与 /api 调用一致；name 一致。
+ *
+ * 校验：目录 ↔ meta.ts 一致；id 唯一；icon 合法；category 合法；requiresApi 与 /api 调用一致。
+ * registry 不再参与校验——工具清单由 meta.ts 聚合（见 src/registry.ts），双源已消除，
+ * 因此 name/category/icon 的「双源漂移」在结构上不再可能发生。
+ *
  * 用法：node scripts/audit-meta.mjs [--check]
  */
 import { readdirSync, readFileSync, statSync } from 'node:fs'
@@ -10,7 +14,7 @@ import { fileURLToPath } from 'node:url'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const toolsDir = join(root, 'src', 'tools')
-const registryPath = join(root, 'src', 'registry.ts')
+const typesPath = join(root, 'packages', 'types', 'tool.ts')
 
 const read = (p) => readFileSync(p, 'utf8').replace(/\r\n/g, '\n')
 
@@ -24,7 +28,16 @@ function boolField(source, name) {
   return new RegExp(`${name}:\\s*true`).test(source)
 }
 
+const typesSource = read(typesPath)
+/** CATEGORY_LABELS 的键即合法分类 */
+const validCategories = new Set(
+  [...typesSource.matchAll(/^\s{2}([a-z]+):\s*'[^']+',$/gm)].map((m) => m[1]),
+)
+
 const dirs = readdirSync(toolsDir).filter((d) => statSync(join(toolsDir, d)).isDirectory())
+
+const issues = []
+const add = (level, message) => issues.push({ level, message })
 
 const metas = new Map()
 for (const dir of dirs) {
@@ -34,9 +47,15 @@ for (const dir of dirs) {
   try {
     meta = read(metaPath)
   } catch {
-    console.error(`[缺失] ${dir}: meta.ts 不存在`)
+    add('error', `${dir}: meta.ts 不存在`)
     continue
   }
+  try {
+    statSync(indexPath)
+  } catch {
+    add('error', `${dir}: index.tsx 不存在`)
+  }
+
   metas.set(dir, {
     dir,
     id: field(meta, 'id'),
@@ -46,44 +65,34 @@ for (const dir of dirs) {
     icon: field(meta, 'icon'),
     requiresApi: boolField(meta, 'requiresApi'),
     callsApi:
-      /fetch\(\s*['"`]\/api\/(ip|dns|ai|exchange|proxy|whois|ssl-check|headers-check|webhook)\b/.test(
+      /fetch\(\s*['"`]\/api\/(ip|dns|ai|exchange|proxy|whois|ssl-check|headers-check)\b/.test(
         read(indexPath),
       ),
   })
 }
 
-const registrySource = read(registryPath)
-const entryChunks = registrySource.split(/\n {2}\{\n/).slice(1)
-const registry = new Map()
-for (const chunk of entryChunks) {
-  const id = field(chunk, 'id')
-  if (!id) continue
-  registry.set(id, {
-    id,
-    name: field(chunk, 'name'),
-    nameEn: field(chunk, 'nameEn'),
-    category: field(chunk, 'category'),
-    icon: field(chunk, 'icon'),
-    requiresApi: boolField(chunk, 'requiresApi'),
-  })
-}
-
-const issues = []
-const add = (level, message) => issues.push({ level, message })
-
 for (const [dir, meta] of metas) {
-  if (!registry.has(dir)) add('error', `有目录无注册：${dir}`)
   if (meta.id !== dir) add('error', `${dir}: meta.id='${meta.id}' 与目录名不一致`)
+  if (!meta.name) add('error', `${dir}: 缺少 name`)
+  if (!meta.nameEn) add('error', `${dir}: 缺少 nameEn`)
+  if (!meta.category) add('error', `${dir}: 缺少 category`)
+  else if (!validCategories.has(meta.category)) {
+    add('error', `${dir}: category='${meta.category}' 不是合法分类`)
+  }
 }
-for (const id of registry.keys()) {
-  if (!metas.has(id)) add('error', `有注册无目录：${id}`)
+
+const seen = new Map()
+for (const [dir, meta] of metas) {
+  if (!meta.id) continue
+  if (seen.has(meta.id)) add('error', `id 重复：'${meta.id}'（${seen.get(meta.id)} 与 ${dir}）`)
+  else seen.set(meta.id, dir)
 }
 
 // icon 合法性（lucide 导出名）
 const lucide = await import('lucide-react')
 const lucideExports = new Set(Object.keys(lucide))
-const typesSource = read(join(root, 'packages', 'types', 'tool.ts'))
 const categoryIcons = [...typesSource.matchAll(/'\s*:\s*'([A-Za-z0-9]+)'/g)].map((m) => m[1])
+
 for (const icon of new Set([...metas.values()].map((m) => m.icon).filter(Boolean))) {
   if (!lucideExports.has(icon)) add('error', `非法 icon：'${icon}'（不是 lucide-react 导出）`)
 }
@@ -92,14 +101,8 @@ for (const icon of categoryIcons) {
 }
 
 for (const [dir, meta] of metas) {
-  const reg = registry.get(dir)
-  if (!reg) continue
-  if (reg.icon && !lucideExports.has(reg.icon)) add('error', `${dir}: registry icon '${reg.icon}' 非法`)
-  if (meta.name !== reg.name) add('warn', `${dir}: name 不一致 meta='${meta.name}' registry='${reg.name}'`)
-  if (meta.category !== reg.category) add('warn', `${dir}: category 不一致 meta='${meta.category}' registry='${reg.category}'`)
-  if (reg.icon !== meta.icon) add('warn', `${dir}: icon 不一致 meta='${meta.icon}' registry='${reg.icon}'`)
-  const needsApi = meta.callsApi || reg.requiresApi
-  const flagged = Boolean(meta.requiresApi || reg.requiresApi)
+  const needsApi = meta.callsApi || meta.requiresApi
+  const flagged = Boolean(meta.requiresApi)
   if (needsApi && !flagged) add('error', `${dir}: 调用 /api 但未标记 requiresApi`)
   if (!needsApi && flagged) add('warn', `${dir}: 标记 requiresApi 但未发现 /api 调用`)
 }
@@ -107,7 +110,7 @@ for (const [dir, meta] of metas) {
 const errors = issues.filter((i) => i.level === 'error')
 const warns = issues.filter((i) => i.level === 'warn')
 
-console.log(`目录 ${dirs.length} 个 / meta ${metas.size} 个 / registry ${registry.size} 条`)
+console.log(`目录 ${dirs.length} 个 / meta ${metas.size} 个 / 合法分类 ${validCategories.size} 个`)
 if (issues.length === 0) {
   console.log('元数据一致，无问题。')
 } else {

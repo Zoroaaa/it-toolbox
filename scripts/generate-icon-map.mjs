@@ -1,20 +1,29 @@
 #!/usr/bin/env node
 /**
- * 从 registry.ts 与 CATEGORY_ICONS 收集图标名，生成显式 lucide 图标映射，
+ * 从各工具 meta.ts 与 CATEGORY_ICONS 收集图标名，生成显式 lucide 图标映射，
  * 避免 `import * as Icons` 把整个图标库打进首屏。
  * 用法：node scripts/generate-icon-map.mjs [--check]
  */
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
-const registry = readFileSync(join(root, 'src', 'registry.ts'), 'utf8')
+const toolsDir = join(root, 'src', 'tools')
 const types = readFileSync(join(root, 'packages', 'types', 'tool.ts'), 'utf8')
 const outputPath = join(root, 'src', 'utils', 'icon-map.ts')
 
 const names = new Set()
-for (const match of registry.matchAll(/icon:\s*'([A-Za-z0-9]+)'/g)) names.add(match[1])
+for (const dir of readdirSync(toolsDir)) {
+  if (!statSync(join(toolsDir, dir)).isDirectory()) continue
+  let source
+  try {
+    source = readFileSync(join(toolsDir, dir, 'meta.ts'), 'utf8')
+  } catch {
+    continue
+  }
+  for (const match of source.matchAll(/icon:\s*'([A-Za-z0-9]+)'/g)) names.add(match[1])
+}
 for (const match of types.matchAll(/:\s*'([A-Za-z0-9]+)',?/g)) {
   if (/^[A-Z]/.test(match[1])) names.add(match[1])
 }
@@ -49,7 +58,7 @@ const previous = (() => {
 
 if (process.argv.includes('--check')) {
   if (previous !== content) {
-    console.error('图标映射与 registry 不同步，请运行 pnpm icons:gen')
+    console.error('图标映射与 meta.ts 不同步，请运行 pnpm icons:gen')
     process.exit(1)
   }
   console.log(`图标映射已同步（${sorted.length} 个图标）`)

@@ -64,9 +64,11 @@ const res = await app.request('/api/dns?domain=a.com', {}, env)
 
 `tests/meta/registry.test.ts` 会遍历 `src/tools/*/meta.ts`，校验：
 
-- 目录名 = `meta.id` = `registry.ts` 中的 id
+- 目录名 = `meta.id`，且 registry 覆盖全部 meta（无遗漏无多余）
 - `icon` 是合法 lucide 导出
-- 新增工具未同步 registry 时测试直接失败
+- 每个 registry 条目都能解析到工具组件（`getToolComponent` 非空）
+
+`scripts/audit-meta.mjs` 另会校验 `category` 合法性、`requiresApi` 与 `/api` 调用是否一致。
 
 ## 覆盖率
 

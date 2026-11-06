@@ -4,7 +4,7 @@
 
 ## 1. 项目概述
 
-IT Toolbox 是面向开发者的在线工具箱，集成 144 款高频开发工具。基于 Cloudflare Pages Functions 全栈部署，前后端同域，无需传统服务器，全球边缘节点低延迟响应。
+IT Toolbox 是面向开发者的在线工具箱，集成 140+ 款高频开发工具。基于 Cloudflare Pages Functions 全栈部署，前后端同域，无需传统服务器，全球边缘节点低延迟响应。
 
 ### 核心特性
 
@@ -120,7 +120,7 @@ it-toolbox/
 │   │   │   └── index.tsx         # 工具 UI 组件
 │   │   ├── base64/
 │   │   ├── hash-calculator/
-│   │   └── ...                   # 其他工具 (共144个)
+│   │   └── ...                   # 其他工具
 │   ├── utils/                    # 工具函数
 │   │   └── icons.ts              # 图标映射
 │   ├── index.css                 # 全局样式
@@ -246,27 +246,23 @@ it-toolbox/
 
 ### 5.1 工具注册表 (Registry)
 
-工具注册表是整个应用的核心，所有工具通过 `src/registry.ts` 统一注册。
+工具清单的唯一事实源是各工具目录下的 `meta.ts`。`src/registry.ts` 只做构建期聚合与展示排序，不再手写元数据：
 
 ```typescript
 // src/registry.ts
 import Fuse from 'fuse.js'
 import type { ToolMeta } from '@toolbox/types/tool'
 
-export const toolRegistry: ToolMeta[] = [
-  {
-    id: 'json-formatter',        // 唯一标识，用于路由
-    name: 'JSON 格式化',          // 显示名称
-    nameEn: 'JSON Formatter',    // 英文名称
-    description: '格式化、压缩、校验 JSON', // 描述
-    category: 'format',          // 分类
-    tags: ['json', 'format'],    // 标签 (用于搜索)
-    keywords: ['大括号', '对象'], // 中文关键词
-    icon: 'Braces',              // 图标名称
-    requiresApi: false,          // 是否需要后端 API
-  },
-  // ... 更多工具 (共144个)
+// 仅维护展示顺序；未登记的 id 按字典序排在末尾
+const DISPLAY_ORDER: string[] = [
+  'json-formatter', 'markdown-preview', 'base64', /* ... */
 ]
+
+const metaModules = import.meta.glob<{ meta: ToolMeta }>('@/tools/*/meta.ts', { eager: true })
+
+export const toolRegistry: ToolMeta[] = Object.values(metaModules)
+  .map((mod) => mod.meta)
+  .sort(/* DISPLAY_ORDER 序 + id 字典序 */)
 
 // 模糊搜索索引
 export const searchIndex = new Fuse(toolRegistry, {
@@ -539,13 +535,14 @@ export default defineConfig({
 
 ### 10.1 新增工具流程
 
-1. 在 `src/tools/` 下创建新文件夹
-2. 创建 `meta.ts`（工具元信息）
-3. 创建 `index.tsx`（工具 UI 组件）
-4. 在 `src/registry.ts` 中添加注册记录
-5. 在 `src/pages/ToolPage.tsx` 添加懒加载映射
-6. 如有纯计算逻辑，添加到 `packages/core/src/`
-7. 如需后端 API，在 `functions/api/routes/` 中添加路由
+1. 在 `src/tools/<id>/` 下创建目录（目录名即工具 id）
+2. 创建 `meta.ts`（工具元信息，唯一事实源）
+3. 创建 `index.tsx`（工具 UI 组件，默认导出并用 `ToolLayout` 包裹）
+4. 如需纯计算逻辑，添加到 `packages/core/src/`，按 `@core/<module>` 子路径导入
+5. 如需后端 API，在 `functions/api/routes/` 中添加路由
+6. 运行 `pnpm icons:gen && pnpm check`
+
+`src/registry.ts` 不再需要手工登记：它在构建期用 `import.meta.glob('@/tools/*/meta.ts', { eager: true })` 聚合全部 meta，未列入展示顺序的工具自动排到末尾。`src/lib/tool-loader.ts` 同样基于 glob 自动生成懒加载表，无需改路由或映射。
 
 ### 10.2 工具模板
 

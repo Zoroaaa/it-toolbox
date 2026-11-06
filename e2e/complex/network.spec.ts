@@ -68,4 +68,47 @@ test.describe('网络与后端工具交互', () => {
     await expect(page.getByText('响应结果')).toBeVisible()
     await expect(page.getByText(/"ok": true/)).toBeVisible()
   })
+
+  test('har-analyzer 解析 HAR 并统计', async ({ page }) => {
+    await openTool(page, 'har-analyzer')
+
+    const har = {
+      log: {
+        version: '1.2',
+        entries: [
+          {
+            startedDateTime: '2026-11-06T10:00:00.000Z',
+            time: 100,
+            request: { method: 'GET', url: 'https://a.example.com/index.html' },
+            response: { status: 200, content: { size: 1000, mimeType: 'text/html' } },
+          },
+          {
+            startedDateTime: '2026-11-06T10:00:01.000Z',
+            time: 300,
+            request: { method: 'POST', url: 'https://api.example.com/v1/users' },
+            response: { status: 201, content: { size: 200, mimeType: 'application/json' } },
+          },
+          {
+            startedDateTime: '2026-11-06T10:00:02.000Z',
+            time: 50,
+            request: { method: 'GET', url: 'https://cdn.example.com/img.png' },
+            response: { status: 404, content: { size: 0, mimeType: 'image/png' } },
+          },
+        ],
+      },
+    }
+
+    await page.locator('input[type="file"]').setInputFiles({
+      name: 'sample.har',
+      mimeType: 'application/json',
+      buffer: Buffer.from(JSON.stringify(har)),
+    })
+
+    await expect(page.getByText('1.2 KB')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByText('共 3 条 / 第 1 页，共 1 页')).toBeVisible()
+
+    // 状态筛选：只看失败请求
+    await page.getByRole('button', { name: '失败', exact: true }).click()
+    await expect(page.getByText('共 1 条 / 第 1 页，共 1 页')).toBeVisible()
+  })
 })

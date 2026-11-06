@@ -29,6 +29,57 @@ test.describe('图片与文件工具交互', () => {
     await expect(page.locator('.text-green-400').first()).toBeVisible({ timeout: 15_000 })
   })
 
+  test('image-convert 粘贴 SVG 按 viewBox 与倍率导出', async ({ page }) => {
+    await openTool(page, 'image-convert')
+    await page.getByRole('button', { name: /粘贴 SVG 代码导出位图/ }).click()
+    await page
+      .locator('textarea')
+      .fill('<svg viewBox="0 0 24 24"><rect width="24" height="24" fill="#ff0000"/></svg>')
+    await page.getByRole('button', { name: '加入列表' }).click()
+    await page.getByRole('button', { name: '4x', exact: true }).click()
+    await page.getByRole('button', { name: '开始转换' }).click()
+    await expect(page.getByText('96×96')).toBeVisible({ timeout: 15_000 })
+  })
+
+  test('image-diff 同尺寸全异色差异为 100%', async ({ page }) => {
+    await openTool(page, 'image-diff')
+    const inputs = page.locator('input[type="file"]')
+    await inputs.nth(0).setInputFiles({
+      name: 'a.png',
+      mimeType: 'image/png',
+      buffer: await makePng(40, 40, '#ff0000'),
+    })
+    await inputs.nth(1).setInputFiles({
+      name: 'b.png',
+      mimeType: 'image/png',
+      buffer: await makePng(40, 40, '#00ff00'),
+    })
+
+    await expect(page.getByText('差异比例')).toBeVisible()
+    await expect(page.getByText('100.00%')).toBeVisible({ timeout: 15_000 })
+  })
+
+  test('image-diff 不同尺寸按较大画布计算差异', async ({ page }) => {
+    await openTool(page, 'image-diff')
+    const inputs = page.locator('input[type="file"]')
+    // A 40×40 全红，B 60×30 全红；画布 60×40。
+    // 仅重叠区 40×30 相同，其余 1000 像素有差异（其中 200 像素两边都透明，不计）→ 1000/2400
+    await inputs.nth(0).setInputFiles({
+      name: 'a.png',
+      mimeType: 'image/png',
+      buffer: await makePng(40, 40, '#ff0000'),
+    })
+    await inputs.nth(1).setInputFiles({
+      name: 'b.png',
+      mimeType: 'image/png',
+      buffer: await makePng(60, 30, '#ff0000'),
+    })
+
+    await expect(page.getByText('60×40').first()).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByText('41.67%')).toBeVisible()
+    await expect(page.getByText('1,000')).toBeVisible()
+  })
+
   test('image-resize 调整尺寸', async ({ page }) => {
     await openTool(page, 'image-resize')
     await uploadFile(page, await makePng(), 'sample.png', 'image/png')

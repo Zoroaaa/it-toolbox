@@ -40,15 +40,17 @@ export default function MyTool() {
 
 工具页由 `src/lib/tool-loader.ts` 按目录自动懒加载，不需要手工维护映射。
 
-### 2. 注册到 registry
+### 2. 无需手工注册
 
-在 `src/registry.ts` 的 `toolRegistry` 中添加一条记录。registry 是列表、搜索与分类的唯一事实源。
+`src/registry.ts` 在构建期用 `import.meta.glob('@/tools/*/meta.ts', { eager: true })` 聚合全部 `meta.ts`，新增目录后自动出现在列表、搜索与分类中。
+
+唯一需要人工维护的是展示顺序：`src/registry.ts` 顶部的 `DISPLAY_ORDER` 数组。不登记也能用，只是会排到列表末尾。`meta.ts` 是元数据的唯一事实源，不要在别处复制 `name`/`description`。
 
 ### 3. 生成图标并校验
 
 ```bash
-pnpm icons:gen          # 依据 registry 生成 src/utils/icon-map.ts
-pnpm audit:meta --check # 目录 / meta / registry 三方一致性
+pnpm icons:gen          # 依据各 meta.ts 生成 src/utils/icon-map.ts
+pnpm audit:meta --check # 目录 ↔ meta 一致性、icon 与 category 合法性
 pnpm test               # 元数据测试会再次校验
 ```
 

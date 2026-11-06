@@ -12,7 +12,7 @@ export default defineConfig({
       manifest: {
         name: 'IT Toolbox',
         short_name: 'IT Toolbox',
-        description: '开发者工具箱，144 款实用工具',
+        description: '开发者工具箱，纯本地处理的编码、格式化、加密、网络与设计工具集',
         theme_color: '#10b981',
         background_color: '#0f172a',
         display: 'standalone',

@@ -3,7 +3,7 @@ import { blockExternal, collectPageErrors, getToolIds, mockApi } from './helpers
 
 const toolIds = getToolIds()
 
-test.describe('144 个工具页渲染冒烟', () => {
+test.describe(`${toolIds.length} 个工具页渲染冒烟`, () => {
   for (const id of toolIds) {
     test(id, async ({ page }) => {
       const pageErrors = collectPageErrors(page)
