@@ -404,21 +404,21 @@ pnpm deploy
 | 文档 | 说明 |
 |------|------|
 | [API 文档](./docs/API.md) | API 接口规范、参数说明、使用示例 |
-| [架构设计](./docs/ARCHITECTURE.md) | 系统架构、模块划分、技术选型 |
-| [部署指南](./docs/DEPLOYMENT.md) | 环境要求、部署步骤、常见问题 |
+| [架构设计](./docs/ARCHITECTURE.md) | 系统架构、平台能力边界、KV 缓存策略、架构决策 |
+| [部署指南](./docs/DEPLOYMENT.md) | 环境要求、部署步骤、绑定资源与常见问题 |
 | [快速开始](./docs/QUICKSTART.md) | 面向新用户的入门指南 |
 | [测试指南](./docs/TESTING.md) | 测试分层、用例编写、覆盖率与 CI |
 | [贡献指南](./docs/CONTRIBUTING.md) | 新增工具五步、导入与状态规范 |
 | [版本映射](./docs/releases/VERSION-MAP.md) | v1.0.0–v1.6.0 与旧标签对应关系 |
-| [新增工具规划](./docs/planning/new-tools-v1.7.md) | 候选工具、优先级与重复性核对 |
-| [改造指标](./docs/metrics/before-after.md) | 首屏、缓存、测试与缺陷前后对比 |
-| [更新日志](./docs/changelog/) | 版本变更记录 |
+| [版本变更记录](./docs/changelog/) | 每个版本的完整变更清单 |
+| [v1.6.0 发布说明](./docs/releases/v1.6.0.md) | 修复项、性能与改造前后指标 |
+| [v1.7.0 工具规划](./docs/planning/v1.7.0.md) | 候选工具、优先级与重复性核对 |
 
 ---
 
 ## 开发路线图
 
-根据 [IT-Toolbox-开发路线图-v1.md](./docs/IT-Toolbox-开发路线图-v1.md) 规划：
+交付进度按 Phase 划分，各阶段均已完成：
 
 ### Phase 1（已完成 ✅）
 - 框架搭建 + 15 个高频工具

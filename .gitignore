@@ -8,6 +8,9 @@ dist
 
 .trae/
 
+# 审计报告含生产实测证据与缺陷细节，仅本地留存，不入库
+/docs/audits/
+
 package-lock.json
 
 .pnpm-debug.log
