@@ -2,11 +2,11 @@
 
 <div align="center">
 
-**开发者工具箱** — 140+ 款实用工具，基于 Cloudflare Pages Functions 全栈部署
+**开发者工具箱** — 140+ 款实用工具，基于 Cloudflare Workers 全栈部署
 
 [![Version](https://img.shields.io/badge/version-1.6.0-blue.svg)](https://github.com/Zoroaaa/it-toolbox/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Cloudflare](https://img.shields.io/badge/Cloudflare-Pages-orange.svg)](https://pages.cloudflare.com/)
+[![Cloudflare](https://img.shields.io/badge/Cloudflare-Workers-orange.svg)](https://workers.cloudflare.com/)
 [![zread](https://img.shields.io/badge/Ask_Zread-_.svg?style=flat&color=00b0aa&labelColor=000000&logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTQuOTYxNTYgMS42MDAxSDIuMjQxNTZDMS44ODgxIDEuNjAwMSAxLjYwMTU2IDEuODg2NjQgMS42MDE1NiAyLjI0MDFWNC45NjAxQzEuNjAxNTYgNS4zMTM1NiAxLjg4ODEgNS42MDAxIDIuMjQxNTYgNS42MDAxSDQuOTYxNTZDNS4zMTUwMiA1LjYwMDEgNS42MDE1NiA1LjMxMzU2IDUuNjAxNTYgNC45NjAxVjIuMjQwMUM1LjYwMTU2IDEuODg2NjQgNS4zMTUwMiAxLjYwMDEgNC45NjE1NiAxLjYwMDFaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik00Ljk2MTU2IDEwLjM5OTlIMi4yNDE1NkMxLjg4ODEgMTAuMzk5OSAxLjYwMTU2IDEwLjY4NjQgMS42MDE1NiAxMS4wMzk5VjEzLjc1OTlDMS42MDE1NiAxNC4xMTM0IDEuODg4MSAxNC4zOTk5IDIuMjQxNTYgMTQuMzk5OUg0Ljk2MTU2QzUuMzE1MDIgMTQuMzk5OSA1LjYwMTU2IDE0LjExMzQgNS42MDE1NiAxMy43NTk5VjExLjAzOTlDNS42MDE1NiAxMC42ODY0IDUuMzE1MDIgMTAuMzk5OSA0Ljk2MTU2IDEwLjM5OTlaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik0xMy43NTg0IDEuNjAwMUgxMS4wMzg0QzEwLjY4NSAxLjYwMDEgMTAuMzk4NCAxLjg4NjY0IDEwLjM5ODQgMi4yNDAxVjQuOTYwMUMxMC4zOTg0IDUuMzEzNTYgMTAuNjg1IDUuNjAwMSAxMS4wMzg0IDUuNjAwMUgxMy43NTg0QzE0LjExMTkgNS42MDAxIDE0LjM5ODQgNS4zMTM1NiAxNC4zOTg0IDQuOTYwMVYyLjI0MDFDMTQuMzk4NCAxLjg4NjY0IDE0LjExMTkgMS42MDAxIDEzLjc1ODQgMS42MDAxWiIgZmlsbD0iI2ZmZiIvPgo8cGF0aCBkPSJNNCAxMkwxMiA0TDQgMTJaIiBmaWxsPSIjZmZmIi8%2BCjxwYXRoIGQ9Ik00IDEyTDEyIDQiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgo8L3N2Zz4K&logoColor=ffffff)](https://zread.ai/Zoroaaa/it-toolbox)
 
 [快速开始](./docs/QUICKSTART.md) · [API 文档](./docs/API.md) · [部署指南](./docs/DEPLOYMENT.md)
@@ -52,7 +52,7 @@ IT Toolbox 是一款面向开发者的在线工具箱，集成 140+ 款高频开
 | 状态管理 | Zustand |
 | 样式方案 | Tailwind CSS |
 | 后端框架 | Hono |
-| 部署平台 | Cloudflare Pages Functions |
+| 部署平台 | Cloudflare Workers（静态资源 + Worker API） |
 
 ---
 
@@ -287,7 +287,7 @@ pnpm dev
 
 # 全栈开发（调试 API 时使用）
 pnpm dev          # 终端1：启动 Vite
-pnpm pages:dev    # 终端2：启动 Wrangler
+pnpm api:dev      # 终端2：启动 Wrangler（Workers 本地运行时，端口 8788）
 
 # 类型检查
 pnpm typecheck
@@ -298,12 +298,12 @@ pnpm build
 # 本地预览
 pnpm preview
 
-# 部署到 Cloudflare Pages
+# 部署到 Cloudflare Workers
 pnpm deploy
 
 # 线上冒烟测试（默认 https://ittool.wort.uk，可传其他环境）
 pnpm smoke
-pnpm smoke https://xxx.pages.dev
+pnpm smoke https://xxx.workers.dev
 ```
 
 ---
@@ -329,7 +329,8 @@ it-toolbox/
 │   ├── registry.ts               # 工具清单聚合（由各 meta.ts 生成，仅维护展示顺序）
 │   └── routeTree.tsx             # 路由（页面级懒加载）
 │
-├── functions/                    # Cloudflare Pages Functions
+├── functions/                    # Cloudflare Workers 后端（Hono）
+│   ├── worker.ts                 # Worker 入口：/api/* 交给 Hono，其余走静态资源
 │   ├── app.ts                    # createApp()，供测试直接调用
 │   ├── types.ts                  # Env 绑定类型
 │   ├── lib/ssrf.ts               # 外发请求安全校验
@@ -347,7 +348,7 @@ it-toolbox/
 ├── tests/                        # Vitest：core 单测 / API 契约 / 元数据 / store
 ├── docs/                         # API / 架构 / 部署 / 快速开始 / changelog / releases
 ├── scripts/                      # 图标生成、元数据审计、体积报告、导入迁移
-├── wrangler.example.toml         # Cloudflare 配置示例
+├── wrangler.toml                 # Cloudflare Workers 部署配置
 ├── vite.config.ts                # Vite 配置（分包 + PWA）
 └── package.json
 ```
@@ -371,7 +372,7 @@ it-toolbox/
 
 ### 自动部署（推荐）
 
-项目采用 GitHub 直连 Cloudflare Pages，push 到 main 分支自动构建部署：
+项目通过 Cloudflare Workers 的 GitHub 集成（Workers Builds）部署，push 到 main 分支自动构建上线：
 
 ```bash
 git add .
@@ -379,20 +380,31 @@ git commit -m "feat: add new tool"
 git push origin main
 ```
 
+Cloudflare 侧配置（首次）：
+
+| 配置项 | 值 |
+|--------|-----|
+| Build command | `pnpm build` |
+| Deploy command | `npx wrangler deploy` |
+| Root directory | `/` |
+
+构建产物是 Vite 输出的 `dist/`，由 `wrangler.toml` 中的 `[assets]` 读取；`/api/*` 由 `functions/worker.ts` 处理。
+
 ### 手动部署
 
 ```bash
 pnpm build
-pnpm deploy
+pnpm deploy        # 等价于 pnpm check && vite build && wrangler deploy
 ```
 
 ### Fork 用户部署须知
 
-> ⚠️ **重要**：本项目不包含 `wrangler.toml` 配置文件（已加入 `.gitignore`），Fork 用户需要自行创建配置文件或在 Cloudflare Dashboard 手动绑定资源。
+> ⚠️ **重要**：`wrangler.toml` 已纳入版本管理，是部署配置的唯一来源。Fork 后需按自己的账号补两处：
 >
-> **推荐方式**：在 Cloudflare Dashboard 中绑定 KV、R2、AI 资源，无需创建 `wrangler.toml` 文件。
+> 1. **KV 命名空间**：执行 `npx wrangler kv namespace create CACHE`，把返回的 `id` 填进 `wrangler.toml` 的 `[[kv_namespaces]]`（取消注释）。未绑定会导致 `/api/ip`、`/api/dns` 等带缓存的接口报错。
+> 2. **Worker 名称**：`name` 与 Dashboard 中的 Worker 名一致，避免部署到别人的服务上。
 >
-> **本地开发**：如需本地调试，请复制 `wrangler.example.toml` 为 `wrangler.toml` 并填入你的配置。
+> Workers AI（`[ai]` 绑定）无需 ID，部署时自动创建。汇率 API 密钥用 `npx wrangler secret put EXCHANGE_API_KEY` 配置，不写入仓库。
 
 详细部署步骤请参考 [部署文档](./docs/DEPLOYMENT.md)。
 

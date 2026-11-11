@@ -670,7 +670,7 @@ Access-Control-Allow-Headers: Content-Type
 
 ### 后端框架
 
-- **Hono**：轻量级 Web 框架，运行于 Cloudflare Pages Functions
+- **Hono**：轻量级 Web 框架，运行于 Cloudflare Workers
 - **Cloudflare Workers AI**：AI 推理服务，模型按 `llama-3.1-8b-instruct-fast → glm-4.7-flash → llama-3.3-70b-instruct-fp8-fast` 顺序降级（模型 ID 会退役，禁止写死单一模型）
 
 ### 数据缓存

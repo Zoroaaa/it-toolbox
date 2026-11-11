@@ -1,478 +1,353 @@
 # 部署文档
 
-本文档详细描述 IT Toolbox 的部署流程，包含环境要求、部署步骤、配置说明及常见问题处理。
+本文档描述 IT Toolbox 在 Cloudflare Workers 上的部署流程，包含项目形态、构建配置、绑定资源与常见问题处理。
 
 ## 1. 部署概述
 
-IT Toolbox 采用 Cloudflare Pages Functions 全栈部署方案，具有以下特点：
+IT Toolbox 采用 **Cloudflare Workers（静态资源 + Worker API）** 部署，`wrangler.toml` 是部署配置的唯一来源。
 
 | 特性 | 说明 |
 |------|------|
-| 部署方式 | GitHub 直连 Cloudflare Pages |
-| 构建触发 | push 到 main 分支自动构建 |
-| 构建工具 | Vite 6.0 |
-| 运行环境 | Cloudflare Edge Network |
-| 部署时间 | 约 1-2 分钟 |
+| 部署方式 | GitHub 仓库直连 Cloudflare Workers（Workers Builds） |
+| 构建触发 | push 到 main 分支自动构建部署，PR 生成预览版本 |
+| 构建工具 | Vite 6.0（`pnpm build` → `dist/`） |
+| 运行时 | Cloudflare Workers（workerd） |
+| 静态资源 | `dist/` 由 `[assets]` 上传，Cloudflare CDN 直出 |
+| 后端 | `functions/worker.ts` 入口，`/api/*` 交给 Hono |
+
+### 1.1 产物形态
+
+本项目不是纯静态站点，产物由两部分组成：
+
+```
+pnpm build
+  └── dist/                  # Vite 产物：index.html + assets + PWA 文件（静态资源）
+functions/worker.ts          # Worker 入口：/api/* 走 Hono，其余请求转发给 ASSETS
+```
+
+因此 `wrangler.toml` 同时声明 `main` 与 `[assets]`，缺一不可：
+
+- 只配 `[assets]`（assets-only）：`/api/*` 全部 404，IP/DNS/AI 等接口失效。
+- 只配 `main`：前端页面无法访问。
+
+路由分发规则：
+
+| 请求 | 处理方 |
+|------|--------|
+| `/api/*` | `functions/worker.ts` → Hono（`run_worker_first` 保证优先进入 Worker） |
+| 命中 `dist/` 中的文件 | 静态资源直接返回 |
+| 其余路径（如 `/tool/json-formatter`） | `not_found_handling = "single-page-application"` 回退 `index.html` |
 
 ---
 
 ## 2. 环境要求
 
-### 2.1 开发环境
+### 2.1 本地环境
 
 | 工具 | 版本要求 | 说明 |
 |------|----------|------|
 | Node.js | >= 18.0 | 运行时环境 |
 | pnpm | >= 8.0 | 包管理器 |
-| Git | >= 2.0 | 版本控制 |
+| wrangler | ^4.0.0 | 已是 devDependency，无需全局安装 |
+
+> wrangler 3.x 会在部署时提示 `npm install --save-dev wrangler@4`，且不识别 `[assets]` 的新配置语义。本项目统一使用 v4。
 
 ### 2.2 Cloudflare 资源
 
 | 资源 | 说明 | 免费额度 |
 |------|------|----------|
-| Cloudflare 账号 | 需注册 Cloudflare 账号 | 免费 |
-| KV Namespace | 缓存存储 | 100,000 次读取/天 |
-| Workers AI | AI 推理 | 10,000 Neurons/天 |
+| Cloudflare 账号 | 需注册 | 免费 |
+| Workers | 静态资源 + API 运行环境 | 100,000 请求/天 |
+| KV Namespace | API 结果缓存（绑定名 `CACHE`） | 100,000 次读取/天 |
+| Workers AI | AI 推理（绑定名 `AI`） | 10,000 Neurons/天 |
 
 ---
 
 ## 3. 首次部署流程
 
-### 3.1 Fork 用户必读
+### 3.1 第一步：创建 KV 命名空间
 
-> ⚠️ **重要提示**：本项目不包含 `wrangler.toml` 配置文件（已加入 `.gitignore`），避免 Fork 用户与主分支产生配置冲突。
->
-> **推荐部署方式**：直接在 Cloudflare Dashboard 中创建资源并绑定，无需创建 `wrangler.toml` 文件。
->
-> **本地开发方式**：如需本地调试，请复制 `wrangler.example.toml` 为 `wrangler.toml` 并填入你的配置：
-> ```bash
-> cp wrangler.example.toml wrangler.toml
-> # 然后编辑 wrangler.toml，填入你的 KV ID 等配置
-> ```
+```bash
+npx wrangler login
+npx wrangler kv namespace create CACHE
+```
 
-### 3.2 第一步：创建 KV 命名空间
+命令会返回 `id`，填入 `wrangler.toml`：
 
-1. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com/)
-2. 进入 **Workers & Pages** → **KV**
-3. 点击 **Create namespace**
-4. 输入名称：`toolbox-cache`（或自定义名称）
-5. 创建后复制 **Namespace ID**
+```toml
+[[kv_namespaces]]
+binding = "CACHE"
+id = "你的 Namespace ID"
+```
 
-### 3.3 第三步：连接 GitHub 创建 Pages 项目
+> 未绑定 KV 时，`/api/ip`、`/api/dns`、`/api/whois` 等带缓存的接口会抛错（`Cannot read properties of undefined (reading 'get')`）。
 
-1. 进入 **Workers & Pages** → **Create** → **Pages** → **Connect to Git**
-2. 选择 GitHub 并授权
-3. 选择你 Fork 的 `it-toolbox` 仓库
-4. 配置构建设置：
+### 3.2 第二步：连接 GitHub 创建 Worker
+
+1. 进入 Cloudflare Dashboard → **Workers & Pages**
+2. 点击 **Create** → **Workers** → **Import a repository**（Connect to Git）
+3. 授权 GitHub 并选择 `it-toolbox` 仓库
+4. 填写构建配置：
 
 | 配置项 | 值 |
 |--------|-----|
-| Framework preset | None |
 | Build command | `pnpm build` |
-| Build output directory | `dist` |
+| Deploy command | `npx wrangler deploy` |
 | Root directory | `/` |
 
-5. 点击 **Save and Deploy**
+5. 若构建环境 Node 版本过低，在 **Settings → Build → Environment variables** 增加 `NODE_VERSION=20`
+6. 点击 **Deploy**
 
-### 3.4 第四步：在 Dashboard 绑定 KV、AI 资源
+部署时 wrangler 读取仓库中的 `wrangler.toml`，完成三件事：打包 Worker 入口、上传 `dist/`、创建配置中声明的绑定。
 
-部署完成后，需要在 Cloudflare Dashboard 中手动绑定资源：
+### 3.3 第三步：确认绑定
 
-#### 绑定 KV 命名空间
-
-1. 进入 **Workers & Pages** → **你的项目** → **Settings** → **Functions**
-2. 找到 **KV namespace bindings** 部分
-3. 点击 **Add binding**
-4. 填写：
-   - **Variable name**: `CACHE`
-   - **KV namespace**: 选择你创建的 KV 命名空间
-5. 点击 **Save**
-
-#### 绑定 Workers AI
-
-1. 在同一页面找到 **AI bindings** 部分
-2. 点击 **Add binding**
-3. 填写：
-   - **Variable name**: `AI`
-4. 点击 **Save**
-
-### 3.6 第五步：重新部署
-
-绑定完成后，需要重新部署项目使绑定生效：
-
-1. 进入 **Deployments** 标签
-2. 点击 **Retry deployment** 或推送新代码触发部署
-
-### 3.7 第六步：配置 Secrets（可选）
-
-如果需要使用汇率换算功能，需配置汇率 API 密钥：
-
-1. 进入 **Workers & Pages** → **你的项目** → **Settings** → **Environment variables**
-2. 添加变量：
-
-| 变量名 | 类型 | 说明 |
-|--------|------|------|
-| EXCHANGE_API_KEY | Secret | 汇率 API Key |
-
----
-
-## 4. 绑定资源操作步骤详解
-
-以下详细说明如何在 Cloudflare Dashboard 中绑定各类资源：
-
-### 4.1 KV 命名空间绑定步骤
+部署日志中应出现：
 
 ```
-Cloudflare Dashboard
-  └── Workers & Pages
-        └── 你的项目 (it-toolbox)
-              └── Settings
-                    └── Functions
-                          └── KV namespace bindings
-                                └── Add binding
-                                      ├── Variable name: CACHE
-                                      └── KV namespace: 选择你的 KV
+env.AI        AI
+env.ASSETS    Assets
+env.ENVIRONMENT ("production")   Environment Variable
 ```
 
-**截图参考位置**：
-- 路径：Workers & Pages → 项目 → Settings → Functions → KV namespace bindings
-- 变量名必须为 `CACHE`（与代码中的绑定名一致）
+KV 需按 3.1 填入 ID 后重新部署才会出现 `env.CACHE`。也可以在 Dashboard 的 **Settings → Bindings** 添加，但 `wrangler.toml` 是配置来源，下次部署会以文件为准，建议统一写在文件里。
 
-### 4.3 Workers AI 绑定步骤
+### 3.4 第四步：配置 Secrets
 
-```
-Cloudflare Dashboard
-  └── Workers & Pages
-        └── 你的项目 (it-toolbox)
-              └── Settings
-                    └── Functions
-                          └── AI bindings
-                                └── Add binding
-                                      └── Variable name: AI
-```
-
-**截图参考位置**：
-- 路径：Workers & Pages → 项目 → Settings → Functions → AI bindings
-- 变量名必须为 `AI`（与代码中的绑定名一致）
-
-### 4.4 环境变量（Secrets）绑定步骤
-
-```
-Cloudflare Dashboard
-  └── Workers & Pages
-        └── 你的项目 (it-toolbox)
-              └── Settings
-                    └── Environment variables
-                          └── Add variable
-                                ├── Variable name: EXCHANGE_API_KEY
-                                ├── Value: 你的 API Key
-                                └── Type: Secret (加密)
-```
-
----
-
-## 5. 日常部署流程
-
-首次配置完成后，日常部署只需推送代码：
+汇率换算功能需要 API 密钥，只在 Worker 上加密存储，不写入仓库：
 
 ```bash
-# 日常开发流程
+npx wrangler secret put EXCHANGE_API_KEY
+```
+
+或在 Dashboard → Worker → **Settings → Variables and Secrets** 添加 `EXCHANGE_API_KEY`（类型选 Secret）。
+
+---
+
+## 4. 日常部署流程
+
+首次配置完成后，日常只需推送代码：
+
+```bash
 git add .
 git commit -m "feat: add new tool"
 git push origin main
-
-# Cloudflare 自动执行：
-# 1. 拉取最新代码
-# 2. 读取 wrangler.toml 确认 Bindings
-# 3. 执行 pnpm build（含 tsc 类型检查）
-# 4. 部署到全球 CDN 节点
 ```
 
-部署过程约 1-2 分钟，期间旧版本继续服务，实现零停机部署。
+Cloudflare 自动执行：
+
+1. 拉取最新代码
+2. `pnpm install` + `pnpm build`（含 `tsc --noEmit` 类型检查）
+3. `npx wrangler deploy`：打包 `functions/worker.ts`、上传 `dist/`、应用 `wrangler.toml` 中的绑定
+4. 新版本全量生效，旧版本立即下线（Workers 不支持 Pages 那样的逐版本预览 URL，回滚见第 11 节）
 
 ---
 
-## 6. 本地开发
-
-### 6.1 安装依赖
+## 5. 本地开发
 
 ```bash
 pnpm install
 ```
 
-### 6.2 启动开发服务器
+### 5.1 启动开发服务器
 
 ```bash
-# 前端开发（推荐日常使用）
+# 终端1：前端（Vite，端口 5173）
 pnpm dev
 
-# 全栈开发（调试 API 时使用）
-# 终端1：启动 Vite
-pnpm dev
-
-# 终端2：启动 Wrangler Pages Dev
-pnpm pages:dev
+# 终端2：Workers 本地运行时（端口 8788）
+pnpm api:dev
 ```
+
+Vite 已配置 `/api/*` 代理到 `http://127.0.0.1:8788`，前端直接请求同域 `/api` 即可。
 
 | 命令 | 底层工具 | 用途 |
 |------|----------|------|
 | `pnpm dev` | Vite | 前端开发，热更新快 |
-| `pnpm pages:dev` | wrangler pages dev | 全栈开发，包含 API |
+| `pnpm api:dev` | wrangler dev | 启动 Worker（含静态资源与 `/api/*`） |
 
-### 6.3 本地调试 Pages Functions
+### 5.2 本地调试 Worker
 
 ```bash
-# 首次使用需登录
-npx wrangler login
+pnpm build      # wrangler dev 直接读取 dist/，改前端后需重新构建
+pnpm api:dev
+# 页面: http://127.0.0.1:8788
+# API : http://127.0.0.1:8788/api/health
+```
 
-# 启动全栈本地开发（需要两个终端）
-# 终端1
-pnpm dev
+说明：
 
-# 终端2
-pnpm pages:dev
+- `wrangler dev` 会读取 `wrangler.toml` 的 `[assets]`，不再用 `wrangler pages dev dist` 这种 Pages 写法。
+- 本地 KV 使用 miniflare 本地存储，写入不会同步到线上命名空间。
+- AI 绑定始终访问远端资源，本地调试会消耗真实配额（wrangler 会打印提示）。
 
-# 访问
-# 前端: http://localhost:5173
-# API:  http://localhost:5173/api/ip
+---
+
+## 6. 构建与验证
+
+```bash
+pnpm typecheck      # 前端类型检查
+pnpm typecheck:api  # Worker / Functions 类型检查
+pnpm build          # 完整构建，产物在 dist/
+pnpm preview        # Vite 本地预览（不含 API）
+pnpm smoke          # 线上接口冒烟
+```
+
+仅校验部署配置是否正确（不真正上传）：
+
+```bash
+npx wrangler deploy --dry-run
 ```
 
 ---
 
-## 7. 构建与验证
-
-### 7.1 类型检查
-
-```bash
-pnpm typecheck
-```
-
-### 7.2 构建
-
-```bash
-pnpm build
-```
-
-构建产物位于 `dist/` 目录。
-
-### 7.3 本地预览
-
-```bash
-pnpm preview
-```
-
-### 7.4 手动部署
-
-```bash
-pnpm deploy
-```
-
----
-
-## 8. 配置说明
-
-### 8.1 wrangler.toml 配置说明
-
-> ⚠️ **注意**：以下绑定配置已在文件中注释，Fork 用户应通过 Cloudflare Dashboard 绑定资源，而非修改此文件。
+## 7. wrangler.toml 配置说明
 
 ```toml
-# 项目名称
-name = "it-toolbox"
-
-# 兼容性日期
+name = "it-toolbox"                          # Worker 名称，需与 Dashboard 中一致
+main = "functions/worker.ts"                 # Worker 入口
 compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]      # Buffer / crypto / stream
 
-# Node.js 兼容标志
-compatibility_flags = ["nodejs_compat"]
+[assets]
+directory = "./dist"                         # Vite 构建输出目录
+binding = "ASSETS"                           # Worker 内 env.ASSETS.fetch()
+not_found_handling = "single-page-application"  # SPA 路由回退 index.html
+run_worker_first = ["/api/*"]                # /api 先交给 Worker，不被资源匹配拦截
 
-# 构建输出目录
-pages_build_output_dir = "dist"
-
-# 环境变量
 [vars]
 ENVIRONMENT = "production"
 
-# 以下绑定已注释，请在 Cloudflare Dashboard 中手动绑定
-# [[kv_namespaces]]
-# binding = "CACHE"
-# id = "YOUR_KV_NAMESPACE_ID"
+[ai]
+binding = "AI"                               # 无需 ID，部署自动生效
 
-# [[r2_buckets]]
-# binding = "FILES"
-# bucket_name = "it-toolbox"
-
-# [ai]
-# binding = "AI"
-
-# Secrets 通过 Dashboard 配置，不写入文件
-# EXCHANGE_API_KEY
+[[kv_namespaces]]
+binding = "CACHE"                            # 需填入自己账号的 id
+id = "YOUR_KV_NAMESPACE_ID"
 ```
 
-### 8.2 环境变量说明
+关键项说明：
 
-| 变量名 | 来源 | 说明 |
-|--------|------|------|
-| ENVIRONMENT | wrangler.toml | 运行环境标识 |
-| CACHE | KV Binding | KV 命名空间绑定 |
-| FILES | R2 Binding | R2 存储桶绑定 |
-| AI | AI Binding | Workers AI 绑定 |
-| EXCHANGE_API_KEY | Dashboard Secret | 汇率 API 密钥 |
+> 仓库中的 `[[kv_namespaces]]` 默认是注释状态，填入自己的 `id` 后取消注释再提交。
+
+| 配置 | 作用 | 漏配后果 |
+|------|------|----------|
+| `main` | 指定 Worker 入口 | 报 `Missing entry-point to Worker script or to assets directory` |
+| `[assets].directory` | 指定静态资源目录 | 前端 404 |
+| `run_worker_first` | `/api/*` 优先进入 Worker | API 请求可能被 SPA 回退逻辑吞掉 |
+| `[ai]` | Workers AI 绑定 | AI 接口返回 500 |
+| `[[kv_namespaces]]` | KV 缓存绑定 | 缓存相关接口 500 |
+
+### 7.1 环境变量与密钥
+
+| 名称 | 来源 | 说明 |
+|------|------|------|
+| `ENVIRONMENT` | `wrangler.toml` 的 `[vars]` | 运行环境标识 |
+| `ASSETS` | `[assets].binding` | 静态资源 Fetcher |
+| `CACHE` | `[[kv_namespaces]]` | KV 缓存 |
+| `AI` | `[ai]` | Workers AI |
+| `EXCHANGE_API_KEY` | Secret（CLI / Dashboard） | 汇率 API 密钥 |
 
 ---
 
-## 9. 域名配置
+## 8. 域名配置
 
-### 9.1 使用 Cloudflare 默认域名
+### 8.1 默认域名
 
-部署成功后，项目将获得默认域名：
+部署成功后获得 `https://it-toolbox.<你的子域>.workers.dev`。若子域未启用，在 Dashboard → Workers & Pages → **Your subdomain** 中设置一次。
 
-```
-https://it-toolbox.pages.dev
-```
+### 8.2 绑定自定义域名
 
-### 9.2 绑定自定义域名
-
-1. 进入 **Workers & Pages** → **it-toolbox** → **Settings** → **Domains & functions**
-2. 点击 **Set up a custom domain**
-3. 输入自定义域名
-4. 按提示添加 DNS 记录
+1. Dashboard → Workers & Pages → `it-toolbox` → **Settings → Domains & Routes**
+2. **Add** → **Custom domain**
+3. 输入域名，按提示创建 DNS 记录（域名需托管在 Cloudflare）
 
 ---
 
-## 10. 监控与日志
+## 9. 监控与日志
 
-### 10.1 查看部署日志
-
-1. 进入 **Workers & Pages** → **it-toolbox**
-2. 点击 **Deployments** 标签
-3. 选择具体部署查看日志
-
-### 10.2 查看运行时日志
-
-1. 进入 **Workers & Pages** → **it-toolbox**
-2. 点击 **Logs** 标签
-3. 选择 **Begin log stream**
-
-### 10.3 查看分析数据
-
-1. 进入 **Workers & Pages** → **it-toolbox**
-2. 点击 **Analytics** 标签
-3. 查看请求数、错误率、延迟等指标
+| 用途 | 位置 |
+|------|------|
+| 部署记录 | Worker → **Deployments** |
+| 实时日志 | Worker → **Logs** → Begin log stream；或 `npx wrangler tail` |
+| 指标 | Worker → **Metrics**：请求数、错误率、CPU 时间 |
+| AI 用量 | Dashboard → Workers AI |
 
 ---
 
-## 11. 常见问题处理
+## 10. 常见问题
 
-### 11.1 构建失败
+### 10.1 `Missing entry-point to Worker script or to assets directory`
 
-**问题**：构建时报错 `tsc --noEmit` 失败
+原因：构建时找不到 `wrangler.toml`（此前被 `.gitignore` 忽略），wrangler 无从得知 `main` / `[assets]`。
 
-**解决方案**：
+处理：确认 `wrangler.toml` 已提交到仓库根目录且包含 `main` 或 `[assets].directory`。
+
+### 10.2 `Wrangler 版本过旧，提示 npm install --save-dev wrangler@4`
+
+原因：构建环境解析到 wrangler 3.x。
+
+处理：`package.json` 中 `wrangler` 已固定为 `^4.0.0`，执行 `pnpm install` 更新 `pnpm-lock.yaml` 后重新提交；确保 Workers Builds 的 Install 命令为 `pnpm install --frozen-lockfile`。
+
+### 10.3 部署成功但 `/api/*` 返回 404
+
+1. 确认 `wrangler.toml` 中 `main = "functions/worker.ts"`
+2. 确认 `run_worker_first = ["/api/*"]`
+3. 查看部署日志是否出现 `env.ASSETS` 与 `env.AI` 绑定
+
+### 10.4 API 返回 `Cannot read properties of undefined (reading 'get')`
+
+KV 未绑定。按 3.1 创建命名空间并写入 `wrangler.toml`，重新部署。
+
+### 10.5 构建失败（`tsc --noEmit`）
 
 ```bash
-# 本地运行类型检查
 pnpm typecheck
-
-# 根据错误信息修复类型问题
+pnpm typecheck:api
 ```
 
-### 11.2 KV 绑定失败
+按报错修复后重推。CI 中的 `verify` job 与 Workers Builds 使用同一套命令，可先在本地对齐。
 
-**问题**：API 返回 `Cannot read properties of undefined (reading 'get')`
+### 10.6 部署后静态资源 404
 
-**解决方案**：
+1. 确认 Build command 产出 `dist/`（`pnpm build`）
+2. 确认 `[assets].directory = "./dist"`
+3. 刷新 CDN 缓存后重试
 
-1. 检查 Cloudflare Dashboard 中的 KV namespace bindings 是否正确配置
-2. 确认绑定变量名为 `CACHE`
-3. 确认 KV 命名空间已创建
-4. 重新部署项目使绑定生效
+### 10.7 CORS 错误
 
-### 11.3 AI 接口调用失败
-
-**问题**：AI 接口返回 500 错误
-
-**解决方案**：
-
-1. 确认 Workers AI 已启用
-2. 检查 AI 配额是否用尽
-3. 查看 Cloudflare Dashboard 的错误日志
-
-### 11.4 本地开发 API 无法访问
-
-**问题**：本地运行 `pnpm dev` 时 API 返回 404
-
-**解决方案**：
-
-```bash
-# 使用全栈开发模式（两个终端）
-# 终端1
-pnpm dev
-
-# 终端2
-pnpm pages:dev
-```
-
-Vite 开发服务器会自动代理 `/api/*` 请求到 Wrangler Pages Dev 服务器（端口 8788）。
-
-### 11.5 部署后样式丢失
-
-**问题**：部署后页面样式不正确
-
-**解决方案**：
-
-1. 检查 `tailwind.config.js` 配置
-2. 确认 `content` 路径包含所有组件文件
-3. 清除 Cloudflare 缓存后重新访问
-
-### 11.6 CORS 错误
-
-**问题**：API 请求返回 CORS 错误
-
-**解决方案**：
-
-1. 确认使用正确的 API 路径 `/api/*`
-2. 检查 Hono 路由中的 CORS 配置
-3. 确保前端和 API 同域访问
+前端与 API 同域部署，正常无需跨域配置；若通过其他域名访问 Worker，检查 Hono 中 `app.use('/api/*', cors())` 是否生效。
 
 ---
 
-## 12. 回滚操作
+## 11. 回滚
 
-### 12.1 通过 Dashboard 回滚
+### 11.1 Dashboard 回滚
 
-1. 进入 **Workers & Pages** → **it-toolbox**
-2. 点击 **Deployments** 标签
-3. 找到需要回滚的版本
-4. 点击 **...** → **Rollback to this deployment**
+Worker → **Deployments** → 选择历史版本 → **Rollback**。
 
-### 12.2 通过 Git 回滚
+### 11.2 Git 回滚
 
 ```bash
-# 回滚到上一个版本
 git revert HEAD
-git push origin main
-
-# 回滚到指定版本
-git revert <commit-hash>
-git push origin main
+git push origin main   # 触发一次完整构建部署
 ```
 
 ---
 
-## 13. 成本估算
+## 12. 成本估算
 
-### 13.1 Cloudflare 免费计划额度
+### 12.1 免费额度
 
-| 资源 | 免费额度 | 实际用量评估 |
-|------|----------|--------------|
-| Pages 构建 | 500 次/月 | 日常开发绰绰有余 |
-| Pages Functions 请求 | 100,000 次/天 | 日活 <5 万完全免费 |
+| 资源 | 免费额度 | 说明 |
+|------|----------|------|
+| Workers 请求 | 100,000 次/天 | 静态资源请求不计入 Worker 请求 |
+| Workers 构建 | 3,000 分钟/月 | 单次构建约 1-2 分钟 |
 | Workers AI | 10,000 Neurons/天 | 约 1000 次 AI 请求/天 |
 | KV 读取 | 100,000 次/天 | 缓存命中均为读操作 |
 | KV 写入 | 1,000 次/天 | 实际约 100 次/天 |
-| R2 存储 | 10GB + 10M 操作/月 | 临时文件，远低于限制 |
 
-### 13.2 预估月费
+### 12.2 预估月费
 
 | 日活用户 | 预估月费 |
 |----------|----------|
@@ -482,64 +357,41 @@ git push origin main
 
 ---
 
-## 14. 安全建议
+## 13. 安全建议
 
-### 14.1 Secrets 管理
-
-- 所有敏感信息（API Key、密钥）通过 Cloudflare Dashboard 配置
-- 不要将 Secrets 写入代码仓库
-- 定期轮换 API Key
-
-### 14.2 访问控制
-
-- 使用 Cloudflare Access 进行访问控制（如需）
-- 启用 Cloudflare WAF 防护
-
-### 14.3 监控告警
-
-- 配置 Cloudflare 告警通知
-- 监控错误率和响应时间
+- Secrets（`EXCHANGE_API_KEY` 等）只用 `wrangler secret put` 或 Dashboard 配置，不写入仓库
+- `wrangler.toml` 中不放账号级密钥；KV ID 属于资源标识，可提交
+- 外发请求统一走 `functions/lib/ssrf.ts` 校验，禁止访问内网地址
+- 需要访问控制时可叠加 Cloudflare Access / WAF 速率规则
 
 ---
 
-## 15. 附录
+## 14. 附录
 
-### 15.1 常用命令速查
+### 14.1 常用命令速查
 
 ```bash
-# 安装依赖
-pnpm install
-
-# 本地开发
-pnpm dev
-
-# 全栈开发（两个终端）
-pnpm dev          # 终端1
-pnpm pages:dev    # 终端2
-
-# 类型检查
-pnpm typecheck
-
-# 构建
-pnpm build
-
-# 本地预览
-pnpm preview
-
-# 部署
-pnpm deploy
-
-# 部署（自动，通过 Git push）
-git push origin main
+pnpm install                     # 安装依赖
+pnpm dev                         # 前端开发
+pnpm api:dev                     # Worker 本地运行（端口 8788）
+pnpm typecheck && pnpm typecheck:api
+pnpm build                       # 构建 dist/
+pnpm deploy                      # 本地完整校验 + 构建 + wrangler deploy
+npx wrangler deploy --dry-run    # 只校验部署配置
+npx wrangler tail                # 线上实时日志
+npx wrangler kv namespace create CACHE
+npx wrangler secret put EXCHANGE_API_KEY
 ```
 
-### 15.2 相关链接
+### 14.2 相关链接
 
 | 资源 | 链接 |
 |------|------|
 | Cloudflare Dashboard | https://dash.cloudflare.com/ |
-| Cloudflare Pages 文档 | https://developers.cloudflare.com/pages/ |
-| Cloudflare Workers 文档 | https://developers.cloudflare.com/workers/ |
+| Workers 文档 | https://developers.cloudflare.com/workers/ |
+| Workers Builds（GitHub 集成） | https://developers.cloudflare.com/workers/ci-cd/builds/ |
+| 静态资源（Assets） | https://developers.cloudflare.com/workers/static-assets/ |
+| Workers AI | https://developers.cloudflare.com/workers-ai/ |
 | Hono 文档 | https://hono.dev/ |
 
 ---
@@ -548,6 +400,7 @@ git push origin main
 
 | 版本 | 日期 | 变更内容 |
 |------|------|----------|
+| 3.0.0 | 2026-11-11 | 迁移至 Cloudflare Workers + GitHub 集成部署：`main` + `[assets]` 配置、wrangler v4、`/api/*` 走 Worker |
 | 2.1.0 | 2026-03-24 | 注释 wrangler.toml 绑定配置，添加 Dashboard 绑定操作指南 |
 | 1.6.0 | 2026-11-04 | 更新分包与 Service Worker 策略、构建门禁说明 |
 | 1.0.0 | 2026-02-20 | 初始部署文档 |

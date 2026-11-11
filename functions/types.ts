@@ -1,4 +1,5 @@
 export interface Env {
+  ASSETS: Fetcher
   CACHE: KVNamespace
   AI: Ai
   ENVIRONMENT: string

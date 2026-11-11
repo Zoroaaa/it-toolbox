@@ -4,13 +4,13 @@
 
 ## 1. 项目概述
 
-IT Toolbox 是面向开发者的在线工具箱，集成 140+ 款高频开发工具。基于 Cloudflare Pages Functions 全栈部署，前后端同域，无需传统服务器，全球边缘节点低延迟响应。
+IT Toolbox 是面向开发者的在线工具箱，集成 140+ 款高频开发工具。基于 Cloudflare Workers（静态资源 + Worker API）全栈部署，前后端同域，无需传统服务器，全球边缘节点低延迟响应。
 
 ### 核心特性
 
 | 特性 | 说明 |
 |------|------|
-| 全栈同域 | Pages Functions 架构，前后端同域，天然无跨域问题 |
+| 全栈同域 | Workers 架构，静态资源与 API 同一域名，天然无跨域问题 |
 | 边缘优先 | 全球 300+ Cloudflare 节点，无冷启动，API 响应 <50ms |
 | 零服务器 | 完全 Serverless，无购买维护服务器成本 |
 | 前端计算 | 90% 工具浏览器端运算，隐私安全，无网络往返 |
@@ -37,9 +37,9 @@ IT Toolbox 是面向开发者的在线工具箱，集成 140+ 款高频开发工
                                       │
                                       ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                      Cloudflare Pages (CDN)                                  │
+│                      Cloudflare Workers                                      │
 │  ┌─────────────────────────────┐  ┌─────────────────────────────────────┐  │
-│  │  静态资源 (dist/)            │  │  Pages Functions (边缘计算)          │  │
+│  │  静态资源 (dist/)            │  │  Worker API (边缘计算)               │  │
 │  │  • index.html               │  │  • /api/ip      IP 查询              │  │
 │  │  • assets/*.js              │  │  • /api/dns     DNS 查询             │  │
 │  │  • assets/*.css             │  │  • /api/ai/*    AI 增强              │  │
@@ -61,7 +61,7 @@ IT Toolbox 是面向开发者的在线工具箱，集成 140+ 款高频开发工
 │  ┌─────────────────────────────────────────────────────────────────────┐    │
 │  │  it-toolbox/                                                         │    │
 │  │  ├── src/           (前端源码)                                        │    │
-│  │  ├── functions/     (Pages Functions)                                │    │
+│  │  ├── functions/     (Worker 入口 + API)                              │    │
 │  │  ├── packages/      (共享包)                                          │    │
 │  │  └── wrangler.toml  (配置文件)                                        │    │
 │  └─────────────────────────────────────────────────────────────────────┘    │
@@ -128,13 +128,12 @@ it-toolbox/
 │   ├── registry.ts               # 工具注册表 (核心)
 │   └── routeTree.tsx             # 路由配置
 │
-├── functions/                    # Cloudflare Pages Functions
-│   └── api/
-│       ├── [[route]].ts          # Hono 入口 (统一路由)
-│       └── routes/               # API 路由模块
-│           ├── ip.ts             # IP 查询接口
-│           ├── dns.ts            # DNS 查询接口
-│           └── ai.ts             # AI 增强接口
+├── functions/                    # Cloudflare Workers 后端
+│   ├── worker.ts                 # Worker 入口 (createApp + ASSETS 分发)
+│   └── api/routes/               # API 路由模块
+│       ├── ip.ts                 # IP 查询接口
+│       ├── dns.ts                # DNS 查询接口
+│       └── ai.ts                 # AI 增强接口
 │
 ├── packages/                     # 共享包
 │   ├── core/                     # 核心计算逻辑
@@ -218,7 +217,7 @@ it-toolbox/
 
 ### 4.4 平台能力边界
 
-选型的硬约束来自 Cloudflare Pages Functions 的能力范围。下表是决定「哪些工具能做、怎么做」的依据：
+选型的硬约束来自 Cloudflare Workers 的能力范围。下表是决定「哪些工具能做、怎么做」的依据：
 
 | 能力 / Binding | 支持 | 本项目 | 说明 |
 | :--- | :---: | :---: | :--- |
@@ -233,10 +232,10 @@ it-toolbox/
 | Analytics Engine | ✅ | 未用 | 可作为后续用量统计的落点，目前无埋点 |
 | Service Bindings | ✅ | 未用 | 单 Worker 足够，没有拆分子服务的必要 |
 | WebSocket（服务端） | ✅ | 未用 | AI 接口当前为一次性返回，未做流式 |
-| Cron Triggers | ❌ | — | Pages Functions 不支持定时任务，汇率缓存改为请求触发的懒刷新 |
-| Durable Objects（自定义类） | ❌ | — | Pages Functions 无法定义 DO 类，限流方案因此整体放弃 |
-| Cloudflare Queues | ❌ | — | 不能作为 Queue Consumer |
-| TCP Socket | ❌ | — | 无法直连 MySQL/PostgreSQL |
+| Cron Triggers | ✅ | 未用 | Workers 支持定时任务，但汇率缓存采用请求触发的懒刷新，无需常驻调度 |
+| Durable Objects（自定义类） | ✅ | 未用 | Workers 可定义 DO 类，限流仍按上层速率规则实现，代码内不维护计数器 |
+| Cloudflare Queues | ✅ | 未用 | 可作为 Queue Consumer，当前没有异步任务 |
+| TCP Socket | ✅ | 未用 | `connect()` 可直连数据库，但项目不引入外部数据库 |
 
 由此得出两条架构结论：约 90% 的工具是纯前端计算（纯 JS 计算 ~60%、Web Crypto ~15%、Canvas ~5%），不经过后端；后端只承担 IP/DNS/汇率/WHOIS/证书/AI 这六类必须有出网能力的场景。凡是需要常驻状态或定时调度的设计，在选型阶段就直接排除。
 
@@ -405,32 +404,37 @@ export * from './number'
 ### 6.1 Hono 路由入口
 
 ```typescript
-// functions/api/[[route]].ts
+// functions/app.ts —— 路由装配
 import { Hono } from 'hono'
-import { handle } from 'hono/cloudflare-pages'
 import { cors } from 'hono/cors'
-import { ipRoute } from './routes/ip'
-import { dnsRoute } from './routes/dns'
-import { aiRoute } from './routes/ai'
+import { ipRoute } from './api/routes/ip'
+import { dnsRoute } from './api/routes/dns'
+import { aiRoute } from './api/routes/ai'
 
-export interface Env {
-  CACHE: KVNamespace
-  AI: Ai
-  ENVIRONMENT: string
-  EXCHANGE_API_KEY: string
+export function createApp() {
+  const app = new Hono<{ Bindings: Env }>()
+
+  app.use('/api/*', cors())
+  app.get('/api/health', (c) => c.json({ ok: true, ts: Date.now() }))
+  app.route('/api/ip', ipRoute)
+  app.route('/api/dns', dnsRoute)
+  app.route('/api/ai', aiRoute)
+
+  return app
 }
 
-const app = new Hono<{ Bindings: Env }>()
+// functions/worker.ts —— Worker 入口，/api/* 交给 Hono，其余读取 ASSETS
+const app = createApp()
 
-app.use('/api/*', cors())
-
-app.get('/api/health', (c) => c.json({ ok: true, ts: Date.now() }))
-
-app.route('/api/ip', ipRoute)
-app.route('/api/dns', dnsRoute)
-app.route('/api/ai', aiRoute)
-
-export const onRequest = handle(app)
+export default {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext) {
+    const { pathname } = new URL(request.url)
+    if (pathname === '/api' || pathname.startsWith('/api/')) {
+      return app.fetch(request, env, ctx)
+    }
+    return env.ASSETS.fetch(request)
+  },
+}
 ```
 
 ### 6.2 API 接口清单
@@ -523,7 +527,7 @@ export default defineConfig({
 
 | 方向 | 措施 |
 |------|------|
-| 同域架构 | Pages Functions 与前端同域，天然无跨域 |
+| 同域架构 | Worker 与静态资源同域，天然无跨域 |
 | 前端隐私计算 | 密码、密钥、敏感数据浏览器端处理 |
 | 输入校验 | Hono 路由层校验参数，AI 接口限制输入长度 |
 | Secrets 管理 | API Key 存 Cloudflare Secrets，不写入代码仓库 |
@@ -623,9 +627,9 @@ export default function XxxTool() {
          │
          ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                   后端 API (functions/api/)                      │
+│                   后端 API (functions/)                           │
 │  ┌──────────────────────────────────────────────────────────┐  │
-│  │                    [[route]].ts (Hono 入口)              │  │
+│  │                    worker.ts (Worker 入口)                │  │
 │  └──────────────────────────────────────────────────────────┘  │
 │         │                                                       │
 │         ├────────────┬────────────┬────────────┐               │
@@ -645,26 +649,26 @@ export default function XxxTool() {
 
 ### 12.1 放弃 Durable Objects 限流
 
-公共服务不做限流；且 Pages Functions 无法定义 DO 类，早期方案里「用 DO 做计数器」本身在平台上不可实现。限流改为上层策略（Cloudflare 平台的速率规则），代码内不维护计数器。
+公共服务不做限流。迁移到 Workers 后 DO 已可用，但「不维护服务端计数器」是既定取舍，限流仍交给上层策略（Cloudflare 平台的速率规则），代码内不做计数。
 
-### 12.2 部署走 Pages 直连，Actions 只做质量门禁
+### 12.2 部署走 Workers Builds，Actions 只做质量门禁
 
 早先方案用 Actions 同时做构建、部署。现在职责拆开：
 
-- **部署**：Cloudflare Pages 直连 GitHub，`push main` 即构建上线，不需要 Actions 参与，也不需要部署密钥。
+- **部署**：Cloudflare Workers 直连 GitHub（Workers Builds），`push main` 即执行 `pnpm build` + `npx wrangler deploy`，不需要 Actions 参与，也不需要自建部署密钥。
 - **校验**：`.github/workflows/ci.yml` 保留两个 job —— `verify`（typecheck → typecheck:api → lint → test → build）与 `e2e`（Playwright），只做挡板，不产出部署物。
 
-这样合并请求有统一门禁，部署链路又只有一条，不会出现 Actions 部署与 Pages 部署互相覆盖的情况。
+这样合并请求有统一门禁，部署链路又只有一条，不会出现 Actions 部署与平台部署互相覆盖的情况。
 
-### 12.3 放弃 Wrangler CLI 手动部署
+### 12.3 手写 wrangler 命令只用于应急发布
 
-`wrangler` 只保留本地调试用途，生产部署不执行 `wrangler deploy`。手工部署会与 Git 历史脱节，也无法保证线上版本可追溯到某个提交。
+常规发布由 Workers Builds 执行 `npx wrangler deploy`，部署物始终对应某个提交。本地 `pnpm deploy` 仅用于平台不可用时的应急发布，不作为日常链路。
 
-### 12.4 binding 不进仓库，只在 Dashboard 绑定
+### 12.4 部署配置入库，账号资源 ID 不入库
 
-仓库里只有 `wrangler.example.toml` 作为本地开发模板，`wrangler.toml` 写进 `.gitignore`。生产环境的 KV / AI binding 在 Cloudflare Dashboard 的 Settings → Functions 中配置。
+`wrangler.toml` 纳入版本管理，声明 `main`、`[assets]`、`[ai]` 等与代码强相关的配置——这些是代码资产，缺了平台就无法判断该部署什么。KV 的 namespace ID 属于账号资源，保持注释状态，由部署者填入自己的 ID。
 
-原因：binding ID 属于账号资源，不是代码资产。提交真实 ID 会让 fork 用户继承并误用他人命名空间，也会把账号内部标识泄露到公开仓库。代价是首次部署要手动点一遍，属于一次性成本。
+原因：binding ID 不是代码资产，提交真实 ID 会让 fork 用户继承并误用他人命名空间。代价是首次部署要手动建一次 KV，属于一次性成本。
 
 ### 12.5 KV 只做缓存，不做业务状态
 

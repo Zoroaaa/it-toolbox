@@ -25,7 +25,7 @@ IT Toolbox 是一款面向开发者的在线工具箱，集成了 144 款高频�
 直接访问部署地址即可使用：
 
 ```
-https://it-toolbox.pages.dev
+https://ittool.wort.uk
 ```
 
 ### 本地运行

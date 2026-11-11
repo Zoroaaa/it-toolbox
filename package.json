@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "pnpm typecheck && vite build",
     "preview": "vite preview",
-    "pages:dev": "wrangler pages dev dist --compatibility-date=2024-11-01 --port 8788",
+    "api:dev": "wrangler dev --port 8788",
     "typecheck": "tsc --noEmit",
     "typecheck:api": "tsc -p functions/tsconfig.json --noEmit",
     "lint": "eslint src packages functions --ext .ts,.tsx",
@@ -23,7 +23,7 @@
     "icons:check": "node scripts/generate-icon-map.mjs --check",
     "report:bundle": "node scripts/report-bundle.mjs",
     "check": "pnpm typecheck && pnpm typecheck:api && pnpm lint && pnpm test && pnpm audit:meta --check && pnpm icons:check && node scripts/check-store-selectors.mjs",
-    "deploy": "pnpm check && vite build && wrangler pages deploy dist --project-name=it-toolbox"
+    "deploy": "pnpm check && vite build && wrangler deploy"
   },
   "dependencies": {
     "@faker-js/faker": "^9.0.0",
@@ -75,7 +75,7 @@
     "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.0.0",
+    "@cloudflare/workers-types": "^5.0.0",
     "@eslint/js": "^9.0.0",
     "@playwright/test": "^1.64.1",
     "@types/bcryptjs": "^2.4.0",
@@ -109,6 +109,6 @@
     "vite-plugin-pwa": "^1.2.0",
     "vitest": "^3.2.7",
     "workbox-window": "^7.4.0",
-    "wrangler": "^3.0.0"
+    "wrangler": "^4.0.0"
   }
 }

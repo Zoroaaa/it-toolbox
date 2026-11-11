@@ -1,0 +1,32 @@
+# Cloudflare Workers 部署配置
+# GitHub 集成部署（Workers Builds）会读取本文件：构建 pnpm build → 执行 npx wrangler deploy
+name = "it-toolbox"
+
+# Worker 入口：/api/* 走 Hono，其余请求交给静态资源
+main = "functions/worker.ts"
+
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+# 静态资源：Vite 构建产物（pnpm build 输出到 dist）
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+# SPA 路由回退到 index.html（/api 已通过 run_worker_first 先交给 Worker）
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*"]
+
+[vars]
+ENVIRONMENT = "production"
+
+# Workers AI：无需额外 ID，部署时自动绑定
+[ai]
+binding = "AI"
+
+# KV 缓存：/api/ip、/api/dns、/api/whois 等带缓存的接口依赖此绑定
+[[kv_namespaces]]
+binding = "CACHE"
+id = "7fd0a5eff59f466cbc71335ad3c843bb"
+
+# Secrets 不写进仓库，用 CLI 或 Dashboard 配置：
+# npx wrangler secret put EXCHANGE_API_KEY
